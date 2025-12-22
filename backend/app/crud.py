@@ -3,6 +3,9 @@ import logging
 from sqlalchemy.orm import Session
 from . import models, schemas
 from .config import IMAGE_DIR
+from typing import List, Optional
+from uuid import UUID
+from datetime import datetime
 
 # ----------Roles---------
 def get_roles(db: Session):
@@ -160,10 +163,89 @@ def delete_transaction(db: Session, transaction_id: int):
 
 
 # -------------Properties---------------
-def get_property(db: Session):
-    return db.query(models.Property).all()
+def get_properties(db: Session, skip: int = 0, limit: int = 100) -> List[models.Property]:
+    return db.query(models.Property).offset(skip).limit(limit).all()
 
-def get_property_by_id(db: Session, property_id: str):
-    return db.query(models.Property).get(property_id)
+def get_property_by_uuid(db: Session, uuid: UUID) -> Optional[models.Property]:
+    return db.query(models.Property).get(uuid)
 
-def create_property(db: Session, data: schemas.PropertyCreate):
+
+def create_property(db: Session, prop: schemas.PropertyCreate) -> models.Property:
+    db_prop = models.Property(
+        active=prop.active,
+        date_of_activation=prop.date_of_activation,
+        date_of_change=prop.date_of_change,
+        date_of_revision=prop.date_of_revision,
+        date_of_version=prop.date_of_version,
+        date_of_deactivation=prop.date_of_deactivation,
+        version=prop.version,
+        number_of_revision=prop.number_of_revision,
+        list_of_replaced_properties=prop.list_of_replaced_properties,
+        list_of_replacing_properties=prop.list_of_replacing_properties,
+        reason_for_rejection=prop.reason_for_rejection,
+        relation_to_other_catalogues=prop.relation_to_other_catalogues,
+        language_of_creator=prop.language_of_creator,
+        name=prop.name,
+        definition=prop.definition,
+        description=prop.description,
+        examples=prop.examples,
+        related_properties=prop.related_properties,
+        groups=prop.groups,
+        symbols=prop.symbols,
+        picture_url=prop.picture_url,
+        used_in_countries=prop.used_in_countries,
+        subdivision_of_usage=prop.subdivision_of_usage,
+        country_of_origin=prop.country_of_origin,
+        physical_quantity=prop.physical_quantity,
+        dimension=prop.dimension,
+        measurement_method=prop.measurement_method,
+        data_type=prop.data_type,
+        dynamic=prop.dynamic,
+        dynamic_parameter=prop.dynamic_parameter,
+        units=prop.units,
+        name_of_defining_values=prop.name_of_defining_values,
+        defining_values=prop.defining_values,
+        tolerance=prop.tolerance,
+        digital_format=prop.digital_format,
+        textformat=prop.textformat,
+        possible_values=prop.possible_values,
+        limit_values=prop.limit_values,
+    )
+
+    db.add(db_prop)
+    db.commit()
+    db.refresh(db_prop)
+    return db_prop
+
+def update_property(db: Session, uuid: UUID, prop: schemas.PropertyUpdate) -> Optional[models.Property]:
+    db_prop = get_property_by_uuid(db, uuid=uuid)
+    if not db_prop:
+        return None
+
+    update_data = property.dict(exclude_unset=True)
+    update_data["date_of_change"] = datetime.now()
+
+    for field, value in update_data.items():
+        setattr(db_prop, field, value)
+
+    db.commit()
+    db.refresh(db_prop)
+    return db_prop
+
+def delete_property(db: Session, uuid: UUID) -> bool:
+    db_prop = get_property_by_uuid(db, uuid=uuid)
+    if not db_prop:
+        return False
+
+    db.delete(db_prop)
+    db.commit()
+    return True
+
+def get_properties_by_group(db: Session, group_uuid: UUID) -> List[models.Property]:
+    return db.query(models.Property).filter(models.Property.groups.contains([group_uuid])).all()
+
+def search_properties(db: Session, search_term: str, limit: int = 50) -> List[models.Property]:
+    return db.query(models.Property).filter(
+        (models.Property.name.ilike(f"%{search_term}%")) |
+        (models.Property.definition.ilike(f"%{search_term}%"))
+    ).limit(limit).all()

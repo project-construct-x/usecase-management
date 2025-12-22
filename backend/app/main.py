@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import useCases, subUseCases, roles, transactions
+from app.routes import useCases, subUseCases, roles, transactions, properties
 from app.config import IMAGE_DIR
 
 app = FastAPI()
@@ -9,8 +9,10 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost:3000",
         "http://localhost:5173",
-        "http://localhost:3000"
+        "http://132.195.69.123:3000",
+        "http://132.195.69.123:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -24,3 +26,4 @@ app.include_router(useCases.router)
 app.include_router(subUseCases.router)
 app.include_router(roles.router)
 app.include_router(transactions.router)
+app.include_router(properties.router)

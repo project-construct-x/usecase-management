@@ -7,14 +7,14 @@ export interface Column<T> {
     render?: (row: T) => React.ReactNode;
 }
 
-interface Props<T extends { id: number }> {
+interface Props<T extends { id: number | string}> {
     columns: Column<T>[];
     rows: T[];
     basePath: string;
-    onDelete: (id: number) => void;
+    onDelete: (id: number | string) => void;
 }
 
-export default function CrudTable<T extends { id: number }>({
+export default function CrudTable<T extends { id: number | string }>({
                                                                 columns,
                                                                 rows,
                                                                 basePath,

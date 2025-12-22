@@ -7,6 +7,8 @@ import SubUseCaseList from "./pages/SubUseCaseList.tsx";
 import SubUseCaseDetail from "./pages/SubUseCaseDetail.tsx";
 import TransactionList from "./pages/TransactionList.tsx";
 import TransactionDetail from "./pages/TransactionDetail.tsx";
+import PropertyList from "./pages/PropertyList.tsx";
+import PropertyDetail from "./pages/PropertyDetail.tsx";
 
 export default function App() {
     return (
@@ -108,6 +110,8 @@ export default function App() {
                     <Route path="/roles/:id" element={<RoleDetail />} />
                     <Route path="/transactions" element={<TransactionList />} />
                     <Route path="/transactions/:id" element={<TransactionDetail />} />
+                    <Route path="/properties" element={<PropertyList />} />
+                    <Route path="/properties/:uuid" element={<PropertyDetail />} />
                 </Routes>
             </main>
         </div>
