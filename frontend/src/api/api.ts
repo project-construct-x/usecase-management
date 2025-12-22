@@ -5,6 +5,8 @@ import type {
     Transaction,
     UseCaseCreate,
     SubUseCaseCreate,
+    Property,
+
 } from "../types.ts";
 
 export const BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
@@ -99,4 +101,22 @@ export const api = {
         }),
     deleteTransaction: (id: number) =>
         request<void>(`/transactions/${id}`, {method: "DELETE"}),
+
+    // ---Transactions---
+    listProperties: () => request<Property[]>("/properties/"),
+    getProperty: (uuid: string) => request<Property>(`/properties/${uuid}`),
+    createProperty: (data: Partial<Property>) =>
+        request<Property>(`/properties/`, {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: { "Content-Type": "application/json"},
+        }),
+    updateProperty: (uuid: string, data: Partial<Property>) =>
+        request<Property>(`/properties/${uuid}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+            headers: { "Content-Type": "application/json"},
+        }),
+    deleteProperty: (uuid: string) =>
+        request<void>(`/properties/${uuid}`, {method: "DELETE"}),
 }
