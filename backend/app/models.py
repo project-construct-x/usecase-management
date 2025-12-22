@@ -1,9 +1,9 @@
 import uuid
-from sqlalchemy import Boolean, Column, Date, Enum, Integer, String, ForeignKey, Table, ARRAY, DateTime, func
+from sqlalchemy import Boolean, Column, Date, Enum, Integer, String, ForeignKey, Table, DateTime, func
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import UUID as PRUUID
 import enum
-
 from .db import Base
 
 # Many-to-Many Beziehung zwischen UseCase/SubUseCase und Role
@@ -81,7 +81,7 @@ class Role(Base):
 
 class Property(Base):
     __tablename__ = "properties"
-    UUID = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, info={
+    UUID = Column(PRUUID(as_uuid=True), primary_key=True, default=uuid.uuid4, info={
         'code': 'PA001',
         'name': 'global eindeutiger Bezeichner',
         'beschreibung': 'global eindeutiger Bezeichner',
@@ -141,13 +141,13 @@ class Property(Base):
         'beschreibung': 'Diese Nummer der Überarbeitung ermöglicht die Verfolgung kleinerer Änderungen, z. B. neue Übersetzung, Korrekturen von Tippfehlern: wenn sich die Versionsnummer ändert, beginnt die Nummer der Überarbeitung wieder bei 1. Sachverständige entscheiden, ob eine neue Nummer der Überarbeitung angewendet werden kann oder ob eine neue Überarbeitung erforderlich ist.',
         'beispiel': '3',
     })
-    list_of_replaced_properties = Column(ARRAY(UUID(as_uuid=True)), nullable=True, info={
+    list_of_replaced_properties = Column(ARRAY(PRUUID(as_uuid=True)), nullable=True, info={
         'code': 'PA011',
         'name': 'Liste ersetzter Merkmale',
         'beschreibung': 'global eindeutiger Bezeichner (Attribut PA001) des ersetzten Merkmals (oder der Merkmale)',
         'beispiel': '(946DA01F-9ABD-4D9D-80C7-02AF-85C822A8,946DA01F-9ABD-4D9D-80C7-02AF85C822A9)',
     })
-    list_of_replacing_properties = Column(ARRAY(UUID(as_uuid=True)), nullable=True, info={
+    list_of_replacing_properties = Column(ARRAY(PRUUID(as_uuid=True)), nullable=True, info={
         'code': 'PA012',
         'name': 'Liste ersetzender Merkmale',
         'beschreibung': 'global eindeutiger Bezeichner (Attribut PA001) des ersetzenden Merkmals (oder der Merkmale)',
@@ -195,19 +195,19 @@ class Property(Base):
         'beschreibung': 'Liste von Paaren (Beispielwerte, Sprache) dieses Attribut kann zur Veranschaulichung der möglichen Werte des Merkmals verwendet',
         'beispiel': '',
     })
-    related_properties = Column(ARRAY(UUID(as_uuid=True)), nullable=True, info={
+    related_properties = Column(ARRAY(PRUUID(as_uuid=True)), nullable=True, info={
         'code': 'PA020',
         'name': 'Verbundene Merkmale',
         'beschreibung': 'Liste der global eindeutigen Bezeichner der verbundenen Merkmale (Attribut PA001); der Wert eines Merkmals steht zu den Werten der anderen in einer Beziehung. Beispielsweise ist ein Schallabsorptionsgrad für eine bestimmte Frequenz gegeben, in diesem Fall sind Schallabsorptionsgrad und Frequenz verbundene Merkmale.',
         'beispiel': '(945DA01F-9BBD-4D9D-80C7-02AF-85C822A8, 945DA01F-9BBD-4D9D-80C7-02AF85C822A7)',
     })
-    groups = Column(ARRAY(UUID(as_uuid=True)), nullable=False, info={
+    groups = Column(ARRAY(PRUUID(as_uuid=True)), nullable=False, info={
         'code': 'PA021',
         'name': 'Merkmalsgruppe(n) (Alternative Verwendung, Klasse, zusammengesetztes Merkmal, Domäne, Referenzdokument',
         'beschreibung': 'Liste von global eindeutigen Bezeichnern von Merkmalsgruppen (Attribut GA001), denen das Merkmal angehört',
         'beispiel': '(945DA01F-9BBD-4D9D-80C7-02AF-85C822A8, 945DA01F-9BBD-4D9D-80C7-02AF85C822A7)',
     })
-    symbols = Column(ARRAY, nullable=True, info={
+    symbols = Column(ARRAY(String), nullable=True, info={
         'code': 'PA022',
         'name': 'Symbole des Merkmals in einer gegebenen Merkmalsgruppe',
         'beschreibung': 'Liste von Paaren (Symbol des Merkmals, global eindeutiger Bezeichner der Merkmalsgruppe (Attribut GA001))',
@@ -267,7 +267,7 @@ class Property(Base):
         'beschreibung': 'wenn es sich um ein dynamisches Merkmal handelt, hängt der Wert von den im Attribut PA032 bereitgestellten Parametern ab',
         'beispiel': 'nein',
     })
-    dynamic_parameter = Column(ARRAY(UUID(as_uuid=True)), nullable=True, info={
+    dynamic_parameter = Column(ARRAY(PRUUID(as_uuid=True)), nullable=True, info={
         'code': 'PA032',
         'name': 'Parameter des dynamischen Merkmals',
         'beschreibung': 'Liste von GUIDs von Merkmalen, welche Parameter der Funktion für ein dynamisches Merkmal sind',
@@ -333,7 +333,7 @@ class Category(enum.Enum):
 
 class PropertyGroup(Base):
     __tablename__ = "propertyGroups"
-    UUID = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, info={
+    UUID = Column(PRUUID(as_uuid=True), primary_key=True, default=uuid.uuid4, info={
         'code': 'GA001',
         'name': 'global eindeutiger Bezeichner',
         'beschreibung': 'global eindeutiger Bezeichner',
@@ -393,13 +393,13 @@ class PropertyGroup(Base):
         'beschreibung': 'Diese Nummer der Überarbeitung ermöglicht die Verfolgung kleinerer Änderungen, z. B. neue Übersetzung, Korrekturen von Tippfehlern: wenn sich die Versionsnummer ändert, beginnt die Nummer der Überarbeitung wieder bei 1. Sachverständige entscheiden, ob eine neue Nummer der Überarbeitung angewendet werden kann oder ob eine neue Überarbeitung erforderlich ist.',
         'beispiel': '3',
     })
-    list_of_replaced_property_groups = Column(ARRAY(UUID(as_uuid=True)), nullable=True, info={
+    list_of_replaced_property_groups = Column(ARRAY(PRUUID(as_uuid=True)), nullable=True, info={
         'code': 'GA011',
         'name': 'Liste ersetzter Merkmalsgruppen',
         'beschreibung': 'Liste von globalen Bezeichnern für die ersetzten Merkmalsgruppen',
         'beispiel': '(946DA01F-9ABD-4D9D-80C7-02AF-85C822A8,946DA01F-9ABD-4D9D-80C7-02AF85C822A9)',
     })
-    list_of_replacing_property_groups = Column(ARRAY(UUID(as_uuid=True)), nullable=True, info={
+    list_of_replacing_property_groups = Column(ARRAY(PRUUID(as_uuid=True)), nullable=True, info={
         'code': 'GA012',
         'name': 'Liste ersetzender Merkmalsgruppen',
         'beschreibung': 'Liste von globalen Bezeichnern für die ersetzenden Merkmalsgruppen',
@@ -465,7 +465,7 @@ class PropertyGroup(Base):
         'beschreibung': 'gibt die Kategorie der erstellten Merkmalsgruppe an',
         'beispiel': 'Liste von Kategorien der Merkmalsgruppe: alternative Verwendung, Klasse, zusammengesetztes Merkmal, Domäne, Referenzdokument',
     })
-    groups = Column(ARRAY(UUID(as_uuid=True)), nullable=True, info={
+    groups = Column(ARRAY(PRUUID(as_uuid=True)), nullable=True, info={
         'code': 'GA023',
         'name': 'übergeordnete Merkmalsgruppen',
         'beschreibung': 'ermöglicht die Verknüpfung einer Untergruppe mit einer übergeordneten Gruppe über ihre global eindeutigen Bezeichner (Attribut GA001) jedes einer Gruppe zugehörige Merkmal wird von der/den Untergruppe(n) übernommen',
