@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import useCases, subUseCases, roles, transactions, properties
+from app.routes import useCases, subUseCases, roles, transactions, properties, propertyGroups
 from app.config import IMAGE_DIR
 
 app = FastAPI()
@@ -27,3 +27,4 @@ app.include_router(subUseCases.router)
 app.include_router(roles.router)
 app.include_router(transactions.router)
 app.include_router(properties.router)
+app.include_router(propertyGroups.router)

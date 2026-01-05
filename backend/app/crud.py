@@ -4,8 +4,19 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 from .config import IMAGE_DIR
 from typing import List, Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 from datetime import datetime
+
+
+def set_creation_timestamps(obj):
+    """Setzt alle Timestamps beim Erstellen"""
+    now = datetime.now()
+    obj.date_of_activation = now
+    obj.date_of_change = now
+    obj.date_of_revision = now
+    obj.date_of_version = now
+    return obj
+
 
 # ----------Roles---------
 def get_roles(db: Session):
@@ -171,46 +182,11 @@ def get_property_by_uuid(db: Session, uuid: UUID) -> Optional[models.Property]:
 
 
 def create_property(db: Session, prop: schemas.PropertyCreate) -> models.Property:
-    db_prop = models.Property(
-        active=prop.active,
-        date_of_activation=prop.date_of_activation,
-        date_of_change=prop.date_of_change,
-        date_of_revision=prop.date_of_revision,
-        date_of_version=prop.date_of_version,
-        date_of_deactivation=prop.date_of_deactivation,
-        version=prop.version,
-        number_of_revision=prop.number_of_revision,
-        list_of_replaced_properties=prop.list_of_replaced_properties,
-        list_of_replacing_properties=prop.list_of_replacing_properties,
-        reason_for_rejection=prop.reason_for_rejection,
-        relation_to_other_catalogues=prop.relation_to_other_catalogues,
-        language_of_creator=prop.language_of_creator,
-        name=prop.name,
-        definition=prop.definition,
-        description=prop.description,
-        examples=prop.examples,
-        related_properties=prop.related_properties,
-        groups=prop.groups,
-        symbols=prop.symbols,
-        picture_url=prop.picture_url,
-        used_in_countries=prop.used_in_countries,
-        subdivision_of_usage=prop.subdivision_of_usage,
-        country_of_origin=prop.country_of_origin,
-        physical_quantity=prop.physical_quantity,
-        dimension=prop.dimension,
-        measurement_method=prop.measurement_method,
-        data_type=prop.data_type,
-        dynamic=prop.dynamic,
-        dynamic_parameter=prop.dynamic_parameter,
-        units=prop.units,
-        name_of_defining_values=prop.name_of_defining_values,
-        defining_values=prop.defining_values,
-        tolerance=prop.tolerance,
-        digital_format=prop.digital_format,
-        textformat=prop.textformat,
-        possible_values=prop.possible_values,
-        limit_values=prop.limit_values,
-    )
+    db_prop = models.Property(**prop.dict())
+    set_creation_timestamps(db_prop)
+
+    # Nur dieses Feld manuell setzen (das ist nicht im Schema)
+    db_prop.groups = db_prop.groups or []  # Statt [uuid4()]
 
     db.add(db_prop)
     db.commit()
@@ -222,7 +198,7 @@ def update_property(db: Session, uuid: UUID, prop: schemas.PropertyUpdate) -> Op
     if not db_prop:
         return None
 
-    update_data = property.dict(exclude_unset=True)
+    update_data = prop.dict(exclude_unset=True)
     update_data["date_of_change"] = datetime.now()
 
     for field, value in update_data.items():
@@ -248,4 +224,73 @@ def search_properties(db: Session, search_term: str, limit: int = 50) -> List[mo
     return db.query(models.Property).filter(
         (models.Property.name.ilike(f"%{search_term}%")) |
         (models.Property.definition.ilike(f"%{search_term}%"))
+    ).limit(limit).all()
+
+
+# ----------- Property Group --------------
+def get_propertyGroups(db: Session, skip: int = 0, limit: int = 100) -> List[models.PropertyGroup]:
+    """Alle PropertyGroups mit Pagination abrufen"""
+    return db.query(models.PropertyGroup).offset(skip).limit(limit).all()
+
+
+def get_propertyGroup_by_uuid(db: Session, uuid: UUID) -> Optional[models.PropertyGroup]:
+    """PropertyGroup nach UUID abrufen"""
+    return db.query(models.PropertyGroup).filter(models.PropertyGroup.UUID == uuid).first()
+
+
+def create_propertyGroup(db: Session, property_group: schemas.PropertyGroupCreate) -> models.PropertyGroup:
+    db_property_group = models.PropertyGroup(**property_group.dict())
+    set_creation_timestamps(db_property_group)
+
+    db.add(db_property_group)
+    db.commit()
+    db.refresh(db_property_group)
+    return db_property_group
+
+
+def update_propertyGroup(db: Session, uuid: UUID, property_group: schemas.PropertyGroupUpdate) -> Optional[models.PropertyGroup]:
+    db_property_group = get_propertyGroup_by_uuid(db, uuid=uuid)
+    if not db_property_group:
+        return None
+
+    update_data = property_group.dict(exclude_unset=True)
+    update_data["date_of_change"] = datetime.now()
+
+    for field, value in update_data.items():
+        setattr(db_property_group, field, value)
+
+    db.commit()
+    db.refresh(db_property_group)
+    return db_property_group
+
+
+def delete_propertyGroup(db: Session, uuid: UUID) -> bool:
+    """PropertyGroup löschen"""
+    db_property_group = get_propertyGroup_by_uuid(db, uuid=uuid)
+    if not db_property_group:
+        return False
+
+    db.delete(db_property_group)
+    db.commit()
+    return True
+
+def get_propertyGroups_by_category(db: Session, category: str) -> List[models.PropertyGroup]:
+    """PropertyGroups nach Kategorie filtern"""
+    return db.query(models.PropertyGroup).filter(
+        models.PropertyGroup.category == category
+    ).all()
+
+
+def get_child_propertyGroups(db: Session, parent_uuid: UUID) -> List[models.PropertyGroup]:
+    """Alle Untergruppen einer PropertyGroup abrufen"""
+    return db.query(models.PropertyGroup).filter(
+        models.PropertyGroup.groups.contains([parent_uuid])
+    ).all()
+
+
+def search_propertyGroups(db: Session, search_term: str, limit: int = 50) -> List[models.PropertyGroup]:
+    """PropertyGroups nach Name oder Definition suchen"""
+    return db.query(models.PropertyGroup).filter(
+        (models.PropertyGroup.name.ilike(f"%{search_term}%")) |
+        (models.PropertyGroup.definition.ilike(f"%{search_term}%"))
     ).limit(limit).all()

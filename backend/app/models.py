@@ -201,7 +201,7 @@ class Property(Base):
         'beschreibung': 'Liste der global eindeutigen Bezeichner der verbundenen Merkmale (Attribut PA001); der Wert eines Merkmals steht zu den Werten der anderen in einer Beziehung. Beispielsweise ist ein Schallabsorptionsgrad für eine bestimmte Frequenz gegeben, in diesem Fall sind Schallabsorptionsgrad und Frequenz verbundene Merkmale.',
         'beispiel': '(945DA01F-9BBD-4D9D-80C7-02AF-85C822A8, 945DA01F-9BBD-4D9D-80C7-02AF85C822A7)',
     })
-    groups = Column(ARRAY(PRUUID(as_uuid=True)), nullable=False, info={
+    groups = Column(ARRAY(PRUUID(as_uuid=True)), nullable=True, info={ # TODO muss eigentlich nullable=False
         'code': 'PA021',
         'name': 'Merkmalsgruppe(n) (Alternative Verwendung, Klasse, zusammengesetztes Merkmal, Domäne, Referenzdokument',
         'beschreibung': 'Liste von global eindeutigen Bezeichnern von Merkmalsgruppen (Attribut GA001), denen das Merkmal angehört',
@@ -261,7 +261,7 @@ class Property(Base):
         'beschreibung': 'Format für die Angabe des Wertes des Merkmals dies kann aus einer Software-Perspektive als Speicherungsart verstanden werden im Falle eines dynamischen Merkmals ist der Wert dieses Attributs der Datentyp des Ergebnisses der Berechnung mit der Gleichung',
         'beispiel': '(numerisch, numerisch), reell, ganze Zahl, Feld (1..m) von ganzen Zahlen, Feld (1..2) von ganzen Zahlen, Feld (1..m , 1..n) von reellen Zahlen',
     })
-    dynamic = Column(String, nullable=True, info={
+    dynamic = Column(Boolean, nullable=False, default=False, info={
         'code': 'PA031',
         'name': 'dynamisches Merkmal',
         'beschreibung': 'wenn es sich um ein dynamisches Merkmal handelt, hängt der Wert von den im Attribut PA032 bereitgestellten Parametern ab',

@@ -45,11 +45,11 @@ export interface Transaction {
 export interface Property {
     UUID: string;
     active: boolean;
-    date_of_creation: string;
-    date_of_activation: string;
-    date_of_change: string;
-    date_of_revision: string;
-    date_of_version: string;
+    date_of_creation?: string | null;
+    date_of_activation?: string | null;
+    date_of_change?: string | null;
+    date_of_revision?: string | null;
+    date_of_version?: string | null;
     date_of_deactivation?: string | null;
     version: number;
     number_of_revision?: number | null;
@@ -63,7 +63,7 @@ export interface Property {
     description?: string | null;
     examples?: string | null;
     related_properties?: string[] | null;
-    groups: string[];
+    groups: string[] | null;
     symbols?: string[] | null;
     picture_url?: string | null;
     used_in_countries?: string[] | null;
@@ -73,7 +73,7 @@ export interface Property {
     dimension?: string | null;
     measurement_method?: string | null;
     data_type?: string | null;
-    dynamic?: string | null;
+    dynamic: boolean;
     dynamic_parameter?: string[] | null;
     units?: string[] | null;
     name_of_defining_values?: string[] | null;
@@ -85,21 +85,24 @@ export interface Property {
     limit_values?: string[] | null;
 }
 
-export type Category =
-    | "alternative_Verwendung"
-    | "Klasse"
-    | "zusammengesetztes_Merkmal"
-    | "Domäne"
-    | "Referenzdokument";
+export const Category = {
+    ALTERNATIVE_USAGE: "alternative_Verwendung",
+    CLASS: "Klasse",
+    COMPOSITE_PROPERTY: "zusammengesetztes_Merkmal",
+    DOMAIN: "Domäne",
+    REFERENCE_DOCUMENT: "Referenzdokument"
+} as const;
+
+export type Category = typeof Category[keyof typeof Category];
 
 export interface PropertyGroup {
     UUID: string;
     active: boolean;
-    date_of_creation: string;
-    date_of_activation: string;
-    date_of_change: string;
-    date_of_revision: string;
-    date_of_version: string;
+    date_of_creation?: string | null;
+    date_of_activation?: string | null;
+    date_of_change?: string | null;
+    date_of_revision?: string | null;
+    date_of_version?: string | null;
     date_of_deactivation?: string | null;
     version: number;
     number_of_revision?: number | null;

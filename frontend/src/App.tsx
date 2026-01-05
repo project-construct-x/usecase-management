@@ -9,6 +9,8 @@ import TransactionList from "./pages/TransactionList.tsx";
 import TransactionDetail from "./pages/TransactionDetail.tsx";
 import PropertyList from "./pages/PropertyList.tsx";
 import PropertyDetail from "./pages/PropertyDetail.tsx";
+import PropertyGroupList from "./pages/PropertyGroupList.tsx";
+import PropertyGroupDetail from "./pages/PropertyGroupDetail.tsx";
 
 export default function App() {
     return (
@@ -112,6 +114,8 @@ export default function App() {
                     <Route path="/transactions/:id" element={<TransactionDetail />} />
                     <Route path="/properties" element={<PropertyList />} />
                     <Route path="/properties/:uuid" element={<PropertyDetail />} />
+                    <Route path="/propertygroups" element={<PropertyGroupList />} />
+                    <Route path="/propertygroups/:uuid" element={<PropertyGroupDetail />} />
                 </Routes>
             </main>
         </div>
