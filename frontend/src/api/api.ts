@@ -6,13 +6,16 @@ import type {
     UseCaseCreate,
     SubUseCaseCreate,
     Property,
-
+    PropertyGroup
 } from "../types.ts";
 
 export const BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
-    const res = await fetch(`${BASE}${path}`, opts);
+    const res = await fetch(`${BASE}${path}`, opts)
+    //.then(res => res.json())
+    //.then(data => console.log('Response:', data))  // ← Hier steht der Fehler
+    //.catch(err => console.error('Error:', err));
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     if (res.status === 204) return null as T;
     return res.json() as Promise<T>;
@@ -102,7 +105,7 @@ export const api = {
     deleteTransaction: (id: number) =>
         request<void>(`/transactions/${id}`, {method: "DELETE"}),
 
-    // ---Transactions---
+    // ---Properties---
     listProperties: () => request<Property[]>("/properties/"),
     getProperty: (uuid: string) => request<Property>(`/properties/${uuid}`),
     createProperty: (data: Partial<Property>) =>
@@ -119,4 +122,22 @@ export const api = {
         }),
     deleteProperty: (uuid: string) =>
         request<void>(`/properties/${uuid}`, {method: "DELETE"}),
+
+    // ---Property Groups---
+    listPropertyGroups: () => request<PropertyGroup[]>("/propertygroups/"),
+    getPropertyGroup: (uuid: string) => request<PropertyGroup>(`/propertygroups/${uuid}`),
+    createPropertyGroup: (data: Partial<PropertyGroup>) =>
+        request<PropertyGroup>(`/propertygroups/`, {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: { "Content-Type": "application/json"},
+        }),
+    updatePropertyGroup: (uuid: string, data: Partial<PropertyGroup>) =>
+        request<PropertyGroup>(`/propertygroups/${uuid}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+            headers: { "Content-Type": "application/json"},
+        }),
+    deletePropertyGroup: (uuid: string) =>
+        request<void>(`/propertygroup/${uuid}`, {method: "DELETE"}),
 }

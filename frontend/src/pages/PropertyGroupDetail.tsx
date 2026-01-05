@@ -1,39 +1,45 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
-import type { Property } from "../types.ts";
+import type { PropertyGroup } from "../types.ts";
+import { Category } from "../types.ts";
 
-const emptyProperty: Partial<Property> = {
+const emptyPropertyGroup: Partial<PropertyGroup> = {
     active: true,
     name: "",
     definition: "",
     language_of_creator: "de-DE",
     version: 1,
-    groups: null,
-    dynamic: false,
+    groups: [],
+    category: "Klasse"
 };
 
-export default function PropertyDetail() {
+export default function PropertyGroupDetail() {
     const { uuid } = useParams();
     const navigate = useNavigate();
-    const [item, setItem] = useState<Partial<Property>>(emptyProperty);
+    const [item, setItem] = useState<Partial<PropertyGroup>>(emptyPropertyGroup);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<"basic" | "technical" | "metadata">("basic");
+    const categories = Object.entries(Category).map(([key, value]) => ({
+        key,
+        value,
+        label: value.replace(/_/g, ' ')
+    }));
 
     useEffect(() => {
         if (uuid !== "new") {
-            loadProperty();
+            loadPropertyGroup();
         }
     }, [uuid]);
 
-    async function loadProperty() {
+    async function loadPropertyGroup() {
         setLoading(true);
         try {
-            const data = await api.getProperty(uuid!);
+            const data = await api.getPropertyGroup(uuid!);
             setItem(data);
         } catch (error) {
             console.error("Fehler beim Laden:", error);
-            alert("Property konnte nicht geladen werden");
+            alert("Property Group konnte nicht geladen werden");
         } finally {
             setLoading(false);
         }
@@ -45,22 +51,23 @@ export default function PropertyDetail() {
 
         try {
             if (uuid === "new") {
-                const created = await api.createProperty(item);
-                navigate(`/properties/${created.UUID}`);
+                console.log(JSON.stringify(item))
+                const created = await api.createPropertyGroup(item);
+                navigate(`/propertygroups/${created.UUID}`);
             } else {
-                await api.updateProperty(uuid!, item);
-                await loadProperty();
-                alert("Property erfolgreich aktualisiert");
+                await api.updatePropertyGroup(uuid!, item);
+                await loadPropertyGroup();
+                alert("Property Group erfolgreich aktualisiert");
             }
         } catch (error) {
             console.error("Fehler beim Speichern:", error);
-            alert("Fehler beim Speichern des Properties");
+            alert("Fehler beim Speichern der Property Group");
         } finally {
             setLoading(false);
         }
     }
 
-    function updateField(field: keyof Property, value: any) {
+    function updateField(field: keyof PropertyGroup, value: any) {
         setItem(prev => ({ ...prev, [field]: value }));
     }
 
@@ -71,7 +78,7 @@ export default function PropertyDetail() {
     return (
         <div className="p-6 max-w-5xl mx-auto">
             <h1 className="text-2xl font-bold text-gray-800 mb-6">
-                {uuid === "new" ? "Neues Merkmal" : `Merkmal bearbeiten`}
+                {uuid === "new" ? "Neue Merkmalsgruppe" : `Merkmalgruppe bearbeiten`}
             </h1>
 
             <form onSubmit={handleSubmit}>
@@ -116,6 +123,21 @@ export default function PropertyDetail() {
                     {/* Grunddaten Tab */}
                     {activeTab === "basic" && (
                         <>
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-1">
+                                    Kategorie <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    required
+                                    value={item.category || ""}
+                                    onChange={(e) => updateField("category", e.target.value)}
+                                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    {categories.map(cat => (
+                                        <option key={cat.key} value={cat.value}>{cat.label}</option>
+                                    ))}
+                                </select>
+                            </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-gray-700 font-medium mb-1">
@@ -160,31 +182,6 @@ export default function PropertyDetail() {
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-1">
-                                    Beschreibung
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    value={item.description || ""}
-                                    onChange={(e) => updateField("description", e.target.value)}
-                                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-1">
-                                    Beispiele
-                                </label>
-                                <textarea
-                                    rows={2}
-                                    value={item.examples || ""}
-                                    onChange={(e) => updateField("examples", e.target.value)}
-                                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Beispielwerte für dieses Merkmal"
-                                />
-                            </div>
-
                             <div className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
@@ -203,118 +200,6 @@ export default function PropertyDetail() {
                     {/* Technische Daten Tab */}
                     {activeTab === "technical" && (
                         <>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-gray-700 font-medium mb-1">
-                                        Datentyp
-                                    </label>
-                                    <select
-                                        value={item.data_type || ""}
-                                        onChange={(e) => updateField("data_type", e.target.value)}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value="">Bitte wählen</option>
-                                        <option value="numerisch">Numerisch</option>
-                                        <option value="reell">Reell</option>
-                                        <option value="ganze Zahl">Ganze Zahl</option>
-                                        <option value="Text">Text</option>
-                                        <option value="Boolean">Boolean</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-700 font-medium mb-1">
-                                        Physikalische Größe
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={item.physical_quantity?.[0] || ""}
-                                        onChange={(e) => updateField("physical_quantity", [e.target.value])}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="z.B. Mass, Length, Temperature"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-gray-700 font-medium mb-1">
-                                        Dimension
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={item.dimension || ""}
-                                        onChange={(e) => updateField("dimension", e.target.value)}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="z.B. 10 −20000"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-700 font-medium mb-1">
-                                        Einheiten (kommagetrennt)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={item.units?.join(", ") || ""}
-                                        onChange={(e) => updateField("units", e.target.value.split(",").map(s => s.trim()))}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="z.B. m, mm, kg"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-1">
-                                    Messverfahren
-                                </label>
-                                <textarea
-                                    rows={2}
-                                    value={item.measurement_method || ""}
-                                    onChange={(e) => updateField("measurement_method", e.target.value)}
-                                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-1">
-                                    Mögliche Werte (kommagetrennt)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={item.possible_values?.join(", ") || ""}
-                                    onChange={(e) => updateField("possible_values", e.target.value.split(",").map(s => s.trim()))}
-                                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="z.B. Yes, No, Not Applicable"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="dynamic"
-                                        checked={item.dynamic || false}
-                                        onChange={(e) => updateField("dynamic", e.target.checked)}
-                                        className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <label htmlFor="active" className="text-gray-700 font-medium">
-                                        Dynamisches Merkmal
-                                    </label>
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-700 font-medium mb-1">
-                                        Toleranz
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={item.tolerance?.[0] || ""}
-                                        onChange={(e) => updateField("tolerance", [e.target.value])}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
-                            </div>
                         </>
                     )}
 
@@ -429,7 +314,7 @@ export default function PropertyDetail() {
                     </button>
                     <button
                         type="button"
-                        onClick={() => navigate("/properties")}
+                        onClick={() => navigate("/propertygroups")}
                         className="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300 transition-colors"
                     >
                         Zurück

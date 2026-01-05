@@ -1,5 +1,7 @@
 from app.db import engine, Base, SessionLocal
 from app import models
+from datetime import datetime, timezone
+import uuid
 
 
 def reset_database():
@@ -169,6 +171,124 @@ def seed_data():
         db.add_all(transactions)
         db.commit()
         print(f"  ✓ {len(transactions)} Transactions erstellt")
+
+        # -------- Property Group ---------
+        property_groups = [
+            models.PropertyGroup(
+                UUID=uuid.uuid4(),
+                active=True,
+                date_of_creation=datetime.now(timezone.utc),
+                date_of_activation=datetime.now(timezone.utc),
+                date_of_change=datetime.now(timezone.utc),
+                date_of_revision=datetime.now(timezone.utc),
+                date_of_version=datetime.now(timezone.utc),
+                version=1,
+                number_of_revision=0,
+                language_of_creator="de-DE",
+                name="Allgemeine Infos",
+                definition="Allgemeine Informationen zu einem Bauprodukt",
+                category=models.Category.DOMAIN,
+            ),
+            models.PropertyGroup(
+                UUID=uuid.uuid4(),
+                active=True,
+                date_of_creation=datetime.now(timezone.utc),
+                date_of_activation=datetime.now(timezone.utc),
+                date_of_change=datetime.now(timezone.utc),
+                date_of_revision=datetime.now(timezone.utc),
+                date_of_version=datetime.now(timezone.utc),
+                version=1,
+                number_of_revision=0,
+                language_of_creator="de-DE",
+                name="Doppelboden",
+                definition="Bauprodukt Doppelboden",
+                category=models.Category.CLASS,
+            ),
+            models.PropertyGroup(
+                UUID=uuid.uuid4(),
+                active=True,
+                date_of_creation=datetime.now(timezone.utc),
+                date_of_activation=datetime.now(timezone.utc),
+                date_of_change=datetime.now(timezone.utc),
+                date_of_revision=datetime.now(timezone.utc),
+                date_of_version=datetime.now(timezone.utc),
+                version=1,
+                number_of_revision=0,
+                language_of_creator="de-DE",
+                name="ESPR",
+                definition="Merkmale, die in der ESPR definiert werden.",
+                category=models.Category.REFERENCE_DOCUMENT,
+            )
+        ]
+        db.add_all(property_groups)
+        db.commit()
+        print(f"  ✓ {len(property_groups)} Merkmalsgruppen erstellt")
+
+        # -------- Properties --------
+        properties = [
+            models.Property(
+                UUID=uuid.uuid4(),
+                active=True,
+                date_of_creation=datetime.now(timezone.utc),
+                date_of_activation=datetime.now(timezone.utc),
+                date_of_change=datetime.now(timezone.utc),
+                date_of_revision=datetime.now(timezone.utc),
+                date_of_version=datetime.now(timezone.utc),
+                version=1,
+                number_of_revision=1,
+                language_of_creator="de-DE",
+                name="Wärmedurchgangskoeffizient",
+                definition="Der Wärmedurchgangskoeffizient gibt an, welcher Wärmestrom durch eine Fläche von 1 m² fließt, wenn auf beiden Seiten ein Temperaturunterschied von 1 Kelvin herrscht.",
+                description="Der U-Wert ist ein Maß für den Wärmeverlust durch ein Bauteil. Je kleiner der U-Wert, desto besser die Wärmedämmung.",
+                examples="Außenwand: 0,24 W/(m²·K), Fenster: 1,3 W/(m²·K), Dach: 0,20 W/(m²·K)",
+                groups=[property_groups[0].UUID, property_groups[2].UUID],
+                symbols=["U"],
+                used_in_countries=["DE", "AT", "CH", "EU"],
+                country_of_origin="DE",
+                physical_quantity=["Wärmedurchgangskoeffizient"],
+                dimension="1 0 -3 -1 0 0 0",  # M T^-3 Θ^-1
+                measurement_method="nach DIN EN ISO 6946 oder DIN 4108-4",
+                data_type="reell",
+                dynamic=False,
+                units=["W/(m²·K)"],
+                tolerance=["±0.01"],
+                digital_format=["1E-2", "W/(m²·K)"],
+                limit_values=["(0.1, 5.0)"],
+            ),
+            models.Property(
+                UUID=uuid.uuid4(),
+                active=True,
+                date_of_creation=datetime.now(timezone.utc),
+                date_of_activation=datetime.now(timezone.utc),
+                date_of_change=datetime.now(timezone.utc),
+                date_of_revision=datetime.now(timezone.utc),
+                date_of_version=datetime.now(timezone.utc),
+                version=1,
+                number_of_revision=0,
+                language_of_creator="de-DE",
+                name="Herstellername",
+                definition=".",
+                description="Der U-Wert ist ein Maß für den Wärmeverlust durch ein Bauteil. Je kleiner der U-Wert, desto besser die Wärmedämmung.",
+                examples="Außenwand: 0,24 W/(m²·K), Fenster: 1,3 W/(m²·K), Dach: 0,20 W/(m²·K)",
+                groups=[property_groups[0].UUID, property_groups[2].UUID],
+                symbols=["U"],
+                used_in_countries=["DE", "AT", "CH", "EU"],
+                country_of_origin="DE",
+                physical_quantity=["Wärmedurchgangskoeffizient"],
+                dimension="1 0 -3 -1 0 0 0",  # M T^-3 Θ^-1
+                measurement_method="nach DIN EN ISO 6946 oder DIN 4108-4",
+                data_type="reell",
+                dynamic=False,
+                units=["W/(m²·K)"],
+                tolerance=["±0.01"],
+                digital_format=["1E-2", "W/(m²·K)"],
+                limit_values=["(0.1, 5.0)"],
+            ),
+
+        ]
+        db.add_all(properties)
+        db.commit()
+        print(f"  ✓ {len(properties)} Merkmale erstellt")
 
         print("\n✅ Alle Testdaten erfolgreich eingefügt!")
 
