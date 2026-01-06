@@ -139,5 +139,5 @@ export const api = {
             headers: { "Content-Type": "application/json"},
         }),
     deletePropertyGroup: (uuid: string) =>
-        request<void>(`/propertygroup/${uuid}`, {method: "DELETE"}),
+        request<void>(`/propertygroups/${uuid}`, {method: "DELETE"}),
 }
