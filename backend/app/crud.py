@@ -234,7 +234,6 @@ def get_propertyGroups(db: Session, skip: int = 0, limit: int = 100) -> List[mod
 
 
 def get_propertyGroup_by_uuid(db: Session, uuid: UUID) -> Optional[models.PropertyGroup]:
-    """PropertyGroup nach UUID abrufen"""
     return db.query(models.PropertyGroup).filter(models.PropertyGroup.UUID == uuid).first()
 
 
@@ -265,7 +264,6 @@ def update_propertyGroup(db: Session, uuid: UUID, property_group: schemas.Proper
 
 
 def delete_propertyGroup(db: Session, uuid: UUID) -> bool:
-    """PropertyGroup löschen"""
     db_property_group = get_propertyGroup_by_uuid(db, uuid=uuid)
     if not db_property_group:
         return False
