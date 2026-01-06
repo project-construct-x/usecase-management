@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
-import type { Property } from "../types.ts";
+import type { Property, PropertyGroup } from "../types.ts";
+import { Search } from "lucide-react";
 
 const emptyProperty: Partial<Property> = {
     active: true,
@@ -9,7 +10,7 @@ const emptyProperty: Partial<Property> = {
     definition: "",
     language_of_creator: "de-DE",
     version: 1,
-    groups: null,
+    groups: [],
     dynamic: false,
 };
 
@@ -18,13 +19,50 @@ export default function PropertyDetail() {
     const navigate = useNavigate();
     const [item, setItem] = useState<Partial<Property>>(emptyProperty);
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<"basic" | "technical" | "metadata">("basic");
+    const [activeTab, setActiveTab] = useState<"basic" | "technical" | "metadata" | "groups">("basic");
+
+    const [allPropertyGroups, setAllPropertyGroups] = useState<PropertyGroup[]>([]);
+    const [filteredGroups, setFilteredGroups] = useState<PropertyGroup[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
     useEffect(() => {
+        loadPropertyGroups();
         if (uuid !== "new") {
             loadProperty();
         }
     }, [uuid]);
+
+    useEffect(() => {
+        filterPropertyGroups();
+    }, [searchTerm, categoryFilter, allPropertyGroups]);
+
+    async function loadPropertyGroups() {
+        try {
+            const groups = await api.listPropertyGroups();
+            setAllPropertyGroups(groups);
+        } catch (error) {
+            console.error("Fehler beim Laden der PropertyGroups:", error);
+        }
+    }
+
+    function filterPropertyGroups() {
+        let filtered = allPropertyGroups;
+
+        if (categoryFilter !== "all") {
+            filtered = filtered.filter(g => g.category === categoryFilter);
+        }
+
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filtered = filtered.filter(g =>
+                g.name.toLowerCase().includes(term) ||
+                g.definition.toLowerCase().includes(term)
+            );
+        }
+
+        setFilteredGroups(filtered);
+    }
 
     async function loadProperty() {
         setLoading(true);
@@ -41,6 +79,12 @@ export default function PropertyDetail() {
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+
+        if (!item.groups || item.groups.length === 0) {
+            alert("Bitte wählen Sie mindestens eine PropertyGroup aus");
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -63,6 +107,19 @@ export default function PropertyDetail() {
     function updateField(field: keyof Property, value: any) {
         setItem(prev => ({ ...prev, [field]: value }));
     }
+
+    function togglePropertyGroup(groupUuid: string) {
+        const currentGroups = item.groups || [];
+        const isSelected = currentGroups.includes(groupUuid);
+
+        if (isSelected) {
+            updateField("groups", currentGroups.filter(g => g !== groupUuid));
+        } else {
+            updateField("groups", [...currentGroups, groupUuid]);
+        }
+    }
+
+    const uniqueCategories = Array.from(new Set(allPropertyGroups.map(g => g.category)));
 
     if (loading && uuid !== "new") {
         return <div className="p-6 text-center">Laden...</div>;
@@ -87,6 +144,21 @@ export default function PropertyDetail() {
                         }`}
                     >
                         Grunddaten
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("groups")}
+                        className={`px-4 py-2 font-medium transition-colors ${
+                            activeTab === "groups"
+                                ? "text-blue-600 border-b-2 border-blue-600"
+                                : "text-gray-600 hover:text-gray-800"
+                        }`}
+                    >
+                        Merkmalsgruppen {item.groups && item.groups.length > 0 && (
+                            <span className="ml-1 bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-sm">
+                                {item.groups.length}
+                            </span>
+                        )}
                     </button>
                     <button
                         type="button"
@@ -196,6 +268,106 @@ export default function PropertyDetail() {
                                 <label htmlFor="active" className="text-gray-700 font-medium">
                                     Aktiv
                                 </label>
+                            </div>
+                        </>
+                    )}
+
+                    {/* PropertyGroups Tab */}
+                    {activeTab === "groups" && (
+                        <>
+                            <div className="mb-4">
+                                <p className="text-sm text-gray-600 mb-4">
+                                    Wählen Sie mindestens eine Merkmalsgruppe aus. <span className="text-red-500">*</span>
+                                </p>
+
+                                {/* Filter */}
+                                <div className="flex gap-3 mb-4">
+                                    <div className="flex-1 relative">
+                                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            placeholder="Suche nach Name oder Definition..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="w-full pl-10 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <select
+                                        value={categoryFilter}
+                                        onChange={(e) => setCategoryFilter(e.target.value)}
+                                        className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="all">Alle Kategorien</option>
+                                        {uniqueCategories.map(cat => (
+                                            <option key={cat} value={cat}>
+                                                {cat.replace(/_/g, ' ')}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Ausgewählte Gruppen */}
+                                {item.groups && item.groups.length > 0 && (
+                                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                                        <p className="text-sm font-medium text-blue-900 mb-2">
+                                            Ausgewählt: {item.groups.length} Gruppe(n)
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {item.groups.map(groupUuid => {
+                                                const group = allPropertyGroups.find(g => g.UUID === groupUuid);
+                                                return group ? (
+                                                    <span key={groupUuid} className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                                                        {group.name}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => togglePropertyGroup(groupUuid)}
+                                                            className="text-blue-600 hover:text-blue-800"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </span>
+                                                ) : null;
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* PropertyGroup Liste */}
+                            <div className="border border-gray-200 rounded max-h-96 overflow-y-auto">
+                                {filteredGroups.length === 0 ? (
+                                    <div className="p-4 text-center text-gray-500">
+                                        Keine Merkmalsgruppen gefunden
+                                    </div>
+                                ) : (
+                                    filteredGroups.map(group => {
+                                        const isSelected = item.groups?.includes(group.UUID) || false;
+                                        return (
+                                            <label
+                                                key={group.UUID}
+                                                className={`flex items-start gap-3 p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors ${
+                                                    isSelected ? "bg-blue-50" : ""
+                                                }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isSelected}
+                                                    onChange={() => togglePropertyGroup(group.UUID)}
+                                                    className="mt-1 w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                                />
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-medium text-gray-900">{group.name}</span>
+                                                        <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">
+                                                            {group.category.replace(/_/g, ' ')}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-gray-600 mt-1">{group.definition}</p>
+                                                </div>
+                                            </label>
+                                        );
+                                    })
+                                )}
                             </div>
                         </>
                     )}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
-import type { PropertyGroup } from "../types.ts";
+import type { PropertyGroup, Property } from "../types.ts";
 import { Category } from "../types.ts";
 
 const emptyPropertyGroup: Partial<PropertyGroup> = {
@@ -19,7 +19,12 @@ export default function PropertyGroupDetail() {
     const navigate = useNavigate();
     const [item, setItem] = useState<Partial<PropertyGroup>>(emptyPropertyGroup);
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<"basic" | "technical" | "metadata">("basic");
+    const [activeTab, setActiveTab] = useState<"basic" | "metadata" | "properties">("basic");
+
+    // Properties State
+    const [relatedProperties, setRelatedProperties] = useState<Property[]>([]);
+    const [loadingProperties, setLoadingProperties] = useState(false);
+
     const categories = Object.entries(Category).map(([key, value]) => ({
         key,
         value,
@@ -29,6 +34,7 @@ export default function PropertyGroupDetail() {
     useEffect(() => {
         if (uuid !== "new") {
             loadPropertyGroup();
+            loadRelatedProperties();
         }
     }, [uuid]);
 
@@ -44,6 +50,21 @@ export default function PropertyGroupDetail() {
             setLoading(false);
         }
     }
+
+    async function loadRelatedProperties() {
+        if (uuid === "new") return;
+
+        setLoadingProperties(true);
+        try {
+            const PropertiesByGroup = await api.getPropertiesByGroup(uuid!);
+            setRelatedProperties(PropertiesByGroup);
+        } catch (error) {
+            console.error("Fehler beim Laden der Properties:", error);
+        } finally {
+            setLoadingProperties(false);
+        }
+    }
+
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -95,17 +116,23 @@ export default function PropertyGroupDetail() {
                     >
                         Grunddaten
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => setActiveTab("technical")}
-                        className={`px-4 py-2 font-medium transition-colors ${
-                            activeTab === "technical"
-                                ? "text-blue-600 border-b-2 border-blue-600"
-                                : "text-gray-600 hover:text-gray-800"
-                        }`}
-                    >
-                        Technische Daten
-                    </button>
+                    {uuid !== "new" && (
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("properties")}
+                            className={`px-4 py-2 font-medium transition-colors ${
+                                activeTab === "properties"
+                                    ? "text-blue-600 border-b-2 border-blue-600"
+                                    : "text-gray-600 hover:text-gray-800"
+                            }`}
+                        >
+                            Zugeordnete Merkmale {relatedProperties.length > 0 && (
+                                <span className="ml-1 bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-sm">
+                                    {relatedProperties.length}
+                                </span>
+                            )}
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={() => setActiveTab("metadata")}
@@ -197,9 +224,73 @@ export default function PropertyGroupDetail() {
                         </>
                     )}
 
-                    {/* Technische Daten Tab */}
-                    {activeTab === "technical" && (
+                    {/* Properties Tab */}
+                    {activeTab === "properties" && uuid !== "new" && (
                         <>
+                            <div>
+                                <p className="text-sm text-gray-600 mb-4">
+                                    Diese Merkmale gehören zu dieser Merkmalsgruppe. Um die Zuordnung zu ändern, bearbeiten Sie die einzelnen Merkmale.
+                                </p>
+
+                                {loadingProperties ? (
+                                    <div className="text-center py-8 text-gray-500">
+                                        Lade Merkmale...
+                                    </div>
+                                ) : relatedProperties.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-500 border border-gray-200 rounded">
+                                        Dieser Merkmalsgruppe sind noch keine Merkmale zugeordnet
+                                    </div>
+                                ) : (
+                                    <div className="border border-gray-200 rounded overflow-hidden">
+                                        <table className="w-full">
+                                            <thead className="bg-gray-50 border-b border-gray-200">
+                                                <tr>
+                                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Name</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Definition</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Datentyp</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                                                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Aktion</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-200">
+                                                {relatedProperties.map(prop => (
+                                                    <tr key={prop.UUID} className="hover:bg-gray-50">
+                                                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                                            {prop.name}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                                            {prop.definition.length > 80
+                                                                ? `${prop.definition.substring(0, 80)}...`
+                                                                : prop.definition}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                                            {prop.data_type || "-"}
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                                                prop.active 
+                                                                    ? "bg-green-100 text-green-800" 
+                                                                    : "bg-gray-100 text-gray-800"
+                                                            }`}>
+                                                                {prop.active ? "Aktiv" : "Inaktiv"}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-center">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => navigate(`/properties/${prop.UUID}`)}
+                                                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                                            >
+                                                                Bearbeiten
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
                         </>
                     )}
 

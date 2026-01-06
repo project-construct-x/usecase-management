@@ -12,6 +12,10 @@ router = APIRouter(prefix="/properties", tags=["Properties"])
 def list_properties(db: Session = Depends(get_db), skip: int = 0, limit: int = 100):
     return crud.get_properties(db, skip=skip, limit=limit)
 
+@router.get("/by-group/{group_uuid}", response_model=List[schemas.PropertyResponse])
+def get_properties_by_group(group_uuid: UUID, db: Session = Depends(get_db)):
+    return crud.get_properties_by_group(db, group_uuid=group_uuid)
+
 # --------GET---------
 @router.get("/{uuid}", response_model=schemas.PropertyResponse)
 def get_property(uuid: UUID, db:Session = Depends(get_db)):

@@ -107,6 +107,7 @@ export const api = {
 
     // ---Properties---
     listProperties: () => request<Property[]>("/properties/"),
+    getPropertiesByGroup: (group_uuid: string) => request<Property[]>(`/properties/by-group/${group_uuid}`),
     getProperty: (uuid: string) => request<Property>(`/properties/${uuid}`),
     createProperty: (data: Partial<Property>) =>
         request<Property>(`/properties/`, {
