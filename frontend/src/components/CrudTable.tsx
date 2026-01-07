@@ -11,7 +11,7 @@ interface Props<T extends { id: number | string}> {
     columns: Column<T>[];
     rows: T[];
     basePath: string;
-    onDelete: (id: number | string) => void;
+    onDelete: (id: T["id"]) => void;
 }
 
 export default function CrudTable<T extends { id: number | string }>({
