@@ -27,7 +27,7 @@ class UseCase(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     keywords = Column(ARRAY(String))
-    description = Column(String(200))
+    description = Column(String)
 
     # Relationships
     subUseCases = relationship("SubUseCase", back_populates="useCase", cascade="all, delete-orphan")
@@ -39,7 +39,7 @@ class SubUseCase(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    description = Column(String(200))
+    description = Column(String)
     useCase_id = Column(Integer, ForeignKey("useCases.id"))
     bpmn_png_url = Column(String, nullable=True)
 
@@ -68,7 +68,7 @@ class Role(Base):
     __tablename__ = "roles"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    definition = Column(String(200))
+    definition = Column(String)
     source = Column(Integer, ForeignKey("standards.id"))
 
     # Relationships
