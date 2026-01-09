@@ -1,0 +1,63 @@
+services:
+  db:
+    image: postgres:16
+    container_name: usecase-management_db-prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: usecase-management_backend-prod
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - IMAGE_DIR=${IMAGE_DIR}
+      - ENV=${ENV}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    restart: unless-stopped
+    volumes:
+      # Kein Code-Mount in Production!
+      - static_images_volume:/app/static/images
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        # Build-Args für Nginx htpasswd
+        NGINX_READER_USER: ${NGINX_READER_USER}
+        NGINX_READER_PASS: ${NGINX_READER_PASS}
+        NGINX_ADMIN_USER: ${NGINX_ADMIN_USER}
+        NGINX_ADMIN_PASS: ${NGINX_ADMIN_PASS}
+    container_name: usecase-management_frontend-prod
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  db_data:
+  static_images_volume:
+
+networks:
+  app-network:
+    driver: bridge
