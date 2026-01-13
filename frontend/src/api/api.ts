@@ -9,7 +9,7 @@ import type {
     PropertyGroup
 } from "../types.ts";
 
-export const BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+export const BASE = import.meta.env.VITE_API_URL;
 
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
     const res = await fetch(`${BASE}${path}`, opts)
