@@ -22,7 +22,7 @@ export default function SubUseCaseList() {
         <div className="p-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold text-gray-800">SubUseCases</h1>
+                <h1 className="text-2xl font-bold text-gray-800">Sub Use Cases</h1>
                 <button
                     onClick={() => navigate("/subusecases/new")}
                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
