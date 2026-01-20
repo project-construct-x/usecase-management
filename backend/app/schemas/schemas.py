@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
-from app.models import Category
+from ..models.models import Category
 
 
 # ----------Role---------

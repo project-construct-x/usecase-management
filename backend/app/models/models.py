@@ -1,10 +1,10 @@
 import uuid
-from sqlalchemy import Boolean, Column, Date, Enum, Integer, String, ForeignKey, Table, DateTime, func
+from sqlalchemy import Boolean, Column, Date, Integer, String, ForeignKey, Table, DateTime, func, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID as PRUUID
 import enum
-from .db import Base
+from ..db import Base
 
 # Many-to-Many Beziehung zwischen UseCase/SubUseCase und Role
 useCase_roles = Table(

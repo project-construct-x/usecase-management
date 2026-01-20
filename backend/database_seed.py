@@ -1,6 +1,8 @@
 from app.db import engine, Base, SessionLocal
-from app import models
-from datetime import datetime, timezone
+from app.models import models
+from app.models.users import User, APIKey
+import app.auth as auth
+from datetime import datetime, timezone, timedelta
 import uuid
 
 
@@ -35,6 +37,34 @@ def seed_data():
 
     try:
         print("🌱 Füge Testdaten ein...")
+
+        # -------- Users ---------
+        users = [
+            User(
+                email="lkrone@uni-wuppertal.de",
+                username="lkrone",
+                hashed_password=auth.get_password_hash("Construct-X_2026!"),
+                role="WRITE"
+            )
+        ]
+
+        db.add_all(users)
+        db.commit()
+        print(f"  ✓ {len(users)} User erstellt")
+
+        # ---------APIKeys--------
+        keys = [
+            APIKey(
+                key=auth.generate_api_key(),
+                name="Lukas_Key",
+                role="WRITE",
+                expires_at= datetime.now(timezone.utc) + timedelta(days=30)
+            )
+        ]
+
+        db.add_all(keys)
+        db.commit()
+        print(f"  ✓ {len(keys)} Standards erstellt")
 
         # -------- Standards --------
         standards = [

@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..db import SessionLocal, get_db
-from .. import crud, schemas, models
+from .. import crud
+from ..models import models
+from ..schemas import schemas
+from ..auth import require_role, RoleEnum
 
 router = APIRouter(prefix="/usecases", tags=["Use Cases"])
 
 # ---------LIST--------
 @router.get("/", response_model=list[schemas.UseCase])
-def list_useCases(db: Session = Depends(get_db)):
+def list_useCases(db: Session = Depends(get_db), current_user = Depends(require_role(RoleEnum.READ))):
     return crud.get_useCases(db)
 
 # ---------GET---------
