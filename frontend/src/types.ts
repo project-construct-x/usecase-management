@@ -1,3 +1,49 @@
+export type RoleEnum = "read" | "write";
+
+export interface User {
+    id: number;
+    email: string;
+    username: string;
+    role: RoleEnum;
+    is_active: boolean;
+    created_at: string;
+}
+
+export interface UserCreate {
+    email: string;
+    username: string;
+    password: string;
+    role?: RoleEnum;
+}
+
+export interface UserUpdate {
+    email?: string;
+    username?: string;
+    role?: RoleEnum;
+    is_active?: boolean;
+}
+
+export interface Token {
+    access_token: string;
+    token_type: string;
+}
+
+export interface APIKey {
+    id: number;
+    key: string;
+    name: string;
+    role: RoleEnum;
+    is_active: boolean;
+    created_at: string;
+    expires_at?: string;
+}
+
+export interface APIKeyCreate {
+    name: string;
+    role?: RoleEnum;
+    expires_at?: string;
+}
+
 export interface Role {
     id: number;
     name: string;

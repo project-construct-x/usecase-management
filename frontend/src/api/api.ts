@@ -6,22 +6,92 @@ import type {
     UseCaseCreate,
     SubUseCaseCreate,
     Property,
-    PropertyGroup
+    PropertyGroup,
+    User,
+    UserCreate,
+    UserUpdate,
+    APIKey,
+    APIKeyCreate,
+    Token
 } from "../types.ts";
 
 export const BASE = import.meta.env.VITE_API_URL;
 
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
-    const res = await fetch(`${BASE}${path}`, opts)
-    //.then(res => res.json())
-    //.then(data => console.log('Response:', data))  // ← Hier steht der Fehler
-    //.catch(err => console.error('Error:', err));
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    // Token oder API-Key aus localStorage holen
+    const token = localStorage.getItem('access_token');
+    const apiKey = localStorage.getItem('api_key');
+
+    // Headers mit Authorization erweitern
+    const headers = new Headers(opts.headers);
+
+    if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+    } else if (apiKey) {
+        headers.set('X-API-Key', apiKey);
+    }
+
+    const res = await fetch(`${BASE}${path}`, {
+        ...opts,
+        headers
+    });
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`${res.status} ${res.statusText}: ${errorText}`);
+    }
     if (res.status === 204) return null as T;
     return res.json() as Promise<T>;
 }
 
 export const api = {
+    // ---Auth---
+    login: (username: string, password: string) => {
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('password', password);
+
+        return request<Token>("/token", {
+            method: "POST",
+            body: formData,
+        });
+    },
+
+    register: (data: UserCreate) =>
+        request<User>("/register", {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: { "Content-Type": "application/json"}
+        }),
+
+    getCurrentUser: () => request<User>("/users/me"),
+
+    // ---Users---
+    listUsers: () => request<User[]>("/users/"),
+
+    updateUser: (id: number, data: UserUpdate) =>
+        request<User>(`/users/${id}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+            headers: { "Content-Type": "application/json" },
+        }),
+
+    deleteUser: (id: number) =>
+        request<void>(`/users/${id}`, { method: "DELETE" }),
+
+    // ---API Keys---
+    listAPIKeys: () => request<APIKey[]>("/api-keys"),
+
+    createAPIKey: (data: APIKeyCreate) =>
+        request<APIKey>("api-keys", {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: { "Content-Type": "application/json"},
+        }),
+
+    deleteAPIKey: (id: number) =>
+        request<void>(`/api-keys/${id}`, { method: "DELETE" }),
+
     // ---UseCases---
     listUseCases: () => request<UseCase[]>("/usecases/"),
     getUseCase: (id:number) => request<UseCase>(`/usecases/${id}`),

@@ -1,8 +1,8 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import useCases, subUseCases, roles, transactions, properties, propertyGroups
-from app.config import IMAGE_DIR
+from .routers import useCases, subUseCases, roles, transactions, properties, propertyGroups, users
+from .config import IMAGE_DIR
 import os
 
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS").split(",")
@@ -20,6 +20,9 @@ app.add_middleware(
 
 app.mount("/static/images", StaticFiles(directory=IMAGE_DIR), name="images")
 
+app.include_router(users.auth_router)
+app.include_router(users.user_router)
+app.include_router(users.api_router)
 app.include_router(useCases.router)
 app.include_router(subUseCases.router)
 app.include_router(roles.router)
