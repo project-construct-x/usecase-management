@@ -4,8 +4,10 @@ import shutil
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from ..db import SessionLocal, get_db
-from .. import crud, schemas, models
-from app.config import IMAGE_DIR
+from .. import crud
+from ..models import models
+from ..schemas import schemas
+from ..config import IMAGE_DIR
 
 router = APIRouter(prefix="/subusecases", tags=["Sub Use Cases"])
 
@@ -89,6 +91,3 @@ async def upload_bpmn_for_subUseCase(
         except: pass
         raise HTTPException(status_code=500, detail="Datenbank-Update fehlgeschlagen.")
     return updated_subUseCase
-
-
-

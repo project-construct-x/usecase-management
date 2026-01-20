@@ -1,7 +1,8 @@
 import os
 import logging
 from sqlalchemy.orm import Session
-from . import models, schemas
+from .schemas import schemas
+from .models import models
 from .config import IMAGE_DIR
 from typing import List, Optional
 from uuid import UUID, uuid4
