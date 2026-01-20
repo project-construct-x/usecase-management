@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..db import get_db
-from .. import crud, schemas
+from .. import crud
+from ..schemas import schemas
 from typing import List
 from uuid import UUID
 
