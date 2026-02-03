@@ -142,6 +142,15 @@ def update_subUseCase_bpmn_url(db: Session, subUseCase_id: int, image_url: str):
         return sub
     return None
 
+def update_subUseCase_bpmn_xml(db: Session, subUseCase_id: int, xml_content: str):
+    sub = db.query(models.SubUseCase).get(subUseCase_id)
+    if sub:
+        sub.bpmn_xml = xml_content
+        db.commit()
+        db.refresh(sub)
+        return sub
+    return None
+
 
 # --------Transactions-------
 def get_transactions(db: Session):
