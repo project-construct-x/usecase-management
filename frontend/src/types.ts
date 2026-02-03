@@ -57,6 +57,7 @@ export interface SubUseCase {
     description: string;
     roles: Role[];
     bpmn_png_url?: string;
+    bpmn_xml?: string;
 }
 
 export interface SubUseCaseCreate {
