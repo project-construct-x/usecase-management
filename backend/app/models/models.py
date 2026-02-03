@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Boolean, Column, Date, Integer, String, ForeignKey, Table, DateTime, func, Enum
+from sqlalchemy import Boolean, Column, Date, Integer, String, ForeignKey, Table, DateTime, func, Enum, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID as PRUUID
@@ -42,6 +42,7 @@ class SubUseCase(Base):
     description = Column(String)
     useCase_id = Column(Integer, ForeignKey("useCases.id"))
     bpmn_png_url = Column(String, nullable=True)
+    bpmn_xml = Column(Text, nullable=True)
 
     # Relationships
     useCase = relationship("UseCase", back_populates="subUseCases")

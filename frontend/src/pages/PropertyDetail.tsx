@@ -104,7 +104,7 @@ export default function PropertyDetail() {
         }
     }
 
-    function updateField(field: keyof Property, value: any) {
+    function updateField<K extends keyof Property>(field: K, value: Property[K]) {
         setItem(prev => ({ ...prev, [field]: value }));
     }
 
