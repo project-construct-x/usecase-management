@@ -31,10 +31,14 @@ class SubUseCaseCreate(SubUseCaseBase):
 class SubUseCaseUpdate(SubUseCaseBase):
     roles: List[int] = []
 
+class BpmnXmlUpdate(BaseModel):
+    bpmn_xml: str
+
 class SubUseCase(SubUseCaseBase):
     id: int
     roles: List[Role] = []
     bpmn_png_url: Optional[str] = None
+    bpmn_xml: Optional[str] = None
     class Config:
         from_attributes = True
 
