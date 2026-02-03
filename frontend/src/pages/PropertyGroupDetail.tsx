@@ -88,7 +88,7 @@ export default function PropertyGroupDetail() {
         }
     }
 
-    function updateField(field: keyof PropertyGroup, value: any) {
+    function updateField(field: keyof PropertyGroup, value: PropertyGroup[keyof PropertyGroup]) {
         setItem(prev => ({ ...prev, [field]: value }));
     }
 
