@@ -1,21 +1,6 @@
-import { Routes, Route, NavLink, Navigate } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "./auth/useAuth.ts";
-import { AuthProvider } from "./auth/AuthProvider.tsx";
-import UseCaseList from "./pages/UseCaseList";
-import UseCaseDetail from "./pages/UseCaseDetail";
-import RoleList from "./pages/RoleList.tsx";
-import RoleDetail from "./pages/RoleDetail.tsx";
-import SubUseCaseList from "./pages/SubUseCaseList.tsx";
-import SubUseCaseDetail from "./pages/SubUseCaseDetail.tsx";
-import TransactionList from "./pages/TransactionList.tsx";
-import TransactionDetail from "./pages/TransactionDetail.tsx";
-import PropertyList from "./pages/PropertyList.tsx";
-import PropertyDetail from "./pages/PropertyDetail.tsx";
-import PropertyGroupList from "./pages/PropertyGroupList.tsx";
-import PropertyGroupDetail from "./pages/PropertyGroupDetail.tsx";
 import Login from "./pages/Login.tsx";
-import UserManagement from "./pages/UserManagement.tsx";
-import ProtectedRoute from "./components/ProtectedRoute.tsx";
 
 function AppContent() {
     const { isAuthenticated, user, logout } = useAuth();
@@ -154,94 +139,10 @@ function AppContent() {
 
             {/* Main Area */}
             <main className="flex-1 p-8">
-                <Routes>
-                    <Route path="/" element={<Navigate to="/usecases" replace />} />
-
-                    {/* Protected Routes mit READ-Rechten */}
-                    <Route path="/usecases" element={
-                        <ProtectedRoute>
-                            <UseCaseList />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/usecases/:id" element={
-                        <ProtectedRoute>
-                            <UseCaseDetail />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/subusecases" element={
-                        <ProtectedRoute>
-                            <SubUseCaseList />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/subusecases/:id" element={
-                        <ProtectedRoute>
-                            <SubUseCaseDetail />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/roles" element={
-                        <ProtectedRoute>
-                            <RoleList />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/roles/:id" element={
-                        <ProtectedRoute>
-                            <RoleDetail />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/transactions" element={
-                        <ProtectedRoute>
-                            <TransactionList />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/transactions/:id" element={
-                        <ProtectedRoute>
-                            <TransactionDetail />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/properties" element={
-                        <ProtectedRoute>
-                            <PropertyList />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/properties/:uuid" element={
-                        <ProtectedRoute>
-                            <PropertyDetail />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/propertygroups" element={
-                        <ProtectedRoute>
-                            <PropertyGroupList />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/propertygroups/:uuid" element={
-                        <ProtectedRoute>
-                            <PropertyGroupDetail />
-                        </ProtectedRoute>
-                    } />
-
-                    {/* Admin Routes */}
-                    <Route path="/users" element={
-                        <ProtectedRoute>
-                            <UserManagement />
-                        </ProtectedRoute>
-                    } />
-                    {/*
-                    <Route path="/api-keys" element={
-                        <ProtectedRoute>
-                            <APIKeyManagement />
-                        </ProtectedRoute>
-                    } />
-                    */}
-                </Routes>
+                <Outlet />
             </main>
         </div>
     );
 }
 
-export default function App() {
-    return (
-        <AuthProvider>
-            <AppContent />
-        </AuthProvider>
-    );
-}
+export default AppContent;
