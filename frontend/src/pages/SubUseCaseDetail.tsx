@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, useBlocker } from "react-router-dom";
 import { api, BASE } from "../api/api.ts";
 import type {SubUseCase, Role, UseCase} from "../types.ts";
 import MultiSelect from "../components/MultiSelect.tsx";
@@ -47,13 +47,21 @@ export default function SubUseCaseDetail() {
     // BPMN state
     const modelerRef = useRef<BpmnModeler | null>(null);
     const [bpmnXml, setBpmnXml] = useState<string | null>(null);
-    const [bpmnKey, setBpmnKey] = useState(0);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const bpmnFileInputRef = useRef<HTMLInputElement>(null);
+    const [loadedBpmnXml, setLoadedBpmnXml] = useState<string | null>(null);
 
     // Legacy PNG upload state
     const [uploadingBpmn, setUploadingBpmn] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    // React Router Blocker für Navigation innerhalb der App
+    const blocker = useBlocker(
+        ({ currentLocation, nextLocation }) =>
+            hasUnsavedChanges &&
+            currentLocation.pathname !== nextLocation.pathname
+    );
 
     useEffect(() => {
         api.listRoles().then(setRoles);
@@ -70,12 +78,40 @@ export default function SubUseCaseDetail() {
         }
     }, [id, searchParams]);
 
+    // Warnung bei ungespeicherten Änderungen im BPMN
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [hasUnsavedChanges]);
+
+    useEffect(() => {
+        if (blocker.state === "blocked") {
+            const shouldLeave = window.confirm(
+                "Sie haben ungespeicherte Änderungen am BPMN-Modell. Möchten Sie diese Seite wirklich verlassen?"
+            );
+            if (shouldLeave) {
+                blocker.proceed();
+            } else {
+                blocker.reset();
+            }
+        }
+    }, [blocker]);
+
     async function loadSubUseCase() {
         setLoading(true);
         try {
             const data = await api.getSubUseCase(Number(id));
             setItem(data);
             setBpmnXml(data.bpmn_xml || emptyDiagram);
+            setLoadedBpmnXml(data.bpmn_xml || emptyDiagram);
+            setHasUnsavedChanges(false);
         } catch (error) {
             console.error("Fehler beim Laden:", error);
             alert("SubUseCase konnte nicht geladen werden");
@@ -138,9 +174,8 @@ export default function SubUseCaseDetail() {
         // XML in den Modeler laden
         if (modelerRef.current) {
             try {
-                await modelerRef.current.importXML(xmlContent);
-                // bpmnXml aktualisieren, damit beim Speichern der neue Stand da ist
                 setBpmnXml(xmlContent);
+                setHasUnsavedChanges(true);
             } catch (err) {
                 console.error("Fehler beim Importieren des BPMN-XML:", err);
                 alert("Das BPMN-XML konnte nicht in den Modeler geladen werden.\nBitte prüfen Sie die Datei.");
@@ -148,12 +183,9 @@ export default function SubUseCaseDetail() {
                 return;
             }
         } else {
-            // Modeler noch nicht bereit – trotzdem den State setzen,
-            // damit BpmnModelerComponent beim Rendern das neue XML bekommt
             setBpmnXml(xmlContent);
+            setHasUnsavedChanges(true);
         }
-
-        // Input zurücksetzen
         e.target.value = "";
     }
 
@@ -210,8 +242,11 @@ export default function SubUseCaseDetail() {
                     setUploadingBpmn(false);
                 }
 
-                await loadSubUseCase();
-                setBpmnKey(prev => prev + 1);
+                if (currentBpmnXml) {
+                    setBpmnXml(currentBpmnXml);
+                    setLoadedBpmnXml(currentBpmnXml);
+                    setHasUnsavedChanges(false);
+                }
                 alert("SubUseCase erfolgreich aktualisiert");
             }
         } catch (error) {
@@ -289,8 +324,45 @@ export default function SubUseCaseDetail() {
         }
     }
 
+    // Hier wird unter anderem verglichen, ob ein geändertes BPMN doch wieder dem letzten Speicherstand entspricht.
+    // Dadurch ist das Banner zu ungespeicherten Änderungen wirklich nur da, wenn es welche gibt.
+    // Um nicht nach jeder Änderung zu vergleichen und den Load zu reduzieren, wurde ein Timer ergänzt.
+
     function handleModelerReady(modeler: BpmnModeler) {
         modelerRef.current = modeler;
+
+        const eventBus = modeler.get('eventBus') as any;
+        let debounceTimer: number | undefined;
+
+        eventBus.on('commandStack.changed', () => {
+            window.clearTimeout(debounceTimer);
+            debounceTimer = window.setTimeout(async () => {
+                if (!loadedBpmnXml || !modelerRef.current) return;
+                const { xml } = await modelerRef.current.saveXML({ format: false });
+                const isDirty = normalizeXml(xml ?? '') !== normalizeXml(loadedBpmnXml);
+                setHasUnsavedChanges(isDirty);
+            }, 300)
+        });
+    }
+
+    function handleTabChange(tab: "basic" | "bpmn" | "legacy") {
+        if (hasUnsavedChanges && activeTab === "bpmn" && tab !== "bpmn") {
+            const shouldSwitch = window.confirm(
+                "Sie haben ungespeicherte Änderungen am BPMN-Modell. Möchten sie den Tab wirklich wechseln?"
+            );
+            if (!shouldSwitch) {
+                return;
+            }
+            setHasUnsavedChanges(false);
+        }
+        setActiveTab(tab);
+    }
+
+    function normalizeXml(xml: string): string {
+        return xml
+            .replace(/>\s+</g, '><')   // Whitespace zwischen Tags
+            .replace(/\s+/g, ' ')      // Mehrfach-Spaces
+            .trim();
     }
 
     const selectedUseCase = useCases.find(uc => uc.id === item.useCase_id);
@@ -301,20 +373,26 @@ export default function SubUseCaseDetail() {
     }
 
     return (
-        <div className="p-6 max-w-6xl mx-auto">
+        <div className="p-6 max-w-8xl mx-auto">
             <h1 className="text-2xl font-bold text-gray-800 mb-6">
                 {id === "new"
                     ? `Neuer SubUseCase${selectedUseCase ? ` für "${selectedUseCase.name}"` : ''}`
-                    : `SubUseCase bearbeiten`
+                    : `Sub Use Case bearbeiten`
                 }
             </h1>
+
+            {hasUnsavedChanges && (
+                <div className="mb-4 bg-yellow-50 border border-yellow-400 text-yellow-800 px-4 py-3 rounded">
+                    ⚠️ Sie haben ungespeicherte Änderungen am BPMN-Modell.
+                </div>
+            )}
 
             <form onSubmit={handleSubmit}>
                 {/* Tabs */}
                 <div className="flex gap-2 mb-6 border-b">
                     <button
                         type="button"
-                        onClick={() => setActiveTab("basic")}
+                        onClick={() => handleTabChange("basic")}
                         className={`px-4 py-2 font-medium transition-colors ${
                             activeTab === "basic"
                                 ? "text-blue-600 border-b-2 border-blue-600"
@@ -325,7 +403,7 @@ export default function SubUseCaseDetail() {
                     </button>
                     <button
                         type="button"
-                        onClick={() => setActiveTab("bpmn")}
+                        onClick={() => handleTabChange("bpmn")}
                         className={`px-4 py-2 font-medium transition-colors ${
                             activeTab === "bpmn"
                                 ? "text-blue-600 border-b-2 border-blue-600"
@@ -336,7 +414,7 @@ export default function SubUseCaseDetail() {
                     </button>
                     <button
                         type="button"
-                        onClick={() => setActiveTab("legacy")}
+                        onClick={() => handleTabChange("legacy")}
                         className={`px-4 py-2 font-medium transition-colors ${
                             activeTab === "legacy"
                                 ? "text-blue-600 border-b-2 border-blue-600"
@@ -466,9 +544,9 @@ export default function SubUseCaseDetail() {
                                     Sie können auch eine bestehende .bpmn- oder .xml-Datei importieren.
                                 </p>
 
-                                {bpmnXml && (
+                                {bpmnXml && activeTab === "bpmn" && (
                                     <BpmnModelerComponent
-                                        key={bpmnKey}
+                                        key={id}
                                         xml={bpmnXml}
                                         onModelerReady={handleModelerReady}
                                     />
