@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import {useEffect, useRef} from "react";
 import BpmnModeler from "bpmn-js/lib/Modeler";
 import "bpmn-js/dist/assets/diagram-js.css";
 import "bpmn-js/dist/assets/bpmn-js.css";
@@ -19,19 +19,14 @@ export default function BpmnModelerComponent({ xml, onModelerReady }: BpmnModele
 
         const modeler = new BpmnModeler({
             container: containerRef.current,
-            keyboard: {
-                bindTo: document
-            }
         });
 
         modelerRef.current = modeler;
-
-        if (onModelerReady) {
-            onModelerReady(modeler);
-        }
+        onModelerReady?.(modeler);
 
         return () => {
             modeler.destroy();
+            modelerRef.current = null;
         };
     }, []);
 
