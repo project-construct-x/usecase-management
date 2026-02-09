@@ -7,3 +7,5 @@ python-multipart
 python-jose[cryptography]
 bcrypt
 pydantic[email]
+pandas
+openpyxl

@@ -15,6 +15,7 @@ backend/!.env.example
 backend/*.env
 backend/*.db
 backend/*.sqlite3
+*.xlsx
 
 # Backend Environment
 backend/.env
