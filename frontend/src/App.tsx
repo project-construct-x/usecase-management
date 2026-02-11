@@ -1,39 +1,58 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "./auth/useAuth.ts";
+import { useTheme } from "./components/ThemeProvider.tsx";
 import Login from "./pages/Login.tsx";
+import { Moon, Sun } from "lucide-react";
 
 function AppContent() {
     const { isAuthenticated, user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
 
     if (!isAuthenticated) {
         return <Login />;
     }
 
     return (
-        <div className="flex min-h-screen bg-gray-50 text-gray-900">
+        <div className="app-container">
             {/* Sidebar */}
-            <nav className="w-56 bg-white border-r border-gray-200 p-6 space-y-4">
+            <nav className="app-sidebar">
+                {/* User Info & Theme Toggle */}
                 <div className="mb-6">
-                    <h1 className="text-xl font-semibold mb-2">Navigation</h1>
-                    <div className="text-sm text-gray-600 mb-4">
-                        <div>{user?.username}</div>
-                        <div className="text-xs">
+                    <div className="flex items-center justify-between mb-4">
+                        <h1 className="text-xl font-semibold">Navigation</h1>
+                        <button
+                            onClick={toggleTheme}
+                            className="theme-toggle"
+                            title={theme === "dark" ? "Light Mode" : "Dark Mode"}
+                        >
+                            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+                        </button>
+                    </div>
+
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-4 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                            {user?.username}
+                        </div>
+                        <div className="text-xs mt-1">
                             Rolle: {user?.role === 'write' ? 'Schreiben' : 'Lesen'}
                         </div>
                     </div>
+
                     <button
                         onClick={logout}
-                        className="w-full px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
+                        className="w-full btn btn-danger text-sm"
                     >
                         Abmelden
                     </button>
                 </div>
 
+                <div className="divider my-4"></div>
+
+                {/* Main Navigation */}
                 <NavLink
                     to="/usecases"
                     className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
+                        `nav-link ${isActive ? "nav-link-active" : "nav-link-inactive"}`
                     }
                 >
                     Use Cases
@@ -42,8 +61,7 @@ function AppContent() {
                 <NavLink
                     to="/subusecases"
                     className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
+                        `nav-link ${isActive ? "nav-link-active" : "nav-link-inactive"}`
                     }
                 >
                     Sub Use Cases
@@ -52,8 +70,7 @@ function AppContent() {
                 <NavLink
                     to="/roles"
                     className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
+                        `nav-link ${isActive ? "nav-link-active" : "nav-link-inactive"}`
                     }
                 >
                     Rollen
@@ -62,8 +79,7 @@ function AppContent() {
                 <NavLink
                     to="/transactions"
                     className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
+                        `nav-link ${isActive ? "nav-link-active" : "nav-link-inactive"}`
                     }
                 >
                     Transaktionen
@@ -81,8 +97,7 @@ function AppContent() {
                 <NavLink
                     to="/propertygroups"
                     className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
+                        `nav-link ${isActive ? "nav-link-active" : "nav-link-inactive"}`
                     }
                 >
                     Merkmalsgruppen
@@ -91,8 +106,7 @@ function AppContent() {
                 <NavLink
                     to="/properties"
                     className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
+                        `nav-link ${isActive ? "nav-link-active" : "nav-link-inactive"}`
                     }
                 >
                     Merkmale
@@ -101,8 +115,7 @@ function AppContent() {
                 <NavLink
                     to="/ontologies"
                     className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
+                        `nav-link ${isActive ? "nav-link-active" : "nav-link-inactive"}`
                     }
                 >
                     Ontologien
@@ -111,43 +124,40 @@ function AppContent() {
                 <NavLink
                     to="/standards"
                     className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
+                        `nav-link ${isActive ? "nav-link-active" : "nav-link-inactive"}`
                     }
                 >
                     Standards
                 </NavLink>
 
-                {/* Admin-Bereich */}
-                <div className="pt-4 mt-4 border-t border-gray-200">
-                    <div className="text-xs font-semibold text-gray-500 mb-2">
-                        VERWALTUNG
-                    </div>
+                {/* Admin Section */}
+                <div className="divider my-4"></div>
 
-                    <NavLink
-                        to="/users"
-                        className={({ isActive }) =>
-                            `block px-3 py-2 rounded-lg text-sm font-medium
-                            ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
-                        }
-                    >
-                        Benutzer
-                    </NavLink>
-
-                    <NavLink
-                        to="/api-keys"
-                        className={({ isActive }) =>
-                            `block px-3 py-2 rounded-lg text-sm font-medium
-                            ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
-                        }
-                    >
-                        API-Keys
-                    </NavLink>
+                <div className="nav-section-title">
+                    VERWALTUNG
                 </div>
+
+                <NavLink
+                    to="/users"
+                    className={({ isActive }) =>
+                        `nav-link ${isActive ? "nav-link-active" : "nav-link-inactive"}`
+                    }
+                >
+                    Benutzer
+                </NavLink>
+
+                <NavLink
+                    to="/api-keys"
+                    className={({ isActive }) =>
+                        `nav-link ${isActive ? "nav-link-active" : "nav-link-inactive"}`
+                    }
+                >
+                    API-Keys
+                </NavLink>
             </nav>
 
             {/* Main Area */}
-            <main className="flex-1 p-8">
+            <main className="app-main">
                 <Outlet />
             </main>
         </div>
