@@ -282,11 +282,11 @@ def delete_propertyGroup(db: Session, uuid: UUID) -> bool:
     db.commit()
     return True
 
-def get_propertyGroups_by_category(db: Session, category: str) -> List[models.PropertyGroup]:
+def get_propertyGroups_by_category(db: Session, category: str, skip: int = 0, limit: int = 100) -> List[models.PropertyGroup]:
     """PropertyGroups nach Kategorie filtern"""
     return db.query(models.PropertyGroup).filter(
         models.PropertyGroup.category == category
-    ).all()
+    ).offset(skip).limit(limit).all()
 
 
 def get_child_propertyGroups(db: Session, parent_uuid: UUID) -> List[models.PropertyGroup]:

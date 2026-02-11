@@ -14,6 +14,8 @@ import PropertyList from "./pages/PropertyList.tsx";
 import PropertyDetail from "./pages/PropertyDetail.tsx";
 import PropertyGroupList from "./pages/PropertyGroupList.tsx";
 import PropertyGroupDetail from "./pages/PropertyGroupDetail.tsx";
+import ClassList from "./pages/ClassList.tsx";
+import ClassDetail from "./pages/ClassDetail.tsx";
 import UserManagement from "./pages/UserManagement.tsx";
 
 
@@ -89,22 +91,6 @@ export const router = createBrowserRouter([
                 ),
             },
             {
-                path: "properties/",
-                element: (
-                    <ProtectedRoute>
-                        <PropertyList />
-                    </ProtectedRoute>
-                ),
-            },
-            {
-                path: "properties/:uuid",
-                element: (
-                    <ProtectedRoute>
-                        <PropertyDetail />
-                    </ProtectedRoute>
-                ),
-            },
-            {
                 path: "propertygroups/",
                 element: (
                     <ProtectedRoute>
@@ -120,6 +106,39 @@ export const router = createBrowserRouter([
                     </ProtectedRoute>
                 ),
             },
+            {
+                path: "classes/",
+                element: (
+                    <ProtectedRoute>
+                        <ClassList />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "classes/:uuid",
+                element: (
+                    <ProtectedRoute>
+                        <ClassDetail />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "properties/",
+                element: (
+                    <ProtectedRoute>
+                        <PropertyList />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "properties/:uuid",
+                element: (
+                    <ProtectedRoute>
+                        <PropertyDetail />
+                    </ProtectedRoute>
+                ),
+            },
+
 
             {/* Admin Routes */},
             {
