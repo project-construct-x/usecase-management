@@ -203,6 +203,7 @@ export const api = {
 
     // ---Property Groups---
     listPropertyGroups: () => request<PropertyGroup[]>("/propertygroups/"),
+    listPropertyGroupsByCategory: (category: string) => request<PropertyGroup[]>(`/propertygroups/category/${category}`),
     getPropertyGroup: (uuid: string) => request<PropertyGroup>(`/propertygroups/${uuid}`),
     createPropertyGroup: (data: Partial<PropertyGroup>) =>
         request<PropertyGroup>(`/propertygroups/`, {

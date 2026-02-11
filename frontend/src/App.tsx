@@ -70,6 +70,15 @@ function AppContent() {
                 </NavLink>
 
                 <NavLink
+                    to="/classes"
+                    className={({ isActive }) =>
+                        `nav-link ${isActive ? "nav-link-active" : "nav-link-inactive"}`
+                    }
+                >
+                    Klassen
+                </NavLink>
+
+                <NavLink
                     to="/propertygroups"
                     className={({ isActive }) =>
                         `block px-3 py-2 rounded-lg text-sm font-medium
