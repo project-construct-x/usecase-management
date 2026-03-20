@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
 import type { PropertyGroup, Property } from "../types.ts";
-import { Category } from "../types.ts";
 
 // hier wird zwar von Klassen geschrieben, im Hintergrund handelt es sich aber technisch um ProjectGroups
 // auch im Backend sind Klassen als ProjectGroups gespeichert
@@ -27,12 +26,6 @@ export default function ClassDetail() {
     // Properties State
     const [relatedProperties, setRelatedProperties] = useState<Property[]>([]);
     const [loadingProperties, setLoadingProperties] = useState(false);
-
-    const categories = Object.entries(Category).map(([key, value]) => ({
-        key,
-        value,
-        label: value.replace(/_/g, ' ')
-    }));
 
     useEffect(() => {
         if (uuid !== "new") {
