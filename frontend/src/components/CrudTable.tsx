@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ChevronUp, ChevronDown, Search, Trash2, Edit2 } from "lucide-react";
+import { ChevronUp, ChevronDown, Search, Trash2, Edit2, Plus, Inbox } from "lucide-react";
 
 export interface Column<T> {
     key: keyof T | string;
@@ -10,23 +10,29 @@ export interface Column<T> {
     filterable?: boolean;
 }
 
-interface Props<T extends { id: number | string}> {
+interface Props<T extends { id: number | string }> {
     columns: Column<T>[];
     rows: T[];
     basePath: string;
     onDelete: (id: T["id"]) => void;
     title?: string;
+    createLabel?: string;
+    onCreateClick?: () => void;
+    isLoading?: boolean;
 }
 
 type SortDirection = "asc" | "desc" | null;
 
 export default function CrudTable<T extends { id: number | string }>({
-                                                                         columns,
-                                                                         rows,
-                                                                         basePath,
-                                                                         onDelete,
-                                                                         title,
-                                                                     }: Props<T>) {
+    columns,
+    rows,
+    basePath,
+    onDelete,
+    title,
+    createLabel = "Neu",
+    onCreateClick,
+    isLoading = false,
+}: Props<T>) {
     const [sortKey, setSortKey] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>(null);
     const [filterText, setFilterText] = useState("");
@@ -72,132 +78,171 @@ export default function CrudTable<T extends { id: number | string }>({
 
     const handleSort = (key: string, sortable?: boolean) => {
         if (sortable === false) return;
-
         if (sortKey === key) {
-            if (sortDirection === "asc") {
-                setSortDirection("desc");
-            } else if (sortDirection === "desc") {
-                setSortKey(null);
-                setSortDirection(null);
-            }
+            if (sortDirection === "asc") setSortDirection("desc");
+            else { setSortKey(null); setSortDirection(null); }
         } else {
             setSortKey(key);
             setSortDirection("asc");
         }
     };
 
-    return (
-        <div className="crud-table-container">
-            {/* Header */}
-            <div className="crud-table-header">
-                {title && <h2 className="crud-table-title">{title}</h2>}
+    const handleDelete = async (id: T["id"]) => {
+        if (window.confirm("Möchten Sie diesen Eintrag wirklich löschen?")) {
+            onDelete(id);
+        }
+    };
 
-                {/* Suchfeld */}
-                <div className="crud-search-wrapper">
-                    <Search className="crud-search-icon" size={20}/>
-                    <input
-                        type="text"
-                        placeholder="Suchen..."
-                        value={filterText}
-                        onChange={(e) => setFilterText(e.target.value)}
-                        className="crud-search-input"
-                    />
+    return (
+        <div className="table-container animate-fade-in">
+            {/* Toolbar */}
+            <div className="table-header">
+                {title && <h2 className="table-title">{title}</h2>}
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto"}}>
+                    {/* Suchfeld */}
+                    <div className="search-wrapper">
+                        <Search className="search-icon" size={16} />
+                        <input
+                            type="text"
+                            placeholder="Suchen..."
+                            value={filterText}
+                            onChange={(e) => setFilterText(e.target.value)}
+                            className="search-input"
+                        />
+                    </div>
+
+                    {/* Create Button */}
+                    {onCreateClick && (
+                        <button onClick={onCreateClick} className="btn btn-primary btn-m">
+                            <Plus size={15} />
+                            {createLabel}
+                        </button>
+                    )}
                 </div>
             </div>
 
             {/* Tabelle */}
-            <div className="crud-table-wrapper">
-                <table className="crud-table">
-                    <thead className="crud-table-thead">
-                    <tr>
-                        {columns.map((col) => (
-                            <th
-                                key={String(col.key)}
-                                className={`crud-table-th ${
-                                    col.sortable !== false ? "cursor-pointer select-none" : ""
-                                }`}
-                                onClick={() => handleSort(String(col.key), col.sortable)}
-                            >
-                                <div className="crud-table-th-content">
-                                    <span>{col.title}</span>
-                                    {col.sortable !== false && (
-                                        <div className="crud-sort-icons">
-                                            <ChevronUp
-                                                size={16}
-                                                className={
-                                                    sortKey === String(col.key) &&
-                                                    sortDirection === "asc"
-                                                        ? "text-blue-600 dark:text-blue-400"
-                                                        : "text-gray-400 dark:text-gray-600"
-                                                }
-                                            />
-                                            <ChevronDown
-                                                size={16}
-                                                className={
-                                                    sortKey === String(col.key) &&
-                                                    sortDirection === "desc"
-                                                        ? "text-blue-600 dark:text-blue-400"
-                                                        : "text-gray-400 dark:text-gray-600"
-                                                }
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </th>
-                        ))}
-                        <th className="crud-table-th">Aktionen</th>
-                    </tr>
-                    </thead>
-
-                    <tbody className="crud-table-tbody">
-                    {processedRows.length === 0 ? (
-                        <tr>
-                            <td
-                                colSpan={columns.length + 1}
-                                className="crud-table-empty"
-                            >
-                                Keine Einträge gefunden
-                            </td>
-                        </tr>
-                    ) : (
-                        processedRows.map((row) => (
-                            <tr key={row.id} className="crud-table-row">
-                                {columns.map((col) => (
-                                    <td key={String(col.key)} className="crud-table-td">
-                                        {col.render
-                                            ? col.render(row)
-                                            : String(row[col.key as keyof T])}
-                                    </td>
-                                ))}
-                                <td className="crud-table-td">
-                                    <div className="crud-actions">
-                                        <Link
-                                            to={`${basePath}/${row.id}`}
-                                            className="crud-action-btn crud-action-edit"
-                                            title="Bearbeiten"
+            <div style={{ overflowX: "auto"}} className="custom-scrollbar">
+                {isLoading ? (
+                    <div style={{ display: "flex", justifyContent: "center", padding: "56px 24px" }}>
+                        <div className="spinner" style={{ width: 36, height: 36 }}></div>
+                    </div>
+                ) : (
+                    <table className="table">
+                        <thead className="table-thead">
+                            <tr>
+                                {columns.map((col) => {
+                                    const isSorted = sortKey === String(col.key);
+                                    return (
+                                        <th
+                                            key={String(col.key)}
+                                            className={`table-th ${col.sortable !== false ? "table-th-sortable" : ""}`}
+                                            onClick={() => handleSort(String(col.key), col.sortable)}
                                         >
-                                            <Edit2 size={16}/>
-                                        </Link>
-                                        <button
-                                            onClick={() => onDelete(row.id)}
-                                            className="crud-action-btn crud-action-delete"
-                                            title="Löschen"
-                                        >
-                                            <Trash2 size={16}/>
-                                        </button>
-                                    </div>
-                                </td>
+                                            <div className="table-th-content">
+                                                <span>{col.title}</span>
+                                                {col.sortable !== false && (
+                                                    <div className={`sort-icons ${isSorted ? "sort-icons-active" : ""}`}>
+                                                        <ChevronUp
+                                                            size={12}
+                                                            style={{
+                                                                color: isSorted && sortDirection === "asc"
+                                                                ? "var(--accent)"
+                                                                : undefined,
+                                                            }}
+                                                        />
+                                                        <ChevronDown
+                                                            size={12}
+                                                            style={{
+                                                                color: isSorted && sortDirection === "desc"
+                                                                ? "var(--accent)"
+                                                                : undefined,
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </th>
+                                    );
+                                })}
+                                <th className="table-th" style={{ width: 72 }}>Aktionen</th>
                             </tr>
-                        ))
-                    )}
-                    </tbody>
-                </table>
+                        </thead>
+
+                        <tbody className="table-tbody">
+                            {processedRows.length === 0 ? (
+                                <tr>
+                                    <td colSpan={columns.length + 1} className="table-empty">
+                                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8}}>
+                                            <Inbox
+                                                size={40}
+                                                style={{ color: "var(--text-muted)", opacity: 0.5 }}
+                                                strokeWidth={1.25}
+                                            />
+                                            <span style={{ fontWeight: 600, color: "var(--text-secondary" }}>
+                                                Keine Einträge gefunden
+                                            </span>
+                                            {filterText && (
+                                                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                                                    Kein Ergebnis für "{filterText}"
+                                                </span>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : (
+                                processedRows.map((row) => (
+                                    <tr key={row.id} className="table-row">
+                                        {columns.map((col) => (
+                                            <td key={String(col.key)} className="table-td">
+                                                {col.render
+                                                    ? col.render(row)
+                                                    : String(row[col.key as keyof T])}
+                                            </td>
+                                        ))}
+                                        <td className="table-td">
+                                            <div className="table-actions">
+                                                <Link
+                                                    to={`${basePath}/${row.id}`}
+                                                    className="action-btn action-edit"
+                                                    title="Bearbeiten"
+                                                >
+                                                    <Edit2 size={15} />
+                                                </Link>
+                                                <button
+                                                    onClick={() => handleDelete(row.id)}
+                                                    className="action-btn action-delete"
+                                                    title="Löschen"
+                                                >
+                                                    <Trash2 size={15} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                )}
             </div>
 
-            {/* Footer mit Ergebnis-Zähler */}
-            {filterText && (
-                <div className="crud-table-footer">
-                    {processedRows.length} von {rows.length} Einträgen
+            {/* Footer */}
+            {!isLoading && processedRows.length > 0 && (
+                <div className="table-footer">
+                    {filterText ? (
+                        <>
+                            <strong style={{ color: "var(--text-primary)" }}>{processedRows.length}</strong>
+                            &nbsp;von&nbsp;
+                            <strong style={{ color: "var(--text-primary)" }}>{rows.length}</strong>
+                            &nbsp;Einträgen&nbsp;
+                        </>
+                    ) : (
+                        <>
+                            <strong style={{ color: "var(--text-primary)" }}>{rows.length}</strong>
+                            &nbsp;{rows.length === 1 ? "Eintrag" : "Einträge"}
+                        </>
+                    )}
                 </div>
             )}
         </div>
