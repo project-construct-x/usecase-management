@@ -2,15 +2,29 @@ import CrudTable from "../components/CrudTable.tsx";
 import { api } from "../api/api.ts";
 import type { Role } from "../types.ts";
 import { useNavigate } from "react-router-dom";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
+import { Users } from "lucide-react";
 
 export default function RoleList() {
     const [rows, setRows] = useState<Role[]>([]);
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        api.listRoles().then(setRows)
+        loadData();
     }, []);
+
+    async function loadData() {
+        setIsLoading(true);
+        try {
+            const data = await api.listRoles();
+            setRows(data);
+        } catch (error) {
+            console.error("Fehler beim Laden der Rollen:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     async function onDelete(id: number) {
         if (!confirm("Löschen?")) return;
@@ -19,29 +33,40 @@ export default function RoleList() {
     }
 
     return (
-        <div className="p-6">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold text-gray-800">Rollen</h1>
-                <button
-                    onClick={() => navigate("/roles/new")}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                >
-                    Neu
-                </button>
+        <div className="animate-fade-in">
+            <div className="page-header">
+                <div className="page-header-icon">
+                    <Users size={22} />
+                </div>
+                <div>
+                    <div className="page-header-title">Rollen</div>
+                    <div className="page-header-sub">Verwalten Sie Ihre Rollen</div>
+                </div>
             </div>
 
-            <div className="overflow-x-auto">
-                <CrudTable
-                    basePath="/roles"
-                    onDelete={onDelete}
-                    rows={rows}
-                    columns={[
-                        { key: "name", title: "Name" },
-                        { key: "definition", title: "Definition" },
-                    ]}
-                />
-            </div>
+            <CrudTable
+                basePath="/roles"
+                onDelete={onDelete}
+                rows={rows}
+                title="Alle Rollen"
+                createLabel="Neue Rolle"
+                onCreateClick={() => navigate("/roles/new")}
+                isLoading={isLoading}
+                columns={[
+                    {
+                        key: "name",
+                        title: "Name",
+                        render: (r) => (
+                            <span style={{ fontWeight: 600 }}>{r.name}</span>
+                        )
+                    },
+                    {
+                        key: "definition",
+                        title: "Definition"
+                    }
+
+                ]}
+            />
         </div>
     );
 }

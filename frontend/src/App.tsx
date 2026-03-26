@@ -1,145 +1,128 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "./auth/useAuth.ts";
+import { useTheme } from "./components/ThemeProvider.tsx";
 import Login from "./pages/Login.tsx";
+import {
+    Moon,
+    Sun,
+    LogOut,
+    FileText,
+    Layers,
+    Users,
+    ArrowLeftRight,
+    Boxes,
+    FolderTree,
+    Tags,
+    Database,
+    BookOpen,
+    Key,
+    User
+} from "lucide-react";
+
+const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
+    usecases: FileText,
+    subusecases: Layers,
+    roles: Users,
+    transactions: ArrowLeftRight,
+    classes: Boxes,
+    propertygroups: FolderTree,
+    properties: Tags,
+    ontologies: Database,
+    standards: BookOpen,
+    users: User,
+    "api-keys": Key,
+};
+
+function NavItem({ to, label, icon }: { to: string; label: string; icon?: string}) {
+    const Icon = icon ? iconMap[icon] : null;
+
+    return (
+        <NavLink
+            to={to}
+            className={({ isActive }) =>
+                `nav-link ${isActive ? "nav-link-active" : "nav-link-inactive"}`
+            }
+        >
+            {Icon && <Icon size={16} />}
+            <span>{label}</span>
+        </NavLink>
+    );
+}
 
 function AppContent() {
     const { isAuthenticated, user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
 
     if (!isAuthenticated) {
         return <Login />;
     }
 
     return (
-        <div className="flex min-h-screen bg-gray-50 text-gray-900">
+        <div className="app-container">
             {/* Sidebar */}
-            <nav className="w-56 bg-white border-r border-gray-200 p-6 space-y-4">
-                <div className="mb-6">
-                    <h1 className="text-xl font-semibold mb-2">Navigation</h1>
-                    <div className="text-sm text-gray-600 mb-4">
-                        <div>{user?.username}</div>
-                        <div className="text-xs">
-                            Rolle: {user?.role === 'write' ? 'Schreiben' : 'Lesen'}
+            <nav className="app-sidebar custom-scrollbar">
+                {/* Logo / Brand */}
+                <div className="sidebar-brand">
+                    <div className="sidebar-brand-icon">
+                        <Database className="text-white" size={22} />
+                    </div>
+                    <div>
+                        <div className="sidebar-brand-name">Use Case Management</div>
+                        <div className="sidebar-brand-sub">BUW - DPBB</div>
+                    </div>
+                </div>
+
+                {/* User*/}
+                <div className="sidebar-user">
+                    <div className="sidebar-user-info">
+                        <div className="sidebar-avatar">
+                            {user?.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                            <div className="sidebar-username">{user?.username}</div>
+                            <div className="sidebar-role">
+                                <span
+                                    className="sidebar-role-dot"
+                                    style={{ background: user?.role === "write" ? "var(--green-500)" : "var(--blue-500)"}}
+                                />
+                                {user?.role === "write" ? "Schreiben" : "Lesen"}
+                            </div>
                         </div>
                     </div>
-                    <button
-                        onClick={logout}
-                        className="w-full px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
-                    >
-                        Abmelden
-                    </button>
-                </div>
-
-                <NavLink
-                    to="/usecases"
-                    className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
-                    }
-                >
-                    Use Cases
-                </NavLink>
-
-                <NavLink
-                    to="/subusecases"
-                    className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
-                    }
-                >
-                    Sub Use Cases
-                </NavLink>
-
-                <NavLink
-                    to="/roles"
-                    className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
-                    }
-                >
-                    Rollen
-                </NavLink>
-
-                <NavLink
-                    to="/transactions"
-                    className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
-                    }
-                >
-                    Transaktionen
-                </NavLink>
-
-                <NavLink
-                    to="/propertygroups"
-                    className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
-                    }
-                >
-                    Merkmalsgruppen
-                </NavLink>
-
-                <NavLink
-                    to="/properties"
-                    className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
-                    }
-                >
-                    Merkmale
-                </NavLink>
-
-                <NavLink
-                    to="/ontologies"
-                    className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
-                    }
-                >
-                    Ontologien
-                </NavLink>
-
-                <NavLink
-                    to="/standards"
-                    className={({ isActive }) =>
-                        `block px-3 py-2 rounded-lg text-sm font-medium
-                        ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
-                    }
-                >
-                    Standards
-                </NavLink>
-
-                {/* Admin-Bereich */}
-                <div className="pt-4 mt-4 border-t border-gray-200">
-                    <div className="text-xs font-semibold text-gray-500 mb-2">
-                        VERWALTUNG
+                    <div className="sidebar-actions">
+                        <button onClick={toggleTheme} className="theme-toggle" title="Theme wechseln">
+                            {theme === "dark" ? <><Sun size={14} /> Hell</> : <><Moon size={14} /> Dunkel</>}
+                        </button>
+                        <button onClick={logout} className="btn btn-danger btn-sm" style={{ flex: 1 }}>
+                            <LogOut size={13} /> Logout
+                        </button>
                     </div>
-
-                    <NavLink
-                        to="/users"
-                        className={({ isActive }) =>
-                            `block px-3 py-2 rounded-lg text-sm font-medium
-                            ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
-                        }
-                    >
-                        Benutzer
-                    </NavLink>
-
-                    <NavLink
-                        to="/api-keys"
-                        className={({ isActive }) =>
-                            `block px-3 py-2 rounded-lg text-sm font-medium
-                            ${isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"}`
-                        }
-                    >
-                        API-Keys
-                    </NavLink>
                 </div>
+
+                {/* Navigation */}
+                <div className="nav-section">Navigation</div>
+                <NavItem to="/usecases" label="Use Cases" icon="usecases" />
+                <NavItem to="/subusecases" label="Sub Use Cases" icon="subusecases" />
+                <NavItem to="/roles" label="Rollen" icon="roles" />
+                <NavItem to="/transactions" label="Transaktionen" icon="transactions" />
+                <NavItem to="/classes" label="Klassen" icon="classes" />
+                <NavItem to="/propertygroups" label="Merkmalsgruppen" icon="propertygroups" />
+                <NavItem to="/properties" label="Merkmale" icon="properties" />
+                <NavItem to="/ontologies" label="Ontologien" icon="ontologies" />
+                <NavItem to="/standards" label="Standards" icon="standards" />
+
+                <div className="nav-separator" />
+
+                <div className="nav-section">Verwaltung</div>
+                <NavItem to="/users" label="Benutzer" icon="users" />
+                <NavItem to="/api-keys" label="API-Keys" icon="api-keys" />
             </nav>
 
-            {/* Main Area */}
-            <main className="flex-1 p-8">
-                <Outlet />
+            {/* Main */}
+            <main className="app-main">
+                <div className="app-main-inner">
+                    <Outlet />
+                </div>
             </main>
         </div>
     );
