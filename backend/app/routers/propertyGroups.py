@@ -13,6 +13,11 @@ router = APIRouter(prefix="/propertygroups", tags=["Property Groups"])
 def list_propertyGroups(db: Session = Depends(get_db), skip: int = 0, limit: int = 100):
     return crud.get_propertyGroups(db, skip=skip, limit=limit)
 
+# --------LIST BY CATEGORY-------
+@router.get("/category/{category}", response_model=List[schemas.PropertyGroupResponse])
+def list_propertyGroups_by_category(category: str, db: Session = Depends(get_db), skip: int = 0, limit: int = 100):
+    return crud.get_propertyGroups_by_category(db, category=category, skip=skip, limit=limit)
+
 # --------GET---------
 @router.get("/{uuid}", response_model=schemas.PropertyGroupResponse)
 def get_propertyGroup(uuid: UUID, db:Session = Depends(get_db)):

@@ -1,101 +1,221 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
-import type { Transaction, Role, SubUseCase } from "../types.ts";
+import type {Role, Transaction, TransactionMutate} from "../types.ts";
+import {ArrowLeftRight, Tags} from "lucide-react";
+
+const emptyTransaction: TransactionMutate = {
+    name: "",
+    subUseCase_id: null,
+    usesDataspace: true,
+    roleIn_id: 0,
+    roleOut_id: 0,
+}
 
 export default function TransactionDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
-
-    // Initialen State mit Query-Parameter setzen
-    const [item, setItem] = useState<Transaction>(() => {
-        const subUseCase_id = searchParams.get("subUseCaseId");
-        return {
-            id: 0,
-            name: "",
-            subUseCase_id: subUseCase_id ? Number(subUseCase_id) : 0,
-            usesDataspace: false,
-            roleIn_id: 0,
-            roleOut_id: 0
-        };
-    });
-
-    const [subUseCases, setSubUseCases] = useState<SubUseCase[]>([]);
-    const [roles, setRoles] = useState<Role[]>([]);
+    const [item, setItem] = useState<TransactionMutate>(emptyTransaction);
+    const [loading, setLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState("basic");
+    const [roles, setRoles] = useState<Role[]>([])
 
     useEffect(() => {
-        api.listRoles().then(setRoles);
-        api.listSubUseCases().then(setSubUseCases);
-
+        loadRoles();
         if (id !== "new") {
-            api.getTransaction(Number(id)).then(setItem);
+            loadTransaction();
         }
     }, [id]);
 
-    async function save() {
-        const payload = {
-            name: item.name,
-            subUseCase_id: item.subUseCase_id,
-            usesDataspace: item.usesDataspace,
-            roleIn_id: item.roleIn_id,
-            roleOut_id: item.roleOut_id
-        };
+    const toMutate = (data: Transaction): TransactionMutate => ({
+        name: data.name,
+        subUseCase_id: data.subUseCase_id,
+        usesDataspace: data.usesDataspace,
+        roleOut_id: data.roleOut.id,
+        roleIn_id: data.roleIn.id
+    });
 
-        if (id === "new") {
-            const created = await api.createTransaction(payload);
-            navigate(`/transactions/${created.id}`);
-        } else {
-            await api.updateTransaction(Number(id), payload);
-            const updated = await api.getTransaction(Number(id));
-            setItem(updated)
+    async function loadTransaction() {
+        setLoading(true);
+        try {
+            const data = await api.getTransaction(Number(id));
+            setItem(toMutate(data));
+        } catch (error) {
+            console.error("Fehler beim Laden: ", error);
+            alert("Transaktion konnte nicht geladen werden.");
+        } finally {
+            setLoading(false);
         }
     }
 
+    async function loadRoles() {
+        setLoading(true);
+        try {
+            const roles = await api.listRoles();
+            setRoles(roles);
+        } catch (error) {
+            console.error("Fehler beim Laden: ", error);
+            alert("Rollen konnten nicht geladen werden.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            if (id === "new") {
+                console.log(JSON.stringify(item))
+                const created = await api.createTransaction(item);
+                navigate(`/transactions/${created.id}`);
+            } else {
+                await api.updateTransaction(Number(id)!, item);
+                await loadTransaction();
+                alert("Transaktion erfolgreich aktualisiert");
+            }
+        } catch (error) {
+            console.error("Fehler beim Speichern:", error);
+            alert("Fehler beim Speichern der Transaktion");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function updateField<K extends keyof TransactionMutate>(
+        field: K,
+        value: TransactionMutate[K]
+    ) {
+        setItem(prev => ({ ...prev, [field]: value }));
+    }
+
+    if (loading && id !== "new") {
+        return (
+            <div style={{ display: "flex", justifyContent: "center", padding: "64px 24px" }}>
+                <div className="spinner" style={{ width: 36, height: 36 }} />
+            </div>
+        )
+    }
+
+    const tabs = [
+        { id: "basic", label: "Grunddaten", badge: undefined, icon: Tags},
+    ]
+
     return (
-        <div className="p-6 max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">
-                {id === "new" ? "Neue Transaktion" : `Transaktion ${item.id}`}
-            </h1>
-
-            {/* Name */}
-            <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-1">Name</label>
-                <input
-                    type="text"
-                    value={item.name}
-                    onChange={(e) => setItem({ ...item, name: e.target.value })}
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+        <div className="page-container-narrow animate-fade-in">
+            <div className="page-header">
+                <div className="page-header-icon">
+                    <ArrowLeftRight size={22} />
+                </div>
+                <div>
+                    <div className="page-header-title">
+                        {id === "new" ? "Neue Transaktion" : item.name}
+                    </div>
+                    <div className="page-header-sub">Transaktion</div>
+                </div>
             </div>
 
-            {/* Nutzt Dateraum */}
-            <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-1">Nutzt Datenraum</label>
-                <input
-                    type="checkbox"
-                    checked={item.usesDataspace}
-                    onChange={(e) => setItem({ ...item, usesDataspace: e.target.checked })}
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-            </div>
+            <form onSubmit={handleSubmit}>
+                {/* Tabs */}
+                <div className="tabs">
+                    {tabs.map(tab => {
+                        const Icon = tab.icon;
+                        return (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`tab ${activeTab === tab.id ? "tab-active" : "tab-inactive"}`}
+                            >
+                                {Icon && <Icon size={15} />}
+                                {tab.label}
+                                {tab.badge !== undefined && tab.badge > 0 && (
+                                    <span className="badge badge-primary">{tab.badge}</span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
 
-            {/* Buttons */}
-            <div className="flex gap-3">
-                <button
-                    onClick={save}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                >
-                    Speichern
-                </button>
-                <button
-                    onClick={() => navigate(-1)}
-                    className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition-colors"
-                >
-                    Zurück
-                </button>
-            </div>
+                <div className="card">
+                    <div className="card-body form-section">
 
+                        {/* Grunddaten */}
+                        {activeTab === "basic" && (
+                            <>
+                                <div>
+                                    <label className="form-label form-label-required">Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={item.name || ""}
+                                        onChange={(e) => updateField("name", e.target.value)}
+                                        className="form-input"
+                                    />
+                                </div>
+
+                                <div className="form-check-row">
+                                    <input
+                                        type="checkbox"
+                                        id="active"
+                                        checked={item.usesDataspace || false}
+                                        onChange={e => updateField("usesDataspace", e.target.checked)}
+                                        className="form-checkbox"
+                                    />
+                                    <label htmlFor="usesDataspace" className="form-check-label">
+                                        Transaktion nutzt den Datenraum
+                                    </label>
+                                </div>
+
+                                <div className="form-grid-2">
+                                    <div>
+                                        <label className="form-label form-label-required">Ausgehende Rolle</label>
+                                        <select
+                                            required
+                                            value={item.roleOut_id ?? ""}
+                                            onChange={e => updateField("roleOut_id", Number(e.target.value))}
+                                            className="form-input form-select"
+                                        >
+                                            <option value="" disabled>Bitte wählen</option>
+                                            {roles.map(role => (
+                                                <option key={role.id} value={role.id}>
+                                                    {role.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="form-label form-label-required">Eingehende Rolle</label>
+                                        <select
+                                            required
+                                            value={item.roleIn_id ?? ""}
+                                            onChange={e => updateField("roleIn_id", Number(e.target.value))}
+                                            className="form-input form-select"
+                                        >
+                                            <option value="" disabled>Bitte wählen</option>
+                                            {roles.map(role => (
+                                                <option key={role.id} value={role.id}>
+                                                    {role.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Aktionen */}
+                <div className="form-actions">
+                    <button type="submit" disabled={loading} className="btn btn-primary">
+                        {loading ? "Speichern…" : "Speichern"}
+                    </button>
+                    <button type="button" onClick={() => navigate(-1)} className="btn btn-secondary">
+                        Zurück
+                    </button>
+                </div>
+            </form>
         </div>
     );
 }

@@ -1,62 +1,58 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
-import type { Property } from "../types.ts";
+import type { PropertyGroup } from "../types.ts";
 import CrudTable from "../components/CrudTable.tsx";
-import { Tags } from "lucide-react";
+import { Boxes } from "lucide-react";
 
-export default function PropertyList() {
+export default function ClassList() {
     const navigate = useNavigate();
-    const [properties, setProperties] = useState<Property[]>([]);
+    // es werden hier Klassen gelistet, im Hintergrund handelt es sich aber auch um PropertyGroups
+    // im Backend sind Klassen auch als PropertyGroup gespeichert
+    const [classes, setClasses] = useState<PropertyGroup[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        loadProperties();
+        loadClasses();
     }, []);
 
-    async function loadProperties() {
+    async function loadClasses() {
         setIsLoading(true);
         try {
-            const data = await api.listProperties();
-            setProperties(data);
+            const data = await api.listPropertyGroupsByCategory("CLASS");
+            setClasses(data);
         } catch (error) {
-            console.error("Fehler beim Laden der Properties:", error);
+            console.error("Fehler beim Laden der Klassen:", error);
         } finally {
             setIsLoading(false);
         }
     }
 
     async function onDelete(uuid: string) {
-        if (confirm("Property wirklich löschen?")) {
-            try {
-                await api.deleteProperty(uuid);
-                await loadProperties();
-            } catch (error) {
-                console.error("Fehler beim Löschen:", error);
-                alert("Fehler beim Löschen des Properties");
-            }
-        }
+        if (!confirm("Klasse wirklich löschen?")) return;
+        await api.deletePropertyGroup(uuid);
+        await loadClasses();
     }
 
     return (
         <div className="animate-fade-in">
             <div className="page-header">
                 <div className="page-header-icon">
-                    <Tags size={22} />
+                    <Boxes size={22} />
                 </div>
                 <div>
-                    <div className="page-header-title">Merkmale</div>
-                    <div className="page-header-sub">Verwalten Sie Ihre Merkmale</div>
+                    <div className="page-header-title">Klassen</div>
+                    <div className="page-header-sub">Verwalten Sie Ihre Klassen</div>
                 </div>
             </div>
 
             <CrudTable
-                basePath="/properties"
+                basePath="/classes"
                 onDelete={(id) => onDelete(String(id))}
-                rows={properties.map(p => ({ ...p, id: p.UUID }))}
-                title="Alle Merkmale"
-                createLabel="Neues Merkmal"
-                onCreateClick={() => navigate("/properties/new")}
+                rows={classes.map(r => ({ ...r, id: r.UUID }))}
+                title="Alle Klassen"
+                createLabel="Neue Klasse"
+                onCreateClick={() => navigate("/classes/new")}
                 isLoading={isLoading}
                 columns={[
                     {
@@ -82,13 +78,6 @@ export default function PropertyList() {
                         title: "Version",
                         render: (r) => (
                             <span>{`${r.version}.${r.number_of_revision}`}</span>
-                        )
-                    },
-                    {
-                        key: "data_type",
-                        title: "Datentyp",
-                        render: (p) => (
-                            <span >{p.data_type || "-"}</span>
                         )
                     },
                 ]}

@@ -3,14 +3,28 @@ import { api } from "../api/api.ts";
 import type { Transaction } from "../types.ts";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { ArrowLeftRight } from "lucide-react";
 
 export default function TransactionList() {
     const [rows, setRows] = useState<Transaction[]>([]);
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        api.listTransactions().then(setRows)
+        loadData();
     }, []);
+
+    async function loadData() {
+        setIsLoading(true);
+        try {
+            const data = await api.listTransactions();
+            setRows(data);
+        } catch (error) {
+            console.error("Fehler beim Laden der Transaktionen:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     async function onDelete(id: number) {
         if (!confirm("Löschen?")) return;
@@ -19,32 +33,60 @@ export default function TransactionList() {
     }
 
     return (
-        <div className="p-6">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold text-gray-800">Transaktionen</h1>
-                <button
-                    onClick={() => navigate("/transactions/new")}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                >
-                    Neu
-                </button>
+        <div className="animate-fade-in">
+            <div className="page-header">
+                <div className="page-header-icon">
+                    <ArrowLeftRight size={22} />
+                </div>
+                <div>
+                    <div className="page-header-title">Transaktionen</div>
+                    <div className="page-header-sub">Verwalten Sie Ihre Transaktionen</div>
+                </div>
             </div>
 
-            <div className="overflow-x-auto">
-                <CrudTable
-                    basePath="/transactions"
-                    onDelete={onDelete}
-                    rows={rows}
-                    columns={[
-                        { key: "name", title: "Name" },
-                        { key: "subUseCase_id", title: "Sub Use Case" },
-                        { key: "usesDataspace", title: "Nutzt Datenraum"},
-                        { key: "roleIn_id", title: "Ausgehende Rolle"},
-                        { key: "roleOut_id", title: "Eingehende Rolle"},
-                    ]}
-                />
-            </div>
+            <CrudTable
+                basePath="/transactions"
+                onDelete={onDelete}
+                rows={rows}
+                title="Alle Transaktionen"
+                createLabel="Neue Transaktion"
+                onCreateClick={() => navigate("/transactions/new")}
+                isLoading={isLoading}
+                columns={[
+                    {
+                        key: "name",
+                        title: "Name",
+                        render: (r) => (
+                            <span style={{ fontWeight: 600 }}>{r.name}</span>
+                        )
+                    },
+                    {
+                        key: "subUseCase_name",
+                        title: "Sub Use Case",
+                    },
+                    {
+                        key: "roleOut",
+                        title: "Ausgehende Rolle",
+                        render: (r) => (
+                            <span>{r.roleOut.name}</span>
+                        )
+                    },
+                    {
+                        key: "roleIn",
+                        title: "Eingehende Rolle",
+                        render: (r) => (
+                            <span>{r.roleIn.name}</span>
+                        )
+                    },
+                    {
+                        key: "usesDataspace",
+                        title: "Nutzt Datenraum",
+                        render: (r) => (
+                            <span>{r.usesDataspace ? "Ja" : "Nein"}</span>
+                        )
+                    }
+                ]}
+            />
         </div>
     );
 }
