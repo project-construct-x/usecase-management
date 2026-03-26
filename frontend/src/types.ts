@@ -80,13 +80,23 @@ export interface UseCaseCreate {
     roles: number[];
 }
 
-export interface Transaction {
-    id: number;
+export interface TransactionBase {
+    id?: number;
     name: string;
-    subUseCase_id: number;
+    subUseCase_id: number | null;
     usesDataspace: boolean;
-    roleIn_id: number;
+}
+
+export interface Transaction extends TransactionBase {
+    id: number;
+    roleOut: Role;
+    roleIn: Role;
+    subUseCase_name?: string;
+}
+
+export interface TransactionMutate extends TransactionBase {
     roleOut_id: number;
+    roleIn_id: number;
 }
 
 export interface Property {

@@ -44,78 +44,148 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-6">
-            {/* Decorative Elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-300/20 dark:bg-primary-700/10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent-300/20 dark:bg-accent-700/10 rounded-full blur-3xl"></div>
-            </div>
+        <div
+            style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--bg-app)',
+                padding: '24px',
+            }}
+        >
+            <div style={{ width: '100%', maxWidth: '420px' }} className="animate-fade-in">
 
-            <div className="relative w-full max-w-md">
-                {/* Logo Card */}
-                <div className="text-center mb-8 animate-fade-in">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-600 to-accent-600 shadow-2xl shadow-primary-500/30 mb-4">
-                        <Database className="text-white" size={40} />
+                {/* Logo & Header */}
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                    <div
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '52px',
+                            height: '52px',
+                            borderRadius: 'var(--radius-lg)',
+                            background: 'linear-gradient(135deg, var(--green-600), var(--blue-500))',
+                            marginBottom: '16px',
+                            boxShadow: '0 8px 24px rgba(37,99,235,0.25)',
+                        }}
+                    >
+                        <Database size={26} color="white" />
                     </div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-2">
+                    <h1
+                        style={{
+                            fontSize: '22px',
+                            fontWeight: 700,
+                            color: 'var(--text-primary)',
+                            letterSpacing: '-0.02em',
+                            marginBottom: '4px',
+                        }}
+                    >
                         Willkommen zurück
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                         Melden Sie sich an, um fortzufahren
                     </p>
                 </div>
 
-                {/* Login Card */}
-                <div className="card animate-scale-in">
+                {/* Card */}
+                <div className="card">
                     <div className="card-body">
+
                         {/* Auth Method Toggle */}
-                        <div className="mb-6">
-                            <div className="flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-                                <button
-                                    type="button"
-                                    onClick={() => !useApiKey || toggleAuthMethod()}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                                        !useApiKey
-                                            ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-md'
-                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                                    }`}
-                                >
-                                    <Lock size={16} />
-                                    Passwort
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => useApiKey || toggleAuthMethod()}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                                        useApiKey
-                                            ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-md'
-                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                                    }`}
-                                >
-                                    <Key size={16} />
-                                    API-Key
-                                </button>
-                            </div>
+                        <div
+                            style={{
+                                display: 'flex',
+                                gap: '4px',
+                                background: 'var(--bg-subtle)',
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-md)',
+                                padding: '4px',
+                                marginBottom: '24px',
+                            }}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => useApiKey && toggleAuthMethod()}
+                                style={{
+                                    flex: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px',
+                                    padding: '7px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: 'none',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    fontFamily: 'var(--font-sans)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s',
+                                    background: !useApiKey ? 'var(--bg-card)' : 'transparent',
+                                    color: !useApiKey ? 'var(--accent-text)' : 'var(--text-muted)',
+                                    boxShadow: !useApiKey ? 'var(--shadow-xs)' : 'none',
+                                }}
+                            >
+                                <Lock size={13} />
+                                Passwort
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => !useApiKey && toggleAuthMethod()}
+                                style={{
+                                    flex: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px',
+                                    padding: '7px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: 'none',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    fontFamily: 'var(--font-sans)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s',
+                                    background: useApiKey ? 'var(--bg-card)' : 'transparent',
+                                    color: useApiKey ? 'var(--accent-text)' : 'var(--text-muted)',
+                                    boxShadow: useApiKey ? 'var(--shadow-xs)' : 'none',
+                                }}
+                            >
+                                <Key size={13} />
+                                API-Key
+                            </button>
                         </div>
 
                         {/* Form */}
-                        <form onSubmit={handleSubmit} className="space-y-5">
+                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             {!useApiKey ? (
                                 <>
                                     <div>
                                         <label htmlFor="username" className="form-label">
                                             Benutzername
                                         </label>
-                                        <div className="relative">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
-                                                <User size={18} />
-                                            </div>
+                                        <div style={{ position: 'relative' }}>
+                                            <span
+                                                style={{
+                                                    position: 'absolute',
+                                                    left: '12px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    color: 'var(--text-muted)',
+                                                    display: 'flex',
+                                                    pointerEvents: 'none',
+                                                }}
+                                            >
+                                                <User size={15} />
+                                            </span>
                                             <input
                                                 id="username"
                                                 type="text"
                                                 value={username}
                                                 onChange={(e) => setUsername(e.target.value)}
-                                                className="form-input pl-11"
+                                                className="form-input"
+                                                style={{ paddingLeft: '36px' }}
                                                 placeholder="Ihr Benutzername"
                                                 required
                                                 disabled={isLoading}
@@ -127,16 +197,27 @@ const Login: React.FC = () => {
                                         <label htmlFor="password" className="form-label">
                                             Passwort
                                         </label>
-                                        <div className="relative">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
-                                                <Lock size={18} />
-                                            </div>
+                                        <div style={{ position: 'relative' }}>
+                                            <span
+                                                style={{
+                                                    position: 'absolute',
+                                                    left: '12px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    color: 'var(--text-muted)',
+                                                    display: 'flex',
+                                                    pointerEvents: 'none',
+                                                }}
+                                            >
+                                                <Lock size={15} />
+                                            </span>
                                             <input
                                                 id="password"
                                                 type="password"
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
-                                                className="form-input pl-11"
+                                                className="form-input"
+                                                style={{ paddingLeft: '36px' }}
                                                 placeholder="Ihr Passwort"
                                                 required
                                                 disabled={isLoading}
@@ -149,60 +230,64 @@ const Login: React.FC = () => {
                                     <label htmlFor="apiKey" className="form-label">
                                         API-Key
                                     </label>
-                                    <div className="relative">
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
-                                            <Key size={18} />
-                                        </div>
+                                    <div style={{ position: 'relative' }}>
+                                        <span
+                                            style={{
+                                                position: 'absolute',
+                                                left: '12px',
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                color: 'var(--text-muted)',
+                                                display: 'flex',
+                                                pointerEvents: 'none',
+                                            }}
+                                        >
+                                            <Key size={15} />
+                                        </span>
                                         <input
                                             id="apiKey"
                                             type="text"
                                             value={apiKey}
                                             onChange={(e) => setApiKey(e.target.value)}
-                                            className="form-input pl-11 font-mono text-sm"
+                                            className="form-input"
+                                            style={{ paddingLeft: '36px', fontFamily: 'var(--font-mono)', fontSize: '12px' }}
                                             placeholder="Fügen Sie Ihren API-Key ein"
                                             required
                                             disabled={isLoading}
                                             autoFocus
                                         />
                                     </div>
-                                    <p className="form-hint mt-2">
+                                    <p className="form-hint" style={{ marginTop: '6px' }}>
                                         Der API-Key wird Ihnen von einem Administrator bereitgestellt
                                     </p>
                                 </div>
                             )}
 
-                            {/* Error Message */}
+                            {/* Error */}
                             {error && (
                                 <div className="alert alert-error animate-fade-in">
-                                    <svg
-                                        className="w-5 h-5 flex-shrink-0"
-                                        fill="currentColor"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path
-                                            fillRule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                            clipRule="evenodd"
-                                        />
+                                    <svg className="w-5 h-5" style={{ flexShrink: 0, width: 16, height: 16 }} fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                                     </svg>
-                                    <span className="text-sm font-medium">{error}</span>
+                                    <span style={{ fontSize: '13px', fontWeight: 500 }}>{error}</span>
                                 </div>
                             )}
 
-                            {/* Submit Button */}
+                            {/* Submit */}
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full btn btn-primary btn-lg"
+                                className="btn btn-primary btn-lg"
+                                style={{ width: '100%', marginTop: '4px' }}
                             >
                                 {isLoading ? (
                                     <>
-                                        <Loader2 className="animate-spin" size={20} />
-                                        Wird angemeldet...
+                                        <Loader2 size={16} style={{ animation: 'spin 0.75s linear infinite' }} />
+                                        Wird angemeldet…
                                     </>
                                 ) : (
                                     <>
-                                        <Lock size={18} />
+                                        <Lock size={15} />
                                         Anmelden
                                     </>
                                 )}
@@ -212,14 +297,19 @@ const Login: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400 animate-fade-in">
-                    <p>
-                        Haben Sie noch keinen Account?{' '}
-                        <span className="text-gray-500 dark:text-gray-500">
-                            Kontaktieren Sie Ihren Administrator
-                        </span>
-                    </p>
-                </div>
+                <p
+                    style={{
+                        marginTop: '20px',
+                        textAlign: 'center',
+                        fontSize: '12px',
+                        color: 'var(--text-muted)',
+                    }}
+                >
+                    Noch kein Account?{' '}
+                    <span style={{ color: 'var(--text-secondary)' }}>
+                        Kontaktieren Sie Ihren Administrator
+                    </span>
+                </p>
             </div>
         </div>
     );
