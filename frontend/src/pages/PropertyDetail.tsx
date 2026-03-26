@@ -146,9 +146,9 @@ export default function PropertyDetail() {
                 </div>
                 <div>
                     <div className="page-header-title">
-                        {uuid === "new" ? "Neues Merkmal" : "Merkmal bearbeiten"}
+                        {uuid === "new" ? "Neues Merkmal" : item.name}
                     </div>
-                    <div className="page-header-sub">Verwalten Sie die Merkmalsdaten</div>
+                    <div className="page-header-sub">Merkmal</div>
                 </div>
             </div>
 
@@ -158,7 +158,6 @@ export default function PropertyDetail() {
                 <div className="tabs">
                     {tabs.map(tab => {
                         const Icon = tab.icon;
-                        const badge = tab.id === "groups" ? item.groups?.length : undefined;
                         return (
                             <button
                                 key={tab.id}
@@ -168,8 +167,8 @@ export default function PropertyDetail() {
                             >
                                 {Icon && <Icon size={15} />}
                                 {tab.label}
-                                {badge !== undefined && badge > 0 && (
-                                    <span className="badge badge-primary">{badge}</span>
+                                {tab.badge !== undefined && tab.badge > 0 && (
+                                    <span className="badge badge-primary">{tab.badge}</span>
                                 )}
                             </button>
                         );
@@ -564,7 +563,7 @@ export default function PropertyDetail() {
                     <button type="submit" disabled={loading} className="btn btn-primary">
                         {loading ? "Speichern…" : "Speichern"}
                     </button>
-                    <button type="button" onClick={() => navigate("/properties")} className="btn btn-secondary">
+                    <button type="button" onClick={() => navigate(-1)} className="btn btn-secondary">
                         Zurück
                     </button>
                 </div>

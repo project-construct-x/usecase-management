@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
 import type { PropertyGroup, Property } from "../types.ts";
+import {Tags, AlertCircle, Boxes} from "lucide-react";
 
 // hier wird zwar von Klassen geschrieben, im Hintergrund handelt es sich aber technisch um ProjectGroups
 // auch im Backend sind Klassen als ProjectGroups gespeichert
@@ -21,7 +22,7 @@ export default function ClassDetail() {
     const navigate = useNavigate();
     const [item, setItem] = useState<Partial<PropertyGroup>>(emptyClass);
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<"basic" | "metadata" | "properties">("basic");
+    const [activeTab, setActiveTab] = useState("basic");
 
     // Properties State
     const [relatedProperties, setRelatedProperties] = useState<Property[]>([]);
@@ -89,308 +90,289 @@ export default function ClassDetail() {
     }
 
     if (loading && uuid !== "new") {
-        return <div className="p-6 text-center">Laden...</div>;
+        return (
+            <div style={{ display: "flex", justifyContent: "center", padding: "64px 24px" }}>
+                <div className="spinner" style={{ width: 36, height: 36 }} />
+            </div>
+        )
     }
 
+    const tabs = [
+        { id: "basic", label: "Grunddaten", icon: Tags},
+        { id: "related_properties", label: "Zugeordnete Merkmale", badge: relatedProperties?.length},
+        { id: "metadata", label: "Metadaten"}
+    ]
+
     return (
-        <div className="p-6 max-w-5xl mx-auto">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">
-                {uuid === "new" ? "Neue Klasse" : `Klasse bearbeiten`}
-            </h1>
+        <div className="page-container-narrow animate-fade-in">
+
+            <div className="page-header">
+                <div className="page-header-icon">
+                    <Boxes size={22} />
+                </div>
+                <div>
+                    <div className="page-header-title">
+                        {uuid === "new" ? "Neue Klasse" : item.name}
+                    </div>
+                    <div className="page-header-sub">Klasse</div>
+                </div>
+            </div>
 
             <form onSubmit={handleSubmit}>
                 {/* Tabs */}
-                <div className="flex gap-2 mb-6 border-b">
-                    <button
-                        type="button"
-                        onClick={() => setActiveTab("basic")}
-                        className={`px-4 py-2 font-medium transition-colors ${
-                            activeTab === "basic"
-                                ? "text-blue-600 border-b-2 border-blue-600"
-                                : "text-gray-600 hover:text-gray-800"
-                        }`}
-                    >
-                        Grunddaten
-                    </button>
-                    {uuid !== "new" && (
-                        <button
-                            type="button"
-                            onClick={() => setActiveTab("properties")}
-                            className={`px-4 py-2 font-medium transition-colors ${
-                                activeTab === "properties"
-                                    ? "text-blue-600 border-b-2 border-blue-600"
-                                    : "text-gray-600 hover:text-gray-800"
-                            }`}
-                        >
-                            Zugeordnete Merkmale {relatedProperties.length > 0 && (
-                                <span className="ml-1 bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-sm">
-                                    {relatedProperties.length}
-                                </span>
-                            )}
-                        </button>
-                    )}
-                    <button
-                        type="button"
-                        onClick={() => setActiveTab("metadata")}
-                        className={`px-4 py-2 font-medium transition-colors ${
-                            activeTab === "metadata"
-                                ? "text-blue-600 border-b-2 border-blue-600"
-                                : "text-gray-600 hover:text-gray-800"
-                        }`}
-                    >
-                        Metadaten
-                    </button>
+                <div className="tabs">
+                    {tabs.map(tab => {
+                        const Icon = tab.icon;
+                        return (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`tab ${activeTab === tab.id ? "tab-active" : "tab-inactive"}`}
+                            >
+                                {Icon && <Icon size={15} />}
+                                {tab.label}
+                                {tab.badge !== undefined && tab.badge > 0 && (
+                                    <span className="badge badge-primary">{tab.badge}</span>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-6 space-y-6">
-                    {/* Grunddaten Tab */}
-                    {activeTab === "basic" && (
-                        <>
-                            <div className="grid grid-cols-2 gap-4">
+                {/* Tab Content */}
+                <div className="card">
+                    <div className="card-body form-section">
+
+                        {/* Grunddaten*/}
+                        {activeTab === "basic" && (
+                            <>
+                                <div className="form-grid-2">
+                                    <div>
+                                        <label className="form-label form-label-required">Name</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={item.name || ""}
+                                            onChange={e => updateField("name", e.target.value)}
+                                            className="form-input"
+                                            placeholder="Merkmalname eingeben"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="form-label form-label-required">Sprache</label>
+                                        <select
+                                            required
+                                            value={item.language_of_creator || ""}
+                                            onChange={e => updateField("language_of_creator", e.target.value)}
+                                            className="form-input form-select"
+                                        >
+                                            <option value="de-DE">Deutsch (DE)</option>
+                                            <option value="en-EN">Englisch (EN)</option>
+                                            <option value="fr-FR">Französisch (FR)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div>
-                                    <label className="block text-gray-700 font-medium mb-1">
-                                        Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
+                                    <label className="form-label form-label-required">Definition</label>
+                                    <textarea
                                         required
-                                        value={item.name || ""}
-                                        onChange={(e) => updateField("name", e.target.value)}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={item.definition || ""}
+                                        onChange={e => updateField("definition", e.target.value)}
+                                        className="form-input form-textarea"
+                                        placeholder="Beschreiben Sie das Merkmal"
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-gray-700 font-medium mb-1">
-                                        Sprache <span className="text-red-500">*</span>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="active"
+                                        checked={item.active || false}
+                                        onChange={(e) => updateField("active", e.target.checked)}
+                                        className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <label htmlFor="active" className="text-gray-700 font-medium">
+                                        Aktiv
                                     </label>
-                                    <select
-                                        required
-                                        value={item.language_of_creator || ""}
-                                        onChange={(e) => updateField("language_of_creator", e.target.value)}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value="de-DE">Deutsch (DE)</option>
-                                        <option value="en-EN">Englisch (EN)</option>
-                                        <option value="fr-FR">Französisch (FR)</option>
-                                    </select>
                                 </div>
-                            </div>
+                            </>
+                        )}
 
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-1">
-                                    Definition <span className="text-red-500">*</span>
-                                </label>
-                                <textarea
-                                    required
-                                    rows={3}
-                                    value={item.definition || ""}
-                                    onChange={(e) => updateField("definition", e.target.value)}
-                                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    id="active"
-                                    checked={item.active || false}
-                                    onChange={(e) => updateField("active", e.target.checked)}
-                                    className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                                />
-                                <label htmlFor="active" className="text-gray-700 font-medium">
-                                    Aktiv
-                                </label>
-                            </div>
-                        </>
-                    )}
-
-                    {/* Properties Tab */}
-                    {activeTab === "properties" && uuid !== "new" && (
-                        <>
-                            <div>
-                                <p className="text-sm text-gray-600 mb-4">
-                                    Diese Merkmale gehören zu dieser Klasse. Um die Zuordnung zu ändern, bearbeiten Sie die einzelnen Merkmale.
-                                </p>
-
-                                {loadingProperties ? (
-                                    <div className="text-center py-8 text-gray-500">
-                                        Lade Merkmale...
-                                    </div>
-                                ) : relatedProperties.length === 0 ? (
-                                    <div className="text-center py-8 text-gray-500 border border-gray-200 rounded">
-                                        Dieser Klasse sind noch keine Merkmale zugeordnet
-                                    </div>
-                                ) : (
-                                    <div className="border border-gray-200 rounded overflow-hidden">
-                                        <table className="w-full">
-                                            <thead className="bg-gray-50 border-b border-gray-200">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Name</th>
-                                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Definition</th>
-                                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Datentyp</th>
-                                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                                                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Aktion</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-200">
-                                                {relatedProperties.map(prop => (
-                                                    <tr key={prop.UUID} className="hover:bg-gray-50">
-                                                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                                            {prop.name}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-sm text-gray-600">
-                                                            {prop.definition.length > 80
-                                                                ? `${prop.definition.substring(0, 80)}...`
-                                                                : prop.definition}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-sm text-gray-600">
-                                                            {prop.data_type || "-"}
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                                                prop.active 
-                                                                    ? "bg-green-100 text-green-800" 
-                                                                    : "bg-gray-100 text-gray-800"
-                                                            }`}>
-                                                                {prop.active ? "Aktiv" : "Inaktiv"}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-4 py-3 text-center">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => navigate(`/properties/${prop.UUID}`)}
-                                                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                                                            >
-                                                                Bearbeiten
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                        {/* Verbundene Merkmale */}
+                        {activeTab === "related_properties" && uuid !== "new" && (
+                            <>
+                                {(!relatedProperties || relatedProperties.length === 0) && !loadingProperties && (
+                                    <div className="alert alert-info">
+                                        <AlertCircle size={18} />
+                                        <span>Dieser Klasse sind noch keine Merkmale zugeordnet.</span>
                                     </div>
                                 )}
-                            </div>
-                        </>
-                    )}
 
-                    {/* Metadaten Tab */}
-                    {activeTab === "metadata" && (
-                        <>
-                            <div className="grid grid-cols-2 gap-4">
+                                {loadingProperties ? (
+                                    <div className="group-list-empty">
+                                        <span style={{ fontWeight: 600 }}>Lade Merkmale...</span>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 12 }}>
+                                            Diese Merkmale gehören zu dieser Klasse. Um die Zuordnung zu ändern, bearbeiten Sie die einzelnen Merkmale.
+                                        </p>
+
+                                        <div className="group-list custom-scrollbar">
+                                            {relatedProperties.length === 0 ? (
+                                                <div className="group-list-empty">
+                                                    <span style={{ fontWeight: 600 }}>Keine Merkmale vorhanden</span>
+                                                    <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                                                        Dieser Klasse sind noch keine Merkmale zugeordnet
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                relatedProperties.map(prop => (
+                                                    <div
+                                                        key={prop.UUID}
+                                                        className="group-list-item"
+                                                        style={{ cursor: "default" }}
+                                                    >
+                                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                                            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 3 }}>
+                                                                <span style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: 13 }}>
+                                                                    {prop.name}
+                                                                </span>
+                                                                {prop.data_type && (
+                                                                    <span className="badge badge-gray">
+                                                                        {prop.data_type}
+                                                                    </span>
+                                                                )}
+                                                                <span className={`badge ${prop.active ? "badge-primary" : "badge-gray"}`}>
+                                                                    {prop.active ? "Aktiv" : "Inaktiv"}
+                                                                </span>
+                                                            </div>
+                                                            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
+                                                                {prop.definition.length > 80
+                                                                    ? `${prop.definition.substring(0, 80)}...`
+                                                                    : prop.definition}
+                                                            </p>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => navigate(`/properties/${prop.UUID}`)}
+                                                            className="btn btn-secondary"
+                                                            style={{ flexShrink: 0, fontSize: 12, padding: "4px 10px" }}
+                                                        >
+                                                            Bearbeiten
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </>
+                        )}
+
+                        {/* Metadaten Tab */}
+                        {activeTab === "metadata" && (
+                            <>
+                                <div className="form-grid-2">
+                                    <div>
+                                        <label className="form-label form-label-required">Version</label>
+                                        <input
+                                            type="number"
+                                            required
+                                            min="1"
+                                            value={item.version || 1}
+                                            onChange={(e) => updateField("version", parseInt(e.target.value))}
+                                            className="form-input"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="form-label">Nummer der Überarbeitung</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={item.number_of_revision || ""}
+                                            onChange={(e) => updateField("number_of_revision", e.target.value ? parseInt(e.target.value) : null)}
+                                            className="form-input"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-grid-2">
+                                    <div>
+                                        <label className="form-label">Ursprungsland</label>
+                                        <input
+                                            type="text"
+                                            value={item.country_of_origin || ""}
+                                            onChange={(e) => updateField("country_of_origin", e.target.value)}
+                                            className="form-input"
+                                            placeholder="z.B. DE, FR, US"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="form-label">Verwendung in Ländern (kommagetrennt)</label>
+                                        <input
+                                            type="text"
+                                            value={item.used_in_countries?.join(", ") || ""}
+                                            onChange={(e) => updateField("used_in_countries", e.target.value.split(",").map(s => s.trim()))}
+                                            className="form-input"
+                                            placeholder="z.B. DE, FR, US"
+                                        />
+                                    </div>
+                                </div>
+
                                 <div>
-                                    <label className="block text-gray-700 font-medium mb-1">
-                                        Version <span className="text-red-500">*</span>
-                                    </label>
+                                    <label className="form-label">Bild-URL</label>
                                     <input
-                                        type="number"
-                                        required
-                                        min="1"
-                                        value={item.version || 1}
-                                        onChange={(e) => updateField("version", parseInt(e.target.value))}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        type="url"
+                                        value={item.picture_url || ""}
+                                        onChange={(e) => updateField("picture_url", e.target.value)}
+                                        className="form-input"
+                                        placeholder="https://..."
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-700 font-medium mb-1">
-                                        Nummer der Überarbeitung
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        value={item.number_of_revision || ""}
-                                        onChange={(e) => updateField("number_of_revision", e.target.value ? parseInt(e.target.value) : null)}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-gray-700 font-medium mb-1">
-                                        Ursprungsland
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={item.country_of_origin || ""}
-                                        onChange={(e) => updateField("country_of_origin", e.target.value)}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="z.B. DE, FR, US"
+                                    <label className="form-label">Beziehung zu anderen Katalogen</label>
+                                    <textarea
+                                        rows={3}
+                                        value={item.relation_to_other_catalogues || ""}
+                                        onChange={(e) => updateField("relation_to_other_catalogues", e.target.value)}
+                                        className="form-input form-textarea"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-gray-700 font-medium mb-1">
-                                        Verwendung in Ländern (kommagetrennt)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={item.used_in_countries?.join(", ") || ""}
-                                        onChange={(e) => updateField("used_in_countries", e.target.value.split(",").map(s => s.trim()))}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="z.B. DE, FR, US"
+                                    <label className="form-label">Erläuterung für Ablehnung</label>
+                                    <textarea
+                                        rows={3}
+                                        value={item.reason_for_rejection || ""}
+                                        onChange={(e) => updateField("reason_for_rejection", e.target.value)}
+                                        className="form-input form-textarea"
                                     />
                                 </div>
-                            </div>
+                            </>
+                        )}
 
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-1">
-                                    Bild-URL
-                                </label>
-                                <input
-                                    type="url"
-                                    value={item.picture_url || ""}
-                                    onChange={(e) => updateField("picture_url", e.target.value)}
-                                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="https://..."
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-1">
-                                    Beziehung zu anderen Katalogen
-                                </label>
-                                <textarea
-                                    rows={2}
-                                    value={item.relation_to_other_catalogues || ""}
-                                    onChange={(e) => updateField("relation_to_other_catalogues", e.target.value)}
-                                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-1">
-                                    Erläuterung für Ablehnung
-                                </label>
-                                <textarea
-                                    rows={2}
-                                    value={item.reason_for_rejection || ""}
-                                    onChange={(e) => updateField("reason_for_rejection", e.target.value)}
-                                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                        </>
-                    )}
-                </div>
-
-                {/* Buttons */}
-                <div className="flex gap-3 mt-6">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors disabled:bg-gray-400"
-                    >
-                        {loading ? "Speichern..." : "Speichern"}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => navigate("/classes")}
-                        className="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300 transition-colors"
-                    >
-                        Zurück
-                    </button>
+                        {/* Buttons */}
+                        <div className="form-actions">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="btn btn-primary"
+                            >
+                                {loading ? "Speichern..." : "Speichern"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => navigate(-1)}
+                                className="btn btn-secondary"
+                            >
+                                Zurück
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>

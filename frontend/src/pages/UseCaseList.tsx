@@ -56,8 +56,6 @@ export default function UseCaseList() {
                     {
                         key: "name",
                         title: "Name",
-                        maxWidth: 1,
-                        width: 1,
                         render: (r) => (
                             <span style={{ fontWeight: 600 }}>{r.name}</span>
                         )

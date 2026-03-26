@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
@@ -63,21 +63,30 @@ class UseCase(UseCaseBase):
 
 
 # --------Transaction-------
-class TransactionBase(BaseModel):
-    name: str
-    subUseCase_id: int
-    usesDataspace: bool
-    roleOut_id: int
-    roleIn_id: int
-
-class TransactionMutate(TransactionBase):
-    pass
-
-class Transaction(TransactionBase):
+class Transaction(BaseModel):
     id: int
+    name: str
+    subUseCase_name: str | None = None
+    usesDataspace: bool
+    roleOut: Role
+    roleIn: Role
+
+    @model_validator(mode="before")
+    @classmethod
+    def extract_sub_use_case_name(cls, data):
+        if hasattr(data, "subUseCase") and data.subUseCase:
+            data.__dict__["subUseCase_name"] = data.subUseCase.name
+        return data
+
     class Config:
         from_attributes = True
 
+class TransactionMutate(BaseModel):
+    name: str
+    subUseCase_id: int | None = None
+    usesDataspace : bool
+    roleOut_id: int
+    roleIn_id: int
 
 # -------------Base for Property and PropertyGroup------------------
 class TimestampedEntityBase(BaseModel):

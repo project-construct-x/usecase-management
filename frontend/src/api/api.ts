@@ -3,6 +3,7 @@ import type {
     SubUseCase,
     Role,
     Transaction,
+    TransactionMutate,
     UseCaseCreate,
     SubUseCaseCreate,
     Property,
@@ -167,13 +168,13 @@ export const api = {
     // ---Transactions---
     listTransactions: () => request<Transaction[]>("/transactions/"),
     getTransaction: (id:number) => request<Transaction>(`/transactions/${id}`),
-    createTransaction: (data: Partial<Transaction>) =>
+    createTransaction: (data: TransactionMutate) =>
         request<Transaction>("/transactions/", {
             method: "POST",
             body: JSON.stringify(data),
             headers: { "Content-Type": "application/json"},
         }),
-    updateTransaction: (id: number, data: Partial<Transaction>) =>
+    updateTransaction: (id: number, data: TransactionMutate) =>
         request<Transaction>(`/transactions/${id}`, {
             method: "PUT",
             body: JSON.stringify(data),

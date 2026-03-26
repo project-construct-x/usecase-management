@@ -1,155 +1,348 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
-import type { UseCase, Role } from "../types.ts";
+import type {UseCase, Role} from "../types.ts";
 import TagInput from "../components/TagInput.tsx";
-import MultiSelect from "../components/MultiSelect.tsx";
 import CrudTable from "../components/CrudTable.tsx";
+import {Tags, AlertCircle, FileText, Layers, Search, Users} from "lucide-react";
+
+const emptyUseCase: UseCase = {
+  id: 0,
+  name: "",
+  keywords: [],
+  roles: [],
+  subUseCases: [],
+}
 
 export default function UseCaseDetail() {
-    const { id } = useParams();
-    const navigate = useNavigate();
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [item, setItem] = useState<UseCase>(emptyUseCase)
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("basic");
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [filteredRoles, setFilteredRoles] = useState<Role[]>([])
+  const [searchTerm, setSearchTerm] = useState("");
 
-    const [item, setItem] = useState<UseCase>({
-        id: 0,
-        name: "",
-        keywords: [],
-        roles: [],
-        subUseCases: [],
-    });
+  useEffect(() => {
+    loadRoles();
+    if (id !== "new") {
+      loadUseCase();
+    }
+  }, [id]);
 
-    const [roles, setRoles] = useState<Role[]>([]);
+  useEffect(() => {
+    filterRoles();
+  }, [searchTerm, roles]);
 
-    useEffect(() => {
-        api.listRoles().then(setRoles);
+  async function loadUseCase() {
+    setLoading(true);
+    try {
+      const data = await api.getUseCase(Number(id!));
+      setItem(data);
+    } catch (error) {
+      console.error("Fehler beim Laden:", error);
+      alert("Use Case konnte nicht geladen werden");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-        if (id !== "new") {
-            api.getUseCase(Number(id)).then(setItem);
-        }
-    }, [id]);
+  async function loadRoles() {
+    setLoading(true);
+    try {
+      const roles = await api.listRoles();
+      setRoles(roles);
+    } catch (error) {
+      console.error("Fehler beim Laden: ", error);
+      alert("Rollen konnten nicht geladen werden.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    async function save() {
-        const payload = {
-            name: item.name,
-            keywords: item.keywords,
-            roles: item.roles.map((r) => r.id),
-        };
+  function filterRoles() {
+    let filtered = roles;
 
-        if (id === "new") {
-            const created = await api.createUseCase(payload);
-            navigate(`/usecases/${created.id}`);
-        } else {
-            await api.updateUseCase(Number(id), payload);
-            // Reload um aktualisierte subUseCases zu bekommen
-            const updated = await api.getUseCase(Number(id));
-            setItem(updated);
-        }
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(g =>
+        g.name.toLowerCase().includes(term) ||
+        g.definition.toLowerCase().includes(term)
+      );
     }
 
-    async function handleDeleteSubUseCase(subId: number) {
-        if (confirm("SubUseCase wirklich löschen?")) {
-            await api.deleteSubUseCase(subId);
-            // Reload UseCase um aktualisierte Liste zu bekommen
-            const updated = await api.getUseCase(Number(id));
-            setItem(updated);
-        }
+    setFilteredRoles(filtered);
+  }
+
+  function toggleRole(role: Role) {
+    const currentRoles = item.roles || [];
+    const isSelected = currentRoles.some(r => r.id === role.id);
+
+    if (isSelected) {
+      updateField("roles", currentRoles.filter(r => r.id !== role.id));
+    } else {
+      updateField("roles", [...currentRoles, role]);
     }
+  }
 
-    return (
-        <div className="p-6 max-w-5xl mx-auto">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">
-                {id === "new" ? "Neuer UseCase" : `UseCase: ${item.name}`}
-            </h1>
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
 
-            {/* Formular */}
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">Allgemeine Informationen</h2>
+    const payload = {
+      name: item.name,
+      keywords: item.keywords,
+      roles: item.roles.map((r) => r.id),
+    };
 
-                {/* Name */}
-                <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-1">Name</label>
-                    <input
-                        type="text"
-                        value={item.name}
-                        onChange={(e) => setItem({ ...item, name: e.target.value })}
-                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
+    try {
+      if (id === "new") {
+        console.log(JSON.stringify(item))
+        const created = await api.createUseCase(payload);
+        navigate(`/usecases/${created.id}`);
+      } else {
+        await api.updateUseCase(Number(id)!, payload);
+        await loadUseCase();
+        alert("Use Case erfolgreich aktualisiert");
+      }
+    } catch (error) {
+      console.error("Fehler beim Speichern:", error);
+      alert("Fehler beim Speichern des Use Case");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-                {/* Keywords */}
-                <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-1">Keywords</label>
-                    <TagInput
-                        value={item.keywords}
-                        onChange={(tags) => {
-                            setItem({ ...item, keywords: tags });
-                        }}
-                    />
-                </div>
+  function updateField<K extends keyof UseCase>(field: K, value: UseCase[K]) {
+    setItem(prev => ({ ...prev, [field]: value }));
+  }
 
-                {/* Rollen */}
-                <div className="mb-6">
-                    <label className="block text-gray-700 font-medium mb-1">Rollen</label>
-                    <MultiSelect
-                        options={roles}
-                        value={item.roles.map((r) => r.id)}
-                        onChange={(ids) => {
-                            const selectedRoles = roles.filter((r) => ids.includes(r.id));
-                            setItem({ ...item, roles: selectedRoles });
-                        }}
-                    />
-                </div>
+  const tabs = [
+    { id: "basic", label: "Grunddaten", icon: Tags},
+    { id: "roles", label: "Rollen", icon: Users, badge: item.roles?.length},
+    { id: "subusecases", label: "Sub Use Cases", icon: Layers, badge: item.subUseCases?.length}
+  ]
 
-                {/* Buttons */}
-                <div className="flex gap-3">
-                    <button
-                        onClick={save}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                    >
-                        Speichern
-                    </button>
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition-colors"
-                    >
-                        Zurück
-                    </button>
-                </div>
-            </div>
+  // TODO alle forms auf react-hook-from umstellen, damit die Validierung vernünftig funktioniert
 
-            {/* SubUseCases Tabelle - nur wenn nicht "new" */}
-            {id !== "new" && (
-                <div className="bg-white rounded-lg shadow p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold text-gray-800">Sub Use Cases</h2>
-                        <button
-                            onClick={() => navigate(`/subusecases/new?useCaseId=${id}`)}
-                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
-                        >
-                            + Neuer SubUseCase
-                        </button>
-                    </div>
-
-                    {item.subUseCases.length === 0 ? (
-                        <p className="text-gray-500 italic">Keine SubUseCases vorhanden</p>
-                    ) : (
-                        <CrudTable
-                            basePath="/subusecases"
-                            onDelete={handleDeleteSubUseCase}
-                            rows={item.subUseCases}
-                            columns={[
-                                { key: "name", title: "Name" },
-                                { key: "description", title: "Beschreibung" },
-                                {
-                                    key: "roles",
-                                    title: "Rollen",
-                                    render: (r) => r.roles.map((x) => x.name).join(", "),
-                                },
-                            ]}
-                        />
-                    )}
-                </div>
-            )}
+  return (
+    <div className="page-container-narrow animate-fade-in">
+      <div className="page-header">
+        <div className="page-header-icon">
+          <FileText size={22} />
         </div>
-    );
+        <div>
+          <div className="page-header-title">
+            {id === "new" ? "Neuer Use Case" : item.name}
+          </div>
+          <div className="page-header-sub">Use Case</div>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} >
+        <div className="tabs">
+          {tabs.map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`tab ${activeTab === tab.id ? "tab-active" : "tab-inactive"}`}
+              >
+                {Icon && <Icon size={15} />}
+                {tab.label}
+                {tab.badge !== undefined && tab.badge > 0 && (
+                  <span className="badge badge-primary">{tab.badge}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="card">
+          <div className="card-body form-section">
+            {/* Grunddaten */}
+            {activeTab === "basic" && (
+              <>
+                <div>
+                  <label className="form-label form-label-required">Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={item.name || ""}
+                    onChange={e => updateField("name", e.target.value)}
+                    className="form-input"
+                    placeholder="Use Case Name eingeben"
+                  />
+                </div>
+                <div>
+                  <label className="form-label form-label-required">Schlagwörter</label>
+                  <TagInput
+                    value={item.keywords}
+                    onChange={(tags) => {
+                      setItem({ ...item, keywords: tags });
+                    }}
+                    placeholder="Schlagwort eingeben..."
+                  />
+                  <span className="form-hint">Enter oder "Hinzufügen" drücken zum Hinzufügen</span>
+                </div>
+              </>
+            )}
+
+            {/* Rollen */}
+            {activeTab === "roles" && (
+              <>
+                {(!item.roles || item.roles.length === 0) && (
+                  <div className="alert alert-info">
+                    <AlertCircle size={18} />
+                    <span>Wählen Sie mindestens eine Rolle aus.</span>
+                  </div>
+                )}
+
+                {/* Filter-Zeile */}
+                <div className="form-grid-2">
+                  <div className="search-wrapper" style={{ maxWidth: "none" }}>
+                    <Search className="search-icon" size={16} />
+                    <input
+                      type="text"
+                      placeholder="Name oder Definition suchen…"
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      className="search-input"
+                      style={{ width: "100%" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Ausgewählte Chips */}
+                {item.roles && item.roles.length > 0 && (
+                  <div className="selected-gropus-box">
+                    <div className="selected-groups-label">
+                      Ausgewählt: {item.roles.length} Rolle(n)
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {item.roles.map((role: Role) => (
+                        <button
+                          key={role.id}
+                          type="button"
+                          onClick={() => toggleRole(role)}
+                          className="badge badge-primary badge-removable"
+                        >
+                          {role.name}
+                          <span style={{ marginLeft: 3, opacity: 0.7 }}>×</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Rollen-Liste */}
+                <div className="group-list custom-scrollbar">
+                  {filteredRoles.length === 0 ? (
+                    <div className="group-list-empty">
+                      <span style={{ fontWeight: 600 }}>Keine Rollen gefunden</span>
+                      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                                                Versuchen Sie einen anderen Suchbegriff
+                                            </span>
+                    </div>
+                  ) : (
+                    filteredRoles.map(role => {
+                      const isSelected = item.roles?.some(r => r.id === role.id) || false;
+                      return (
+                        <label
+                          key={role.id}
+                          className={`group-list-item ${isSelected ? "group-list-item-selected" : ""}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleRole(role)}
+                            className="form-checkbox"
+                            style={{ marginTop: 2, flexShrink: 0 }}
+                          />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 3 }}>
+                                                            <span style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: 13 }}>
+                                                                {role.name}
+                                                            </span>
+                            </div>
+                            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
+                              {role.definition}
+                            </p>
+                          </div>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* SubUseCases Tabelle */}
+            {activeTab === "subusecases" && (
+              <CrudTable
+                basePath="/subusecases"
+                onDelete={async (id) => {
+                  if (!confirm("Löschen?")) return;
+                  await api.deleteSubUseCase(id as number);
+                  updateField("subUseCases", item.subUseCases.filter(s => s.id !== id));
+                }}
+                rows={item.subUseCases || []}
+                title="Sub Use Cases"
+                createLabel={item.id ? "Neuer Sub Use Case" : "Zuerst den Use Case speichern"}
+                onCreateClick={item.id
+                  ? () => navigate(`/subusecases/new?useCaseId=${item.id}`)
+                  : () => {}
+                }
+                createDisabled={!item.id}
+                columns={[
+                  {
+                    key: "name",
+                    title: "Name",
+                    render: (r) => <span style={{ fontWeight: 600 }}>{r.name}</span>
+                  },
+                  {
+                    key: "description",
+                    title: "Beschreibung"
+                  },
+                  {
+                    key: "roles",
+                    title: "Rollen",
+                    sortable: false,
+                    filterable: false,
+                    render: (r) => (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                        {r.roles.slice(0, 2).map((role, idx) => (
+                          <span key={idx} className="badge badge-primary">
+                                                        {role.name}
+                                                    </span>
+                        ))}
+                        {r.roles.length > 2 && (
+                          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                                        +{r.roles.length - 2} weitere
+                                                    </span>
+                        )}
+                      </div>
+                    ),
+                  },
+                ]}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Aktionen */}
+        <div className="form-actions">
+          <button type="submit" disabled={loading} className="btn btn-primary">
+            {loading ? "Speichern…" : "Speichern"}
+          </button>
+          <button type="button" onClick={() => navigate(-1)} className="btn btn-secondary">
+            Zurück
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 }
