@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID as PRUUID
 import enum
 from ..db import Base
 
-# Many-to-Many Beziehung zwischen UseCase/SubUseCase und Role
+# Many-to-Many Beziehung zwischen UseCase und Role
 useCase_roles = Table(
     "useCase_roles",
     Base.metadata,
@@ -14,20 +14,13 @@ useCase_roles = Table(
     Column("role_id", ForeignKey("roles.id"), primary_key=True),
 )
 
-subUseCase_roles = Table(
-    "subUseCase_roles",
-    Base.metadata,
-    Column("subUseCase_id", ForeignKey("subUseCases.id"), primary_key=True),
-    Column("role_id", ForeignKey("roles.id"), primary_key=True),
-)
-
-
 class UseCase(Base):
     __tablename__ = "useCases"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     keywords = Column(ARRAY(String))
     description = Column(String)
+    # relation_to_other_useCases = Column(String)
 
     # Relationships
     subUseCases = relationship("SubUseCase", back_populates="useCase", cascade="all, delete-orphan")
@@ -39,6 +32,7 @@ class SubUseCase(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
+    short_name = Column(String, index=True)
     description = Column(String)
     useCase_id = Column(Integer, ForeignKey("useCases.id"))
     bpmn_png_url = Column(String, nullable=True)
@@ -46,8 +40,24 @@ class SubUseCase(Base):
 
     # Relationships
     useCase = relationship("UseCase", back_populates="subUseCases")
-    roles = relationship("Role", secondary=subUseCase_roles, back_populates="subUseCases")
+    subUseCase_roles = relationship(
+        "SubUseCaseRole",
+        back_populates="subUseCase",
+        cascade="all, delete-orphan",
+    )
     transactions = relationship("Transaction", back_populates="subUseCase", cascade="all, delete-orphan")
+
+class SubUseCaseRole(Base):
+    __tablename__ = "subUseCase_roles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    subUseCase_id = Column(Integer, ForeignKey("subUseCases.id", ondelete="CASCADE"))
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"))
+    motivation = Column(String, nullable=True)
+    goal = Column(String, nullable=True)
+
+    subUseCase = relationship("SubUseCase", back_populates="subUseCase_roles")
+    role = relationship("Role")
 
 
 class Transaction(Base):
@@ -74,7 +84,7 @@ class Role(Base):
 
     # Relationships
     useCases = relationship("UseCase", secondary=useCase_roles, back_populates="roles")
-    subUseCases = relationship("SubUseCase", secondary=subUseCase_roles, back_populates="roles")
+    subUseCase_roles = relationship("SubUseCaseRole", back_populates="role")
     standard = relationship("Standard", back_populates="roles")
     transactions_out = relationship("Transaction", foreign_keys="Transaction.roleOut_id", back_populates="roleOut")
     transactions_in = relationship("Transaction", foreign_keys="Transaction.roleIn_id", back_populates="roleIn")

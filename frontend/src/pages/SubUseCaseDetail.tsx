@@ -27,7 +27,7 @@ const emptyDiagram = `<?xml version="1.0" encoding="UTF-8"?>
 const emptySubUseCase: Partial<SubUseCase> = {
   name: "",
   description: "",
-  roles: [],
+  subUseCase_roles: [],
   useCase_id: 0,
   bpmn_png_url: undefined,
 };
@@ -205,7 +205,11 @@ export default function SubUseCaseDetail() {
         name: item.name!,
         description: item.description!,
         useCase_id: item.useCase_id,
-        roles: item.roles!.map((r) => r.id),
+        subUseCase_roles: (item.subUseCase_roles ?? []).map(r => ({
+          role_id: r.role_id,
+          motivation: r.motivation ?? undefined,
+          goal: r.goal ?? undefined,
+        })),
       };
 
       if (id === "new") {
@@ -314,14 +318,30 @@ export default function SubUseCaseDetail() {
   }
 
   function toggleRole(role: Role) {
-    const currentRoles = item.roles || [];
-    const isSelected = currentRoles.some(r => r.id === role.id);
+    const currentLinks = item.subUseCase_roles ?? [];
+    const isSelected = currentLinks.some(r => r.role_id === role.id);
 
     if (isSelected) {
-      updateField("roles", currentRoles.filter(r => r.id !== role.id));
+      setItem(prev => ({
+        ...prev,
+        subUseCase_roles: prev.subUseCase_roles?.filter(r => r.role_id !== role.id),
+      }));
     } else {
-      updateField("roles", [...currentRoles, role]);
+      setItem(prev => ({
+        ...prev,
+        subUseCase_roles: [
+          ...(prev.subUseCase_roles ?? []),
+          { role_id: role.id, role, motivation: "", goal: ""},
+        ],
+      }));
     }
+  }
+
+  function updateRoleField(role_id: number, field: "motivation" | "goal", value: string) {
+    setItem(prev => ({
+      ...prev,
+      subUseCase_roles: prev.subUseCase_roles?.map(r => r.role_id === role_id ? { ...r, [field]: value } : r),
+    }));
   }
 
   function handleTabChange(tabId : string) {
@@ -345,10 +365,11 @@ export default function SubUseCaseDetail() {
   }
 
   const selectedUseCase = useCases.find(uc => uc.id === item.useCase_id);
+  const roleCount = item.subUseCase_roles?.length ?? 0;
 
   const tabs = [
     { id: "basic", label: "Allgemein", icon: Tags, badge: undefined},
-    { id: "roles", label: "Rollen", icon: Users, badge: item.roles?.length},
+    { id: "roles", label: "Rollen", icon: Users, badge: roleCount > 0 ? roleCount: undefined},
     { id: "bpmn", label: "BPMN"},
   ]
 
@@ -461,7 +482,7 @@ export default function SubUseCaseDetail() {
             {/* Rollen */}
             {activeTab === "roles" && (
               <>
-                {(!item.roles || item.roles.length === 0) && (
+                {roleCount === 0 && (
                   <div className="alert alert-info">
                     <AlertCircle size={18} />
                     <span>Wählen Sie mindestens eine Rolle aus.</span>
@@ -484,24 +505,70 @@ export default function SubUseCaseDetail() {
                 </div>
 
                 {/* Ausgewählte Chips */}
-                {item.roles && item.roles.length > 0 && (
+                {roleCount > 0 && (
                   <div className="selected-gropus-box">
                     <div className="selected-groups-label">
-                      Ausgewählt: {item.roles.length} Rolle(n)
+                      Ausgewählt: {roleCount} Rolle(n)
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {item.roles.map((role: Role) => (
+                      {item.subUseCase_roles!.map((link) => (
                         <button
-                          key={role.id}
+                          key={link.role_id}
                           type="button"
-                          onClick={() => toggleRole(role)}
+                          onClick={() => toggleRole(link.role)}
                           className="badge badge-primary badge-removable"
                         >
-                          {role.name}
+                          {link.role.name}
                           <span style={{ marginLeft: 3, opacity: 0.7 }}>×</span>
                         </button>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* Motivation & Ziel je Rolle */}
+                {roleCount > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10}}>
+                    <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)" }}>
+                      Details je Rolle
+                    </div>
+                    {item.subUseCase_roles!.map((link) => (
+                      <div
+                        key={link.role_id}
+                        style={{
+                          border: "1px solid var(--border-color)",
+                          borderRadius: 8,
+                          padding: "12px 14px",
+                          background: "var(--bg-secondary)",
+                        }}
+                      >
+                        <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10, color: "var(--text-primary)" }}>
+                          {link.role.name}
+                        </div>
+                        <div className="form-grid-2">
+                          <div className="form-group">
+                            <label className="form-label">Motivation</label>
+                            <textarea
+                              className="form-input"
+                              rows={2}
+                              placeholder={`Motivation für ${link.role.name}…`}
+                              value={link.motivation ?? ""}
+                              onChange={e => updateRoleField(link.role_id, "motivation", e.target.value)}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">Ziel</label>
+                            <textarea
+                              className="form-input"
+                              rows={2}
+                              placeholder={`Ziel für ${link.role.name}…`}
+                              value={link.goal ?? ""}
+                              onChange={e => updateRoleField(link.role_id, "goal", e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
 
@@ -516,7 +583,7 @@ export default function SubUseCaseDetail() {
                     </div>
                   ) : (
                     filteredRoles.map(role => {
-                      const isSelected = item.roles?.some(r => r.id === role.id) || false;
+                      const isSelected = item.subUseCase_roles?.some(r => r.role_id === role.id) || false;
                       return (
                         <label
                           key={role.id}

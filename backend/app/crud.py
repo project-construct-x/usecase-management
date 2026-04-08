@@ -83,33 +83,30 @@ def get_subUseCases(db: Session):
 
 def get_subUseCases_by_role(db: Session, role_id: int):
     return db.query(models.SubUseCase).join(
-        models.SubUseCase.roles
-    ).filter(
-        models.Role.id == role_id
-    ).all()
+        models.SubUseCaseRole).filter(models.SubUseCaseRole.role_id == role_id).all()
 
 def get_subUseCase_by_id(db: Session, subUseCase_id: int):
     return db.query(models.SubUseCase).get(subUseCase_id)
 
-def create_subUseCase(db: Session, data: schemas.SubUseCaseCreate, roles: list):
-    sub = models.SubUseCase()
-    sub.name = data.name
-    sub.description = data.description
-    sub.roles = roles
-    sub.useCase_id = data.useCase_id
-
+def create_subUseCase(db: Session, data: schemas.SubUseCaseCreate):
+    sub = models.SubUseCase(
+        name=data.name,
+        description = data.description,
+        useCase_id=data.useCase_id,
+    )
     db.add(sub)
+    db.flush()
+    _sync_subUseCase_roles(db, sub, data.subUseCase_roles)
     db.commit()
     db.refresh(sub)
     return sub
 
-def update_subUseCase(db: Session, subUseCase_id: int, data: schemas.SubUseCaseUpdate, roles: list):
+def update_subUseCase(db: Session, subUseCase_id: int, data: schemas.SubUseCaseUpdate):
     sub = db.query(models.SubUseCase).get(subUseCase_id)
     sub.name = data.name
     sub.description = data.description
-    sub.roles = roles
     sub.useCase_id = data.useCase_id
-
+    _sync_subUseCase_roles(db, sub, data.subUseCase_roles)
     db.commit()
     db.refresh(sub)
     return sub
@@ -150,6 +147,17 @@ def update_subUseCase_bpmn_xml(db: Session, subUseCase_id: int, xml_content: str
         db.refresh(sub)
         return sub
     return None
+
+def _sync_subUseCase_roles(db: Session, sub: models.SubUseCase, roles_data: list):
+    db.query(models.SubUseCaseRole).filter(models.SubUseCaseRole.subUseCase_id == sub.id).delete()
+    for r in roles_data:
+        entry = models.SubUseCaseRole(
+            subUseCase_id=sub.id,
+            role_id=r.role_id,
+            motivation=r.motivation,
+            goal=r.goal,
+        )
+        db.add(entry)
 
 
 # --------Transactions-------

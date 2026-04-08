@@ -32,10 +32,7 @@ def list_subUseCases_by_role(role_id: int, db: Session = Depends(get_db)):
 # --------CREATE--------
 @router.post("/", response_model=schemas.SubUseCase)
 def create_subUseCase(data: schemas.SubUseCaseCreate, db: Session = Depends(get_db)):
-    roles = db.query(models.Role).filter(models.Role.id.in_(data.roles)).all()
-    if len(roles) != len(data.roles):
-        raise HTTPException(status_code=400, detail="Eine oder mehrere Rollen nicht gefunden")
-    return crud.create_subUseCase(db, data, roles)
+    return crud.create_subUseCase(db, data)
 
 # --------UPDATE--------
 @router.put("/{id}", response_model=schemas.SubUseCase)
@@ -43,12 +40,7 @@ def update_subUseCase(id: int, data: schemas.SubUseCaseUpdate, db: Session = Dep
     subUseCase = crud.get_subUseCase_by_id(db, id)
     if not subUseCase:
         raise HTTPException(status_code=404, detail="Sub Use Case nicht gefunden")
-
-    roles = db.query(models.Role).filter(models.Role.id.in_(data.roles)).all()
-    if len(roles) != len(data.roles):
-        raise HTTPException(status_code=400, detail="Eine oder mehrere Rollen nicht gefunden")
-
-    return crud.update_subUseCase(db, id, data, roles)
+    return crud.update_subUseCase(db, id, data)
 
 # ---------DELETE--------
 @router.delete("/{id}", status_code=204)

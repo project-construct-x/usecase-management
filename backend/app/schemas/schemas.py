@@ -20,23 +20,33 @@ class Role(RoleBase):
 
 
 # --------SubUseCase-------
+class SubUseCaseRoleBase(BaseModel):
+    role_id: int
+    motivation: Optional[str] = None
+    goal: Optional[str] = None
+
+class SubUseCaseRoleRead(SubUseCaseRoleBase):
+    role: Role
+    class Config:
+        from_attributes = True
+
 class SubUseCaseBase(BaseModel):
     name: str
     useCase_id: int
     description: str
 
 class SubUseCaseCreate(SubUseCaseBase):
-    roles: List[int] = []
+    subUseCase_roles: List[SubUseCaseRoleBase] = []
 
 class SubUseCaseUpdate(SubUseCaseBase):
-    roles: List[int] = []
+    subUseCase_roles: List[SubUseCaseRoleBase] = []
 
 class BpmnXmlUpdate(BaseModel):
     bpmn_xml: str
 
 class SubUseCase(SubUseCaseBase):
     id: int
-    roles: List[Role] = []
+    subUseCase_roles: List[SubUseCaseRoleRead] = []
     bpmn_png_url: Optional[str] = None
     bpmn_xml: Optional[str] = None
     class Config:
