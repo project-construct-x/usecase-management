@@ -50,12 +50,22 @@ export interface Role {
     definition: string;
 }
 
+export interface SubUseCaseRole {
+    role_id: number;
+    motivation?: string;
+    goal?: string;
+}
+
+export interface SubUseCaseRoleRead extends SubUseCaseRole {
+    role: Role;
+}
+
 export interface SubUseCase {
     id: number;
     name: string;
     useCase_id: number;
     description: string;
-    roles: Role[];
+    subUseCase_roles: SubUseCaseRoleRead[];
     bpmn_png_url?: string;
     bpmn_xml?: string;
 }
@@ -63,7 +73,8 @@ export interface SubUseCase {
 export interface SubUseCaseCreate {
     name: string;
     description: string;
-    roles: number[];
+    useCase_id: number;
+    subUseCase_roles: SubUseCaseRole[];
 }
 
 export interface UseCase {
