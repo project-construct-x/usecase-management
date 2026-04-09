@@ -156,6 +156,7 @@ def _sync_subUseCase_roles(db: Session, sub: models.SubUseCase, roles_data: list
             role_id=r.role_id,
             motivation=r.motivation,
             goal=r.goal,
+            monetary_benefit=r.monetary_benefit
         )
         db.add(entry)
 

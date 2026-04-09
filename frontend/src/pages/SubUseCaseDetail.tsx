@@ -337,7 +337,7 @@ export default function SubUseCaseDetail() {
     }
   }
 
-  function updateRoleField(role_id: number, field: "motivation" | "goal", value: string) {
+  function updateRoleField(role_id: number, field: "motivation" | "goal" | "monetary_benefit", value: string) {
     setItem(prev => ({
       ...prev,
       subUseCase_roles: prev.subUseCase_roles?.map(r => r.role_id === role_id ? { ...r, [field]: value } : r),
@@ -526,7 +526,7 @@ export default function SubUseCaseDetail() {
                   </div>
                 )}
 
-                {/* Motivation & Ziel je Rolle */}
+                {/* Motivation, Ziel & monetärer Nutzen je Rolle */}
                 {roleCount > 0 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 10}}>
                     <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)" }}>
@@ -545,7 +545,7 @@ export default function SubUseCaseDetail() {
                         <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10, color: "var(--text-primary)" }}>
                           {link.role.name}
                         </div>
-                        <div className="form-grid-2">
+                        <div className="form-grid-3">
                           <div className="form-group">
                             <label className="form-label">Motivation</label>
                             <textarea
@@ -564,6 +564,16 @@ export default function SubUseCaseDetail() {
                               placeholder={`Ziel für ${link.role.name}…`}
                               value={link.goal ?? ""}
                               onChange={e => updateRoleField(link.role_id, "goal", e.target.value)}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">Monetärer Nutzen</label>
+                            <textarea
+                              className="form-input"
+                              rows={2}
+                              placeholder={`Monetärer Nutzen für ${link.role.name}…`}
+                              value={link.monetary_benefit ?? ""}
+                              onChange={e => updateRoleField(link.role_id, "monetary_benefit", e.target.value)}
                             />
                           </div>
                         </div>

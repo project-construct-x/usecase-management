@@ -54,6 +54,7 @@ export interface SubUseCaseRole {
     role_id: number;
     motivation?: string;
     goal?: string;
+    monetary_benefit?: string;
 }
 
 export interface SubUseCaseRoleRead extends SubUseCaseRole {
