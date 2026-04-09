@@ -35,6 +35,13 @@ class SubUseCaseBase(BaseModel):
     name: str
     useCase_id: int
     description: str
+    objective: Optional[str] = None
+    inputs: Optional[str] = None
+    outputs: Optional[str] = None
+    potential_risks: Optional[str] = None
+    distinction_from_other_sucs: Optional[str] = None
+    dependency_of_other_sucs: Optional[str] = None
+    assumptions: Optional[str] = None
 
 class SubUseCaseCreate(SubUseCaseBase):
     subUseCase_roles: List[SubUseCaseRoleBase] = []

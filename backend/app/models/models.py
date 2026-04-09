@@ -35,6 +35,14 @@ class SubUseCase(Base):
     short_name = Column(String, index=True)
     description = Column(String)
     useCase_id = Column(Integer, ForeignKey("useCases.id"))
+    objective = Column(String, nullable=True)
+    inputs = Column(String, nullable=True)
+    outputs = Column(String, nullable=True)
+    potential_risks = Column(String, nullable=True)
+    distinction_from_other_sucs = Column(String, nullable=True)
+    dependency_of_other_sucs = Column(String, nullable=True)
+    assumptions = Column(String, nullable=True)
+
     bpmn_png_url = Column(String, nullable=True)
     bpmn_xml = Column(Text, nullable=True)
 
