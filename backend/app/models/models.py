@@ -55,6 +55,7 @@ class SubUseCaseRole(Base):
     role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"))
     motivation = Column(String, nullable=True)
     goal = Column(String, nullable=True)
+    monetary_benefit = Column(String, nullable=True)
 
     subUseCase = relationship("SubUseCase", back_populates="subUseCase_roles")
     role = relationship("Role")

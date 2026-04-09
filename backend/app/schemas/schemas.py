@@ -24,6 +24,7 @@ class SubUseCaseRoleBase(BaseModel):
     role_id: int
     motivation: Optional[str] = None
     goal: Optional[str] = None
+    monetary_benefit: Optional[str] = None
 
 class SubUseCaseRoleRead(SubUseCaseRoleBase):
     role: Role
