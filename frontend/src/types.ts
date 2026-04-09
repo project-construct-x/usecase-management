@@ -66,6 +66,13 @@ export interface SubUseCase {
     name: string;
     useCase_id: number;
     description: string;
+    objective: string;
+    inputs: string;
+    outputs: string;
+    potential_risks: string;
+    distinction_from_other_sucs: string;
+    dependency_of_other_sucs: string;
+    assumptions: string;
     subUseCase_roles: SubUseCaseRoleRead[];
     bpmn_png_url?: string;
     bpmn_xml?: string;
@@ -75,6 +82,13 @@ export interface SubUseCaseCreate {
     name: string;
     description: string;
     useCase_id: number;
+    objective: string;
+    inputs: string;
+    outputs: string;
+    potential_risks: string;
+    distinction_from_other_sucs: string;
+    dependency_of_other_sucs: string;
+    assumptions: string;
     subUseCase_roles: SubUseCaseRole[];
 }
 

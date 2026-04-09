@@ -93,6 +93,13 @@ def create_subUseCase(db: Session, data: schemas.SubUseCaseCreate):
         name=data.name,
         description = data.description,
         useCase_id=data.useCase_id,
+        objective=data.objective,
+        inputs=data.inputs,
+        outputs=data.outputs,
+        potential_risks=data.potential_risks,
+        distinction_from_other_sucs=data.distinction_from_other_sucs,
+        dependency_of_other_sucs=data.dependency_of_other_sucs,
+        assumptions=data.assumptions,
     )
     db.add(sub)
     db.flush()
@@ -106,6 +113,13 @@ def update_subUseCase(db: Session, subUseCase_id: int, data: schemas.SubUseCaseU
     sub.name = data.name
     sub.description = data.description
     sub.useCase_id = data.useCase_id
+    sub.objective = data.objective
+    sub.inputs = data.inputs
+    sub.outputs = data.outputs
+    sub.potential_risks = data.potential_risks
+    sub.distinction_from_other_sucs = data.distinction_from_other_sucs
+    sub.dependency_of_other_sucs = data.dependency_of_other_sucs
+    sub.assumptions = data.assumptions
     _sync_subUseCase_roles(db, sub, data.subUseCase_roles)
     db.commit()
     db.refresh(sub)

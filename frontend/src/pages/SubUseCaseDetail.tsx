@@ -29,7 +29,13 @@ const emptySubUseCase: Partial<SubUseCase> = {
   description: "",
   subUseCase_roles: [],
   useCase_id: 0,
-  bpmn_png_url: undefined,
+  objective: "",
+  inputs: "",
+  outputs: "",
+  potential_risks: "",
+  distinction_from_other_sucs: "",
+  dependency_of_other_sucs: "",
+  assumptions: "",
 };
 
 export default function SubUseCaseDetail() {
@@ -205,6 +211,13 @@ export default function SubUseCaseDetail() {
         name: item.name!,
         description: item.description!,
         useCase_id: item.useCase_id,
+        objective: item.objective,
+        inputs: item.inputs,
+        outputs: item.outputs,
+        potential_risks: item.potential_risks,
+        distinction_from_other_sucs: item.distinction_from_other_sucs,
+        dependency_of_other_sucs: item.dependency_of_other_sucs,
+        assumptions: item.assumptions,
         subUseCase_roles: (item.subUseCase_roles ?? []).map(r => ({
           role_id: r.role_id,
           motivation: r.motivation ?? undefined,
@@ -473,6 +486,83 @@ export default function SubUseCaseDetail() {
                     onChange={(e) => updateField("description", e.target.value)}
                     className="form-textarea"
                     placeholder="Beschreibe den Sub Use Case..."
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Ziel</label>
+                  <textarea
+                    rows={7}
+                    value={item.objective || ""}
+                    onChange={(e) => updateField("objective", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Was ist das Gesamtziel des Sub Use Case?"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Inputs</label>
+                  <textarea
+                    rows={7}
+                    value={item.inputs || ""}
+                    onChange={(e) => updateField("inputs", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Was sind die Inputs in den Sub Use Case?"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Outputs</label>
+                  <textarea
+                    rows={7}
+                    value={item.outputs || ""}
+                    onChange={(e) => updateField("outputs", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Was sind die Outputs aus dem Sub Use Case?"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Potenzielle Risiken bei der Umsetzung</label>
+                  <textarea
+                    rows={7}
+                    value={item.potential_risks || ""}
+                    onChange={(e) => updateField("potential_risks", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Gibt es Risiken, die die Umsetzung des Sub Use Cases gefährden könnten?"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Abgrenzung zu anderen Sub Use Cases</label>
+                  <textarea
+                    rows={7}
+                    value={item.distinction_from_other_sucs || ""}
+                    onChange={(e) => updateField("distinction_from_other_sucs", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Worin unterscheidet sich der Sub Use Case zu anderen (thematisch ähnlichen) Sub Use Cases?"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Abhängigkeit von anderen Sub Use Cases</label>
+                  <textarea
+                    rows={7}
+                    value={item.dependency_of_other_sucs || ""}
+                    onChange={(e) => updateField("dependency_of_other_sucs", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Ist der Sub Use Case von anderen Sub Use Cases abhängig? Wenn ja, wie?"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Annahmen und Rahmenbedingungen</label>
+                  <textarea
+                    rows={7}
+                    value={item.assumptions || ""}
+                    onChange={(e) => updateField("assumptions", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Welche Annahmen und Rahmenbedingungen liegen dem Sub Use Case und dessen Umsetzung zugrunde?"
                   />
                 </div>
 
