@@ -127,7 +127,7 @@ export default function UseCaseDetail() {
   // TODO alle forms auf react-hook-from umstellen, damit die Validierung vernünftig funktioniert
 
   return (
-    <div className="page-container-narrow animate-fade-in">
+    <div className="page-container animate-fade-in">
       <div className="page-header">
         <div className="page-header-icon">
           <FileText size={22} />
@@ -314,14 +314,14 @@ export default function UseCaseDetail() {
                     filterable: false,
                     render: (r) => (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                        {r.roles.slice(0, 2).map((role, idx) => (
+                        {r.subUseCase_roles.slice(0, 2).map((link, idx) => (
                           <span key={idx} className="badge badge-primary">
-                                                        {role.name}
+                                                        {link.role.name}
                                                     </span>
                         ))}
-                        {r.roles.length > 2 && (
+                        {r.subUseCase_roles.length > 2 && (
                           <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                                                        +{r.roles.length - 2} weitere
+                                                        +{r.subUseCase_roles.length - 2} weitere
                                                     </span>
                         )}
                       </div>
