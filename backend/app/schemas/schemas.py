@@ -85,6 +85,7 @@ class Transaction(BaseModel):
     id: int
     name: str
     subUseCase_name: str | None = None
+    subUseCase_id: int
     usesDataspace: bool
     roleOut: Role
     roleIn: Role
