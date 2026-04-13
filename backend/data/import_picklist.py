@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
-file_name = "Picklist-Klassen-und-Merkmale_260327.xlsx"
+file_name = "input/Picklist-Klassen-und-Merkmale_260327.xlsx"
 
 def read_excel(file_name):
     df_classes = pd.read_excel(
