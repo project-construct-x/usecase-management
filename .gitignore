@@ -15,11 +15,14 @@ backend/!.env.example
 backend/*.env
 backend/*.db
 backend/*.sqlite3
-*.xlsx
 
 # Backend Environment
 backend/.env
 backend/.env.local
+
+# Backend input data
+*.xlsx
+backend/data/input/
 
 # ============================================
 # Frontend (React/Vite)
