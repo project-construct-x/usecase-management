@@ -1,19 +1,37 @@
 import json
 import os
 import glob
+import warnings
 from app.db import engine, SessionLocal
-from app.models.models import Role, UseCase, SubUseCase, SubUseCaseRole
+from app.models.models import Role, UseCase, SubUseCase, SubUseCaseRole, Transaction
 import logging
+import pandas as pd
 from sqlalchemy import text
 
+warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+# Root logger → Datei
+logging.basicConfig(
+    filename="import.log",
+    filemode="w",
+    level=logging.INFO,
+    format="%(levelname)s: %(name)s - %(message)s"
+)
+
+# SQLAlchemy logs aktiv lassen, aber nur WARNING+
+logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+logging.getLogger("sqlalchemy.pool").setLevel(logging.WARNING)
+logging.getLogger("sqlalchemy.dialects").setLevel(logging.WARNING)
+
+# wichtig: propagation aktiv lassen
+logging.getLogger("sqlalchemy").propagate = True
+
 log = logging.getLogger(__name__)
 
 def get_or_create_role(session, role_name: str) -> Role | None:
     if not role_name or not role_name.strip():
         return None
-    role_name = role_name.strip()
+    role_name = role_name.strip().split()[0]
     role = session.query(Role).filter_by(name=role_name).first()
     if not role:
         role = Role(name=role_name, definition="Fehlt noch", source=None)
@@ -23,12 +41,27 @@ def get_or_create_role(session, role_name: str) -> Role | None:
     return role
 
 
+def to_bool(value):
+    if value is None:
+        return False
+    return str(value).strip().lower() in ["ja", "true", "1", "yes"]
+
+
 def build_bpmn_index(folder: str) -> dict:
     """Erstellt ein Dict {dateiname: dateipfad} für alle .bpmn Dateien im Ordner"""
     index = {}
     for bpmn_path in glob.glob(os.path.join(folder, "*.bpmn")):
         index[os.path.basename(bpmn_path)] = bpmn_path
     log.info(f"{len(index)} BPMN-Datei(en) gefunden.")
+    return index
+
+
+def build_transaction_index(folder: str) -> dict:
+    """Erstellt ein Dict {dateiname: dateipfad} für alle """
+    index = {}
+    for xlsx_path in glob.glob(os.path.join(folder, "*.xlsx")):
+        index[os.path.basename(xlsx_path)] = xlsx_path
+    log.info(f"{len(index)} Transaktionstabelle(n) in {folder} gefunden.")
     return index
 
 
@@ -43,8 +76,51 @@ def load_bpmn_for_id(suc_conx_id, bpmn_index: dict):
     return None
 
 
+def seed_transactions(suc_conx_id, transactions_index: dict, sub_id, session):
+    if not suc_conx_id:
+        return None
+    for filename, path in transactions_index.items():
+        if suc_conx_id in filename:
+            log.info(f"Transaktionstabelle für Sub Use Case {suc_conx_id} gefunden.")
+            df_transactions = read_transaction_table(path)
+            transactions = []
+            for r in df_transactions.itertuples(index=False):
+                role_out = get_or_create_role(session, r.role_out)
+                role_in = get_or_create_role(session, r.role_in)
+                # log.info(f"Role_out: {role_out}; Role_in: {role_in}")
+                transaction = Transaction(
+                    process_number=r.number,
+                    name=r.name,
+                    subUseCase_id=sub_id,
+                    roleOut_id=role_out.id,
+                    roleIn_id=role_in.id,
+                    usesDataspace=to_bool(r.uses_dataspace),
+                    related_class_id=r.related_class,
+                    data_carrier=r.data_carrier,
+                    dataformat_available=r.dataformat_available,
+                    dataformat=r.dataformat,
+                    timing=r.timing,
+                    policies=r.policies,
+                    data_size=r.data_size
+                )
+                session.add(transaction)
+                session.flush()
+                log.info(f"Transaktion mit Nummer {r.number} angelegt.")
 
-def seed_use_case(session, data: dict, filename: str, bpmn_index: dict) -> None:
+
+def read_transaction_table(filename):
+    df_transactions = pd.read_excel(
+        filename,
+        sheet_name="Transaktionen-Datenpakete",
+        header=2,
+        names=['number', 'name', 'related_class', 'data_carrier', 'role_out', 'role_in', 'uses_dataspace',
+               'dataformat_available', 'dataformat', 'timing', 'policies', 'data_size'],
+    )
+    df_transactions = df_transactions[df_transactions['name'].notnull()]
+    return df_transactions
+
+
+def seed_use_case(session, data: dict, filename: str, bpmn_index: dict, transaction_index: dict) -> None:
     general = data.get("general", {})
 
     uc_name = general.get("name", "").strip()
@@ -83,9 +159,6 @@ def seed_use_case(session, data: dict, filename: str, bpmn_index: dict) -> None:
         # BPMN-Datei suchen und anhängen
         suc_conx_id = suc_data.get("id")
         bpmn_xml = load_bpmn_for_id(suc_conx_id, bpmn_index)
-
-
-
 
         sub = SubUseCase(
             name=suc_name,
@@ -142,6 +215,8 @@ def seed_use_case(session, data: dict, filename: str, bpmn_index: dict) -> None:
                     use_case.roles.append(role)
                 uc_roles_added.add(role.id)
 
+        # Transaktionen für Sub Use Case hinzufügen
+        seed_transactions(suc_conx_id, transaction_index, sub.id, session)
 
     session.flush()
 
@@ -155,7 +230,8 @@ def seed_folder(folder:str) -> None:
         return
 
     bpmn_index = build_bpmn_index(folder)
-    log.info(f"{len(json_files)} Datei(en) gefunden in '{folder}'.")
+    transaction_index = build_transaction_index(os.path.join(folder, "transactions"))
+    log.info(f"{len(json_files)} JSON-Datei(en) gefunden in '{folder}'.")
 
     for filepath in sorted(json_files):
         filename = os.path.basename(filepath)
@@ -163,7 +239,7 @@ def seed_folder(folder:str) -> None:
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            seed_use_case(db, data, filename, bpmn_index)
+            seed_use_case(db, data, filename, bpmn_index, transaction_index)
         except json.JSONDecodeError as e:
             log.error(f"JSON-Fehler in '{filename}': {e}")
         except Exception as e:
@@ -183,6 +259,7 @@ def seed_folder(folder:str) -> None:
 
 def reset_tables():
     with engine.connect() as conn:
+        conn.execute(text('DELETE FROM "transactions"'))
         conn.execute(text('DELETE FROM "subUseCases"'))
         conn.execute(text('DELETE FROM "useCase_roles"'))
         conn.execute(text('DELETE FROM "useCases"'))
