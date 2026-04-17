@@ -5,11 +5,19 @@ import type {Role, SubUseCase, Transaction, TransactionMutate} from "../types.ts
 import {ArrowLeftRight, Tags} from "lucide-react";
 
 const emptyTransaction: TransactionMutate = {
+  process_number: "",
   name: "",
   subUseCase_id: null,
   usesDataspace: true,
   roleIn_id: 0,
   roleOut_id: 0,
+  related_class_id: "",
+  data_carrier: "",
+  dataformat_available: "",
+  dataformat: "",
+  timing: "",
+  policies: "",
+  data_size: "",
 }
 
 export default function TransactionDetail() {
@@ -30,11 +38,19 @@ export default function TransactionDetail() {
   }, [id]);
 
   const toMutate = (data: Transaction): TransactionMutate => ({
+    process_number: data.process_number,
     name: data.name,
     subUseCase_id: data.subUseCase_id,
     usesDataspace: data.usesDataspace,
     roleOut_id: data.roleOut.id,
-    roleIn_id: data.roleIn.id
+    roleIn_id: data.roleIn.id,
+    related_class_id: data.related_class_id,
+    data_carrier: data.data_carrier,
+    dataformat_available: data.dataformat_available,
+    dataformat: data.dataformat,
+    timing: data.timing,
+    policies: data.policies,
+    data_size: data.data_size,
   });
 
   async function loadTransaction() {
@@ -160,15 +176,28 @@ export default function TransactionDetail() {
             {/* Grunddaten */}
             {activeTab === "basic" && (
               <>
-                <div>
-                  <label className="form-label form-label-required">Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={item.name || ""}
-                    onChange={(e) => updateField("name", e.target.value)}
-                    className="form-input"
-                  />
+                <div className="form-grid-2">
+                  <div>
+                    <label className="form-label form-label-required">Nummer im Prozess</label>
+                    <input
+                      type="text"
+                      required
+                      value={item.process_number || ""}
+                      onChange={(e) => updateField("process_number", e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label form-label-required">Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={item.name || ""}
+                      onChange={(e) => updateField("name", e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -235,6 +264,88 @@ export default function TransactionDetail() {
                     </select>
                   </div>
                 </div>
+
+                <div>
+                  <label className="form-label form-label">Klasse</label>
+                  <input
+                    type="text"
+                    required
+                    value={item.related_class_id || ""}
+                    onChange={(e) => updateField("related_class_id", e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label form-label">Datenträger</label>
+                  <input
+                    type="text"
+                    required
+                    value={item.data_carrier || ""}
+                    onChange={(e) => updateField("data_carrier", e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-grid-2">
+                  <div>
+                    <label className="form-label form-label">Ist ein Datenformat vorhanden?</label>
+                    <input
+                      type="text"
+                      required
+                      value={item.dataformat_available || ""}
+                      onChange={(e) => updateField("dataformat_available", e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label form-label">Datenformat</label>
+                    <input
+                      type="text"
+                      required
+                      value={item.dataformat || ""}
+                      onChange={(e) => updateField("dataformat", e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-grid-2">
+                  <div>
+                    <label className="form-label form-label">Häufigkeit/Zyklus</label>
+                    <input
+                      type="text"
+                      required
+                      value={item.timing || ""}
+                      onChange={(e) => updateField("timing", e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label form-label">Geschätzte Datengröße</label>
+                    <input
+                      type="text"
+                      required
+                      value={item.data_size || ""}
+                      onChange={(e) => updateField("data_size", e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                    <label className="form-label form-label">Zugriffsbeschränkungen</label>
+                    <input
+                      type="text"
+                      required
+                      value={item.policies || ""}
+                      onChange={(e) => updateField("policies", e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
               </>
             )}
           </div>

@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, useSearchParams, useBlocker } from "react-router-dom";
 import { api } from "../api/api.ts";
-import type {SubUseCase, Role, UseCase} from "../types.ts";
+import type {SubUseCase, Role, UseCase, Transaction} from "../types.ts";
 import BpmnModelerComponent from "../components/Bpmn/BpmnModelerComponent.tsx";
 import type BpmnModeler from "bpmn-js/lib/Modeler";
-import {Tags, Layers, AlertCircle, FileText, Users, Search} from "lucide-react";
+import {Tags, Layers, AlertCircle, FileText, Users, Search, ArrowLeftRight} from "lucide-react";
+import CrudTable from "../components/CrudTable.tsx";
 
 const emptyDiagram = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
@@ -49,6 +50,7 @@ export default function SubUseCaseDetail() {
   const [useCases, setUseCases] = useState<UseCase[]>([]);
   const [filteredRoles, setFilteredRoles] = useState<Role[]>([])
   const [searchTerm, setSearchTerm] = useState("");
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   // BPMN state
   const modelerRef = useRef<BpmnModeler | null>(null);
@@ -114,6 +116,7 @@ export default function SubUseCaseDetail() {
     try {
       const data = await api.getSubUseCase(Number(id));
       setItem(data);
+      api.listTransactionsBySubUseCase(Number(data.id!)).then(setTransactions);
       setBpmnXml(data.bpmn_xml || emptyDiagram);
       setLoadedBpmnXml(data.bpmn_xml || emptyDiagram);
       setHasUnsavedChanges(false);
@@ -384,6 +387,7 @@ export default function SubUseCaseDetail() {
     { id: "basic", label: "Allgemein", icon: Tags, badge: undefined},
     { id: "roles", label: "Rollen", icon: Users, badge: roleCount > 0 ? roleCount: undefined},
     { id: "bpmn", label: "BPMN"},
+    { id: "transactions", label: "Transaktionen", icon: ArrowLeftRight, badge: transactions?.length}
   ]
 
 
@@ -774,6 +778,46 @@ export default function SubUseCaseDetail() {
                   </p>
                 </div>
               </>
+            )}
+
+            {/* Transaktionen Tabelle */}
+            {activeTab === "transactions" && (
+              <CrudTable
+                basePath="/transactions"
+                onDelete={async (id) => {
+                  if (!confirm("Löschen?")) return;
+                  await api.deleteTransaction(id as number);
+                  setTransactions(prev => prev.filter(s => s.id !== id));
+                }}
+                rows={transactions || []}
+                title="Transaktionen"
+                createLabel={item.id ? "Neue Transaktion" : "Zuerst den Sub Use Case speichern"}
+                onCreateClick={item.id
+                  ? () => navigate(`/transactions/new?subUseCaseId=${item.id}`)
+                  : () => {}
+                }
+                createDisabled={!item.id}
+                columns={[
+                  {
+                    key: "process_number",
+                    title: "Nummer",
+                    render: (r) => <span style={{ fontWeight: 600 }}>{r.process_number}</span>
+                  },
+                  {
+                    key: "name",
+                    title: "Name",
+                    render: (r) => <span style={{ fontWeight: 600 }}>{r.name}</span>
+                  },
+                  {
+                    key: "related_class_id",
+                    title: "Klasse"
+                  },
+                  {
+                    key: "dataformat",
+                    title: "Datenformat"
+                  },
+                ]}
+              />
             )}
           </div>
         </div>
