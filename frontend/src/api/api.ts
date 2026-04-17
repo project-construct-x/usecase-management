@@ -158,6 +158,8 @@ export const api = {
 
     // ---Transactions---
     listTransactions: () => request<Transaction[]>("/transactions/"),
+    listTransactionsBySubUseCase: (subId: number) =>
+      request<Transaction[]>(`/transactions/by-subusecase/${subId}`),
     getTransaction: (id:number) => request<Transaction>(`/transactions/${id}`),
     createTransaction: (data: TransactionMutate) =>
         request<Transaction>("/transactions/", {

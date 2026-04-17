@@ -111,6 +111,14 @@ export interface TransactionBase {
     name: string;
     subUseCase_id: number | null;
     usesDataspace: boolean;
+    process_number: string;
+    related_class_id: string;
+    data_carrier: string;
+    dataformat_available: string;
+    dataformat: string;
+    timing: string;
+    policies: string;
+    data_size: string
 }
 
 export interface Transaction extends TransactionBase {
