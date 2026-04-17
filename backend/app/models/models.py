@@ -72,11 +72,19 @@ class SubUseCaseRole(Base):
 class Transaction(Base):
     __tablename__ = "transactions"
     id = Column(Integer, primary_key=True, index=True)
+    process_number = Column(String)
     name = Column(String)
     subUseCase_id = Column(Integer, ForeignKey("subUseCases.id"))
     roleOut_id = Column(Integer, ForeignKey("roles.id"))
     roleIn_id = Column(Integer, ForeignKey("roles.id"))
     usesDataspace = Column(Boolean)
+    related_class_id = Column(String, nullable=True)
+    data_carrier = Column(String, nullable=True)
+    dataformat_available = Column(String, nullable=True)
+    dataformat = Column(String, nullable=True)
+    timing = Column(String, nullable=True)
+    policies = Column(String, nullable=True)
+    data_size = Column(String, nullable=True)
 
     # Relationships
     subUseCase = relationship("SubUseCase", back_populates="transactions")

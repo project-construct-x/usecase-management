@@ -179,6 +179,9 @@ def _sync_subUseCase_roles(db: Session, sub: models.SubUseCase, roles_data: list
 def get_transactions(db: Session):
     return db.query(models.Transaction).all()
 
+def get_transactions_by_subusecase(db: Session, sub_id: int):
+    return db.query(models.Transaction).filter(models.Transaction.subUseCase_id == sub_id).all()
+
 def get_transaction_by_id(db: Session, transaction_id: int):
     return db.query(models.Transaction).get(transaction_id)
 
@@ -196,6 +199,14 @@ def update_transaction(db: Session, transaction_id: int, data: schemas.Transacti
     transaction.usesDataspace = data.usesDataspace
     transaction.roleOut_id = data.roleOut_id
     transaction.roleIn_id = data.roleIn_id
+    transaction.process_number = data.process_number
+    transaction.related_class_id = data.related_class_id
+    transaction.data_carrier = data.data_carrier
+    transaction.dataformat_available = data.dataformat_available
+    transaction.dataformat = data.dataformat
+    transaction.timing = data.timing
+    transaction.policies = data.policies
+    transaction.data_size = data.data_size
     db.commit()
     db.refresh(transaction)
     return transaction

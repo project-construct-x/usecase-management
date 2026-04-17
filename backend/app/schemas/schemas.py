@@ -84,11 +84,18 @@ class UseCase(UseCaseBase):
 class Transaction(BaseModel):
     id: int
     name: str
+    process_number: Optional[str] = None
     subUseCase_name: str | None = None
     subUseCase_id: int
     usesDataspace: bool
     roleOut: Role
     roleIn: Role
+    related_class_id: Optional[str] = None
+    data_carrier: Optional[str] = None
+    dataformat_available: Optional[str] = None
+    timing: Optional[str] = None
+    policies: Optional[str] = None
+    data_size: Optional[str] = None
 
     @model_validator(mode="before")
     @classmethod
@@ -101,11 +108,19 @@ class Transaction(BaseModel):
         from_attributes = True
 
 class TransactionMutate(BaseModel):
+    process_number: Optional[str] = None
     name: str
     subUseCase_id: int | None = None
     usesDataspace : bool
     roleOut_id: int
     roleIn_id: int
+    related_class_id: Optional[str] = None
+    data_carrier: Optional[str] = None
+    dataformat_available: Optional[str] = None
+    timing: Optional[str] = None
+    policies: Optional[str] = None
+    data_size: Optional[str] = None
+
 
 # -------------Base for Property and PropertyGroup------------------
 class TimestampedEntityBase(BaseModel):
