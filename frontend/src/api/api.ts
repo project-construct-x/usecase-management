@@ -130,15 +130,6 @@ export const api = {
         }),
     deleteSubUseCase: (id: number) =>
         request<void>(`/subusecases/${id}`, {method: "DELETE"}),
-    uploadSubUseCaseBPMNPNG: (id: number, file: File) => {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        return request<SubUseCase>(`/subusecases/${id}/upload-bpmn-png`, {
-            method: "POST",
-            body: formData,
-        });
-    },
     updateSubUseCaseBPMNXML: (id: number, bpmn_xml: string) => {
         request<SubUseCase>(`/subusecases/${id}/bpmn-xml`, {
             method: "PUT",
@@ -167,6 +158,8 @@ export const api = {
 
     // ---Transactions---
     listTransactions: () => request<Transaction[]>("/transactions/"),
+    listTransactionsBySubUseCase: (subId: number) =>
+      request<Transaction[]>(`/transactions/by-subusecase/${subId}`),
     getTransaction: (id:number) => request<Transaction>(`/transactions/${id}`),
     createTransaction: (data: TransactionMutate) =>
         request<Transaction>("/transactions/", {

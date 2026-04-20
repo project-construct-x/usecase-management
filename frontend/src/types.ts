@@ -50,12 +50,30 @@ export interface Role {
     definition: string;
 }
 
+export interface SubUseCaseRole {
+    role_id: number;
+    motivation?: string;
+    goal?: string;
+    monetary_benefit?: string;
+}
+
+export interface SubUseCaseRoleRead extends SubUseCaseRole {
+    role: Role;
+}
+
 export interface SubUseCase {
     id: number;
     name: string;
     useCase_id: number;
     description: string;
-    roles: Role[];
+    objective: string;
+    inputs: string;
+    outputs: string;
+    potential_risks: string;
+    distinction_from_other_sucs: string;
+    dependency_of_other_sucs: string;
+    assumptions: string;
+    subUseCase_roles: SubUseCaseRoleRead[];
     bpmn_png_url?: string;
     bpmn_xml?: string;
 }
@@ -63,7 +81,15 @@ export interface SubUseCase {
 export interface SubUseCaseCreate {
     name: string;
     description: string;
-    roles: number[];
+    useCase_id: number;
+    objective: string;
+    inputs: string;
+    outputs: string;
+    potential_risks: string;
+    distinction_from_other_sucs: string;
+    dependency_of_other_sucs: string;
+    assumptions: string;
+    subUseCase_roles: SubUseCaseRole[];
 }
 
 export interface UseCase {
@@ -85,6 +111,14 @@ export interface TransactionBase {
     name: string;
     subUseCase_id: number | null;
     usesDataspace: boolean;
+    process_number: string;
+    related_class_id: string;
+    data_carrier: string;
+    dataformat_available: string;
+    dataformat: string;
+    timing: string;
+    policies: string;
+    data_size: string
 }
 
 export interface Transaction extends TransactionBase {
