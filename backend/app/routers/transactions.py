@@ -19,6 +19,10 @@ def get_transaction(id: int, db:Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Transaktion nicht gefunden")
     return transaction
 
+@router.get("/by-subusecase/{sub_id}", response_model=list[schemas.Transaction])
+def list_transactions_by_subusecase(sub_id: int, db: Session = Depends(get_db)):
+    return crud.get_transactions_by_subusecase(db, sub_id)
+
 # --------CREATE-------
 @router.post("/", response_model=schemas.Transaction)
 def create_transaction(data: schemas.TransactionMutate, db: Session = Depends(get_db)):

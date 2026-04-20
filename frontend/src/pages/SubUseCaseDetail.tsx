@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, useSearchParams, useBlocker } from "react-router-dom";
 import { api } from "../api/api.ts";
-import type {SubUseCase, Role, UseCase} from "../types.ts";
+import type {SubUseCase, Role, UseCase, Transaction} from "../types.ts";
 import BpmnModelerComponent from "../components/Bpmn/BpmnModelerComponent.tsx";
 import type BpmnModeler from "bpmn-js/lib/Modeler";
-import {Tags, Layers, AlertCircle, FileText, Users, Search} from "lucide-react";
+import {Tags, Layers, AlertCircle, FileText, Users, Search, ArrowLeftRight} from "lucide-react";
+import CrudTable from "../components/CrudTable.tsx";
 
 const emptyDiagram = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
@@ -27,9 +28,15 @@ const emptyDiagram = `<?xml version="1.0" encoding="UTF-8"?>
 const emptySubUseCase: Partial<SubUseCase> = {
   name: "",
   description: "",
-  roles: [],
+  subUseCase_roles: [],
   useCase_id: 0,
-  bpmn_png_url: undefined,
+  objective: "",
+  inputs: "",
+  outputs: "",
+  potential_risks: "",
+  distinction_from_other_sucs: "",
+  dependency_of_other_sucs: "",
+  assumptions: "",
 };
 
 export default function SubUseCaseDetail() {
@@ -43,6 +50,7 @@ export default function SubUseCaseDetail() {
   const [useCases, setUseCases] = useState<UseCase[]>([]);
   const [filteredRoles, setFilteredRoles] = useState<Role[]>([])
   const [searchTerm, setSearchTerm] = useState("");
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   // BPMN state
   const modelerRef = useRef<BpmnModeler | null>(null);
@@ -108,6 +116,7 @@ export default function SubUseCaseDetail() {
     try {
       const data = await api.getSubUseCase(Number(id));
       setItem(data);
+      api.listTransactionsBySubUseCase(Number(data.id!)).then(setTransactions);
       setBpmnXml(data.bpmn_xml || emptyDiagram);
       setLoadedBpmnXml(data.bpmn_xml || emptyDiagram);
       setHasUnsavedChanges(false);
@@ -205,7 +214,18 @@ export default function SubUseCaseDetail() {
         name: item.name!,
         description: item.description!,
         useCase_id: item.useCase_id,
-        roles: item.roles!.map((r) => r.id),
+        objective: item.objective,
+        inputs: item.inputs,
+        outputs: item.outputs,
+        potential_risks: item.potential_risks,
+        distinction_from_other_sucs: item.distinction_from_other_sucs,
+        dependency_of_other_sucs: item.dependency_of_other_sucs,
+        assumptions: item.assumptions,
+        subUseCase_roles: (item.subUseCase_roles ?? []).map(r => ({
+          role_id: r.role_id,
+          motivation: r.motivation ?? undefined,
+          goal: r.goal ?? undefined,
+        })),
       };
 
       if (id === "new") {
@@ -314,14 +334,30 @@ export default function SubUseCaseDetail() {
   }
 
   function toggleRole(role: Role) {
-    const currentRoles = item.roles || [];
-    const isSelected = currentRoles.some(r => r.id === role.id);
+    const currentLinks = item.subUseCase_roles ?? [];
+    const isSelected = currentLinks.some(r => r.role_id === role.id);
 
     if (isSelected) {
-      updateField("roles", currentRoles.filter(r => r.id !== role.id));
+      setItem(prev => ({
+        ...prev,
+        subUseCase_roles: prev.subUseCase_roles?.filter(r => r.role_id !== role.id),
+      }));
     } else {
-      updateField("roles", [...currentRoles, role]);
+      setItem(prev => ({
+        ...prev,
+        subUseCase_roles: [
+          ...(prev.subUseCase_roles ?? []),
+          { role_id: role.id, role, motivation: "", goal: ""},
+        ],
+      }));
     }
+  }
+
+  function updateRoleField(role_id: number, field: "motivation" | "goal" | "monetary_benefit", value: string) {
+    setItem(prev => ({
+      ...prev,
+      subUseCase_roles: prev.subUseCase_roles?.map(r => r.role_id === role_id ? { ...r, [field]: value } : r),
+    }));
   }
 
   function handleTabChange(tabId : string) {
@@ -345,11 +381,13 @@ export default function SubUseCaseDetail() {
   }
 
   const selectedUseCase = useCases.find(uc => uc.id === item.useCase_id);
+  const roleCount = item.subUseCase_roles?.length ?? 0;
 
   const tabs = [
     { id: "basic", label: "Allgemein", icon: Tags, badge: undefined},
-    { id: "roles", label: "Rollen", icon: Users, badge: item.roles?.length},
+    { id: "roles", label: "Rollen", icon: Users, badge: roleCount > 0 ? roleCount: undefined},
     { id: "bpmn", label: "BPMN"},
+    { id: "transactions", label: "Transaktionen", icon: ArrowLeftRight, badge: transactions?.length}
   ]
 
 
@@ -455,13 +493,90 @@ export default function SubUseCaseDetail() {
                   />
                 </div>
 
+                <div>
+                  <label className="form-label">Ziel</label>
+                  <textarea
+                    rows={7}
+                    value={item.objective || ""}
+                    onChange={(e) => updateField("objective", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Was ist das Gesamtziel des Sub Use Case?"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Inputs</label>
+                  <textarea
+                    rows={7}
+                    value={item.inputs || ""}
+                    onChange={(e) => updateField("inputs", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Was sind die Inputs in den Sub Use Case?"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Outputs</label>
+                  <textarea
+                    rows={7}
+                    value={item.outputs || ""}
+                    onChange={(e) => updateField("outputs", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Was sind die Outputs aus dem Sub Use Case?"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Potenzielle Risiken bei der Umsetzung</label>
+                  <textarea
+                    rows={7}
+                    value={item.potential_risks || ""}
+                    onChange={(e) => updateField("potential_risks", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Gibt es Risiken, die die Umsetzung des Sub Use Cases gefährden könnten?"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Abgrenzung zu anderen Sub Use Cases</label>
+                  <textarea
+                    rows={7}
+                    value={item.distinction_from_other_sucs || ""}
+                    onChange={(e) => updateField("distinction_from_other_sucs", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Worin unterscheidet sich der Sub Use Case zu anderen (thematisch ähnlichen) Sub Use Cases?"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Abhängigkeit von anderen Sub Use Cases</label>
+                  <textarea
+                    rows={7}
+                    value={item.dependency_of_other_sucs || ""}
+                    onChange={(e) => updateField("dependency_of_other_sucs", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Ist der Sub Use Case von anderen Sub Use Cases abhängig? Wenn ja, wie?"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Annahmen und Rahmenbedingungen</label>
+                  <textarea
+                    rows={7}
+                    value={item.assumptions || ""}
+                    onChange={(e) => updateField("assumptions", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Welche Annahmen und Rahmenbedingungen liegen dem Sub Use Case und dessen Umsetzung zugrunde?"
+                  />
+                </div>
+
               </>
             )}
 
             {/* Rollen */}
             {activeTab === "roles" && (
               <>
-                {(!item.roles || item.roles.length === 0) && (
+                {roleCount === 0 && (
                   <div className="alert alert-info">
                     <AlertCircle size={18} />
                     <span>Wählen Sie mindestens eine Rolle aus.</span>
@@ -484,24 +599,80 @@ export default function SubUseCaseDetail() {
                 </div>
 
                 {/* Ausgewählte Chips */}
-                {item.roles && item.roles.length > 0 && (
+                {roleCount > 0 && (
                   <div className="selected-gropus-box">
                     <div className="selected-groups-label">
-                      Ausgewählt: {item.roles.length} Rolle(n)
+                      Ausgewählt: {roleCount} Rolle(n)
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {item.roles.map((role: Role) => (
+                      {item.subUseCase_roles!.map((link) => (
                         <button
-                          key={role.id}
+                          key={link.role_id}
                           type="button"
-                          onClick={() => toggleRole(role)}
+                          onClick={() => toggleRole(link.role)}
                           className="badge badge-primary badge-removable"
                         >
-                          {role.name}
+                          {link.role.name}
                           <span style={{ marginLeft: 3, opacity: 0.7 }}>×</span>
                         </button>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* Motivation, Ziel & monetärer Nutzen je Rolle */}
+                {roleCount > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10}}>
+                    <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)" }}>
+                      Details je Rolle
+                    </div>
+                    {item.subUseCase_roles!.map((link) => (
+                      <div
+                        key={link.role_id}
+                        style={{
+                          border: "1px solid var(--border-color)",
+                          borderRadius: 8,
+                          padding: "12px 14px",
+                          background: "var(--bg-secondary)",
+                        }}
+                      >
+                        <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10, color: "var(--text-primary)" }}>
+                          {link.role.name}
+                        </div>
+                        <div className="form-grid-3">
+                          <div className="form-group">
+                            <label className="form-label">Motivation</label>
+                            <textarea
+                              className="form-input"
+                              rows={2}
+                              placeholder={`Motivation für ${link.role.name}…`}
+                              value={link.motivation ?? ""}
+                              onChange={e => updateRoleField(link.role_id, "motivation", e.target.value)}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">Ziel</label>
+                            <textarea
+                              className="form-input"
+                              rows={2}
+                              placeholder={`Ziel für ${link.role.name}…`}
+                              value={link.goal ?? ""}
+                              onChange={e => updateRoleField(link.role_id, "goal", e.target.value)}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">Monetärer Nutzen</label>
+                            <textarea
+                              className="form-input"
+                              rows={2}
+                              placeholder={`Monetärer Nutzen für ${link.role.name}…`}
+                              value={link.monetary_benefit ?? ""}
+                              onChange={e => updateRoleField(link.role_id, "monetary_benefit", e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
 
@@ -516,7 +687,7 @@ export default function SubUseCaseDetail() {
                     </div>
                   ) : (
                     filteredRoles.map(role => {
-                      const isSelected = item.roles?.some(r => r.id === role.id) || false;
+                      const isSelected = item.subUseCase_roles?.some(r => r.role_id === role.id) || false;
                       return (
                         <label
                           key={role.id}
@@ -607,6 +778,46 @@ export default function SubUseCaseDetail() {
                   </p>
                 </div>
               </>
+            )}
+
+            {/* Transaktionen Tabelle */}
+            {activeTab === "transactions" && (
+              <CrudTable
+                basePath="/transactions"
+                onDelete={async (id) => {
+                  if (!confirm("Löschen?")) return;
+                  await api.deleteTransaction(id as number);
+                  setTransactions(prev => prev.filter(s => s.id !== id));
+                }}
+                rows={transactions || []}
+                title="Transaktionen"
+                createLabel={item.id ? "Neue Transaktion" : "Zuerst den Sub Use Case speichern"}
+                onCreateClick={item.id
+                  ? () => navigate(`/transactions/new?subUseCaseId=${item.id}`)
+                  : () => {}
+                }
+                createDisabled={!item.id}
+                columns={[
+                  {
+                    key: "process_number",
+                    title: "Nummer",
+                    render: (r) => <span style={{ fontWeight: 600 }}>{r.process_number}</span>
+                  },
+                  {
+                    key: "name",
+                    title: "Name",
+                    render: (r) => <span style={{ fontWeight: 600 }}>{r.name}</span>
+                  },
+                  {
+                    key: "related_class_id",
+                    title: "Klasse"
+                  },
+                  {
+                    key: "dataformat",
+                    title: "Datenformat"
+                  },
+                ]}
+              />
             )}
           </div>
         </div>
