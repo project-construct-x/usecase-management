@@ -96,6 +96,11 @@ export interface UseCase {
     id: number;
     name: string;
     keywords: string[];
+    description?: string;
+    relation_to_other_useCases?: string;
+    uc_owner_institution?: string;
+    uc_owner?: string;
+    conx_id?: string;
     roles: Role[];
     subUseCases: SubUseCase[];
 }
@@ -103,6 +108,11 @@ export interface UseCase {
 export interface UseCaseCreate {
     name: string;
     keywords?: string[];
+    description?: string;
+    relation_to_other_useCases?: string;
+    uc_owner_institution?: string;
+    uc_owner?: string;
+    conx_id?: string;
     roles: number[];
 }
 

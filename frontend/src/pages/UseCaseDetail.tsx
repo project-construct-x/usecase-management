@@ -10,6 +10,11 @@ const emptyUseCase: UseCase = {
   id: 0,
   name: "",
   keywords: [],
+  description: "",
+  relation_to_other_useCases: "",
+  uc_owner_institution: "",
+  uc_owner: "",
+  conx_id: "",
   roles: [],
   subUseCases: [],
 }
@@ -134,7 +139,7 @@ export default function UseCaseDetail() {
         </div>
         <div>
           <div className="page-header-title">
-            {id === "new" ? "Neuer Use Case" : item.name}
+            {id === "new" ? "Neuer Use Case" : item.conx_id ? `- ${item.name}` : item.name}
           </div>
           <div className="page-header-sub">Use Case</div>
         </div>
@@ -177,6 +182,29 @@ export default function UseCaseDetail() {
                     placeholder="Use Case Name eingeben"
                   />
                 </div>
+                <div className="form-grid-2">
+                  <div>
+                    <label className="form-label form-label">Use Case Owner</label>
+                    <input
+                      type="text"
+                      required
+                      value={item.uc_owner || ""}
+                      onChange={(e) => updateField("uc_owner", e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label form-label">Institution</label>
+                    <input
+                      type="text"
+                      required
+                      value={item.uc_owner_institution || ""}
+                      onChange={(e) => updateField("uc_owner_institution", e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
                 <div>
                   <label className="form-label form-label-required">Schlagwörter</label>
                   <TagInput
@@ -187,6 +215,26 @@ export default function UseCaseDetail() {
                     placeholder="Schlagwort eingeben..."
                   />
                   <span className="form-hint">Enter oder "Hinzufügen" drücken zum Hinzufügen</span>
+                </div>
+                <div>
+                  <label className="form-label">Beschreibung</label>
+                  <textarea
+                    rows={7}
+                    value={item.description || ""}
+                    onChange={(e) => updateField("description", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Beschreibe den Use Case..."
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Bezug zu anderen Use Cases</label>
+                  <textarea
+                    rows={7}
+                    value={item.relation_to_other_useCases || ""}
+                    onChange={(e) => updateField("relation_to_other_useCases", e.target.value)}
+                    className="form-textarea"
+                    placeholder="Beschreibe den Bezug zu anderen Use Cases..."
+                  />
                 </div>
               </>
             )}
