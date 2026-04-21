@@ -139,7 +139,7 @@ export default function UseCaseDetail() {
         </div>
         <div>
           <div className="page-header-title">
-            {id === "new" ? "Neuer Use Case" : item.conx_id ? `- ${item.name}` : item.name}
+            {id === "new" ? "Neuer Use Case" : item.conx_id ? `${item.conx_id} - ${item.name}` : item.name}
           </div>
           <div className="page-header-sub">Use Case</div>
         </div>
@@ -187,7 +187,6 @@ export default function UseCaseDetail() {
                     <label className="form-label form-label">Use Case Owner</label>
                     <input
                       type="text"
-                      required
                       value={item.uc_owner || ""}
                       onChange={(e) => updateField("uc_owner", e.target.value)}
                       className="form-input"
@@ -198,7 +197,6 @@ export default function UseCaseDetail() {
                     <label className="form-label form-label">Institution</label>
                     <input
                       type="text"
-                      required
                       value={item.uc_owner_institution || ""}
                       onChange={(e) => updateField("uc_owner_institution", e.target.value)}
                       className="form-input"
