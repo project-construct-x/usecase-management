@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, {useState, useMemo, useEffect} from "react";
 import { Link } from "react-router-dom";
 import { ChevronUp, ChevronDown, Search, Trash2, Edit2, Plus, Inbox } from "lucide-react";
 
@@ -47,7 +47,7 @@ export default function CrudTable<T extends { id: number | string }>({
                                                                        isLoading = false,
                                                                      }: Props<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [filterText, setFilterText] = useState("");
 
   // Sortierung und Filterung
@@ -102,6 +102,13 @@ export default function CrudTable<T extends { id: number | string }>({
   const handleDelete = async (id: T["id"]) => {
     onDelete(id);
   };
+
+  //Standardmäßig nach der ersten Spalte aufsteigend sortieren
+  useEffect(() => {
+    if (!sortKey && columns.length > 0) {
+      setSortKey(String(columns[0].key));
+    }
+  }, [columns, sortKey]);
 
   return (
     <div className="table-container animate-fade-in">
