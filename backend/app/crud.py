@@ -66,6 +66,11 @@ def update_useCase(db: Session, useCase_id: int, data: schemas.UseCaseUpdate, ro
     uc.name = data.name
     uc.keywords = data.keywords
     uc.roles = roles
+    uc.description = data.description
+    uc.relation_to_other_useCases = data.relation_to_other_useCases
+    uc.uc_owner_institution = data.uc_owner_institution
+    uc.uc_owner = data.uc_owner
+    uc.conx_id = data.conx_id
 
     db.commit()
     db.refresh(uc)

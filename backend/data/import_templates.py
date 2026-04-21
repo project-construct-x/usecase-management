@@ -10,6 +10,13 @@ from sqlalchemy import text
 
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
+'''
+alembic revision --autogenerate -m "[betreff]"
+alembic upgrade head
+
+'''
+
+
 # Root logger → Datei
 logging.basicConfig(
     filename="import.log",
@@ -143,6 +150,10 @@ def seed_use_case(session, data: dict, filename: str, bpmn_index: dict, transact
         name=uc_name,
         keywords=keywords,
         description=general.get("description", "").strip() or None,
+        relation_to_other_useCases=general.get("relation_to_other_ucs", "").strip() or None,
+        uc_owner_institution=general.get("uc_owner_institution", "").strip() or None,
+        uc_owner=general.get("uc_owner", "").strip() or None,
+        conx_id=general.get("id", "").strip() or None,
     )
     session.add(use_case)
     session.flush()
