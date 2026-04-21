@@ -35,6 +35,7 @@ class SubUseCaseBase(BaseModel):
     name: str
     useCase_id: int
     description: str
+    conx_id: Optional[str] = None
     objective: Optional[str] = None
     inputs: Optional[str] = None
     outputs: Optional[str] = None

@@ -347,6 +347,11 @@ export default function UseCaseDetail() {
                 createDisabled={!item.id}
                 columns={[
                   {
+                    key: "conx_id",
+                    title: "ID",
+                    render: (r) => <span style={{ fontWeight: 600 }}>{r.conx_id}</span>
+                  },
+                  {
                     key: "name",
                     title: "Name",
                     render: (r) => <span style={{ fontWeight: 600 }}>{r.name}</span>

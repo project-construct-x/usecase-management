@@ -97,6 +97,7 @@ def create_subUseCase(db: Session, data: schemas.SubUseCaseCreate):
     sub = models.SubUseCase(
         name=data.name,
         description = data.description,
+        conx_id= data.conx_id,
         useCase_id=data.useCase_id,
         objective=data.objective,
         inputs=data.inputs,
@@ -117,6 +118,7 @@ def update_subUseCase(db: Session, subUseCase_id: int, data: schemas.SubUseCaseU
     sub = db.query(models.SubUseCase).get(subUseCase_id)
     sub.name = data.name
     sub.description = data.description
+    sub.conx_id = data.conx_id
     sub.useCase_id = data.useCase_id
     sub.objective = data.objective
     sub.inputs = data.inputs

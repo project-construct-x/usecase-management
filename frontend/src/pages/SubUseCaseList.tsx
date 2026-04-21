@@ -55,10 +55,10 @@ export default function SubUseCaseList() {
         isLoading={isLoading}
         columns={[
           {
-            key: "useCase_id",
-            title: "Use Case",
+            key: "conx_id",
+            title: "ID",
             render: (r) => (
-              <span style={{ fontWeight: 600 }}>{r.useCase_id}</span>
+              <span style={{ fontWeight: 600 }}>{r.conx_id}</span>
             )
           },
           {

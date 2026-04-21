@@ -36,6 +36,7 @@ class SubUseCase(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     short_name = Column(String, index=True)
+    conx_id = Column(String, nullable=True)
     description = Column(String)
     useCase_id = Column(Integer, ForeignKey("useCases.id"))
     objective = Column(String, nullable=True)

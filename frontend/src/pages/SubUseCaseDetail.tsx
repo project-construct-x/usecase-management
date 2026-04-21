@@ -28,6 +28,7 @@ const emptyDiagram = `<?xml version="1.0" encoding="UTF-8"?>
 const emptySubUseCase: Partial<SubUseCase> = {
   name: "",
   description: "",
+  conx_id: "",
   subUseCase_roles: [],
   useCase_id: 0,
   objective: "",
@@ -213,6 +214,7 @@ export default function SubUseCaseDetail() {
       const payload = {
         name: item.name!,
         description: item.description!,
+        conx_id: item.conx_id,
         useCase_id: item.useCase_id,
         objective: item.objective,
         inputs: item.inputs,
@@ -403,7 +405,9 @@ export default function SubUseCaseDetail() {
         </div>
         <div>
           <div className="page-header-title">
-            {selectedUseCase?.name}
+            {selectedUseCase?.name
+              ? `${selectedUseCase.conx_id ? selectedUseCase.conx_id + " - " : ""}${selectedUseCase.name}`
+              : ""}
           </div>
           <div className="page-header-sub">Use Case</div>
         </div>
@@ -413,7 +417,7 @@ export default function SubUseCaseDetail() {
         </div>
         <div>
           <div className="page-header-title">
-            {id === "new" ? "Neuer Sub Use Case" : item.name}
+            {id === "new" ? "Neuer Sub Use Case" : item.conx_id ? `${item.conx_id} - ${item.name}` : item.name}
           </div>
           <div className="page-header-sub">Sub Use Case</div>
         </div>
@@ -470,16 +474,29 @@ export default function SubUseCaseDetail() {
                   )}
                 </div>
 
-                <div>
-                  <label className="form-label form-label-required">Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={item.name || ""}
-                    onChange={(e) => updateField("name", e.target.value)}
-                    className="form-input"
-                    placeholder="Präziser Name für den Sub Use Case"
-                  />
+                <div className="form-grid-2" style={{ gridTemplateColumns: "1fr 10fr" }}>
+                  <div>
+                    <label className="form-label form-label">ID</label>
+                    <input
+                      type="text"
+                      value={item.conx_id || ""}
+                      onChange={(e) => updateField("conx_id", e.target.value)}
+                      className="form-input"
+                      placeholder="Construct-X ID"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label form-label-required">Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={item.name || ""}
+                      onChange={(e) => updateField("name", e.target.value)}
+                      className="form-input"
+                      placeholder="Präziser Name für den Sub Use Case"
+                    />
+                  </div>
                 </div>
 
                 <div>
