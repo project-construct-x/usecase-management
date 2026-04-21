@@ -64,6 +64,7 @@ export interface SubUseCaseRoleRead extends SubUseCaseRole {
 export interface SubUseCase {
     id: number;
     name: string;
+    conx_id?: string;
     useCase_id: number;
     description: string;
     objective: string;
@@ -80,6 +81,7 @@ export interface SubUseCase {
 
 export interface SubUseCaseCreate {
     name: string;
+    conx_id: string;
     description: string;
     useCase_id: number;
     objective: string;

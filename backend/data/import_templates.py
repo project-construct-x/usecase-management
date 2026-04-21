@@ -173,6 +173,7 @@ def seed_use_case(session, data: dict, filename: str, bpmn_index: dict, transact
 
         sub = SubUseCase(
             name=suc_name,
+            conx_id=(suc_data.get("id") or "").strip() or None,
             short_name=(suc_data.get("short_name") or "").strip() or None,
             description=(suc_data.get("description") or "").strip(),
             useCase_id=use_case.id,
