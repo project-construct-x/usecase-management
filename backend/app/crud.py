@@ -225,7 +225,7 @@ def delete_transaction(db: Session, transaction_id: int):
 
 
 # -------------Properties---------------
-def get_properties(db: Session, skip: int = 0, limit: int = 100) -> List[models.Property]:
+def get_properties(db: Session, skip: int = 0, limit: int = 1000) -> List[models.Property]:
     return db.query(models.Property).offset(skip).limit(limit).all()
 
 def get_property_by_uuid(db: Session, uuid: UUID) -> Optional[models.Property]:
