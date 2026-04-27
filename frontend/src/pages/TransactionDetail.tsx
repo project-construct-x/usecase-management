@@ -148,7 +148,7 @@ export default function TransactionDetail() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {/* Tabs */}
         <div className="tabs">
           {tabs.map(tab => {
@@ -171,7 +171,7 @@ export default function TransactionDetail() {
         </div>
 
         <div className="card">
-          <div className="card-body form-section">
+          <div className="card-body form-section custom-scrollbar">
 
             {/* Grunddaten */}
             {activeTab === "basic" && (

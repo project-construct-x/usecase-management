@@ -89,7 +89,7 @@ def seed_transactions(suc_conx_id, transactions_index: dict, sub_id, session):
     for filename, path in transactions_index.items():
         if suc_conx_id in filename:
             log.info(f"Transaktionstabelle für Sub Use Case {suc_conx_id} gefunden.")
-            df_transactions = read_transaction_table(path)
+            df_transactions, df_transactions_properties = read_transaction_table(path)
             transactions = []
             for r in df_transactions.itertuples(index=False):
                 role_out = get_or_create_role(session, r.role_out)
@@ -123,8 +123,17 @@ def read_transaction_table(filename):
         names=['number', 'name', 'related_class', 'data_carrier', 'role_out', 'role_in', 'uses_dataspace',
                'dataformat_available', 'dataformat', 'timing', 'policies', 'data_size'],
     )
+    df_transactions_properties = pd.read_excel(
+        filename,
+        sheet_name="Transaktionen-Merkmale",
+        header=2,
+        names=['number', 'name', 'class_sphere', 'class', 'prop_name', 'prop_definition', 'prop_description',
+               'prop_example', 'prop_physical_quantity', 'prop_unit', 'prop_datatype', 'prop_possible_values',
+               'prop_reference', 'prop_source']
+    )
+    df_transactions_properties = df_transactions_properties[df_transactions_properties['name'].notnull()]
     df_transactions = df_transactions[df_transactions['name'].notnull()]
-    return df_transactions
+    return df_transactions, df_transactions_properties
 
 
 def seed_use_case(session, data: dict, filename: str, bpmn_index: dict, transaction_index: dict) -> None:

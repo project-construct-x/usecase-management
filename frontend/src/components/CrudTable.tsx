@@ -20,6 +20,7 @@ interface Props<T extends { id: number | string }> {
   onCreateClick?: () => void;
   createDisabled?: boolean;
   isLoading?: boolean;
+  maxHeight?: number | string;
 }
 
 type SortDirection = "asc" | "desc" | null;
@@ -45,6 +46,7 @@ export default function CrudTable<T extends { id: number | string }>({
                                                                        onCreateClick,
                                                                        createDisabled,
                                                                        isLoading = false,
+                                                                      maxHeight,
                                                                      }: Props<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -144,7 +146,10 @@ export default function CrudTable<T extends { id: number | string }>({
       </div>
 
       {/* Tabelle */}
-      <div style={{ overflowX: "auto"}} className="custom-scrollbar">
+      <div
+        style={{ overflowX: "auto", flex: 1, minHeight: 0, overflowY: "auto"}}
+        className="custom-scrollbar"
+      >
         {isLoading ? (
           <div style={{ display: "flex", justifyContent: "center", padding: "56px 24px" }}>
             <div className="spinner" style={{ width: 36, height: 36 }}></div>
