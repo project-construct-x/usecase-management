@@ -58,6 +58,7 @@ export default function PropertyList() {
                 createLabel="Neues Merkmal"
                 onCreateClick={() => navigate("/properties/new")}
                 isLoading={isLoading}
+                maxHeight="100%"
                 columns={[
                     {
                         key: "name",

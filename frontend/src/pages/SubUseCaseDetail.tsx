@@ -423,7 +423,7 @@ export default function SubUseCaseDetail() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {/* Tabs */}
         <div className="tabs">
           {tabs.map(tab => {
@@ -445,8 +445,8 @@ export default function SubUseCaseDetail() {
           })}
         </div>
 
-        <div className="card">
-          <div className="card-body form-section">
+        <div className="card" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          <div className="card-body form-section custom-scrollbar">
 
             {/* Grunddaten Tab */}
             {activeTab === "basic" && (
