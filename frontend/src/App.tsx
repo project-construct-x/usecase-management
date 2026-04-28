@@ -27,7 +27,7 @@ const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
     classes: Boxes,
     propertygroups: FolderTree,
     properties: Tags,
-    ontologies: Database,
+    ontology: Database,
     standards: BookOpen,
     users: User,
     "api-keys": Key,
@@ -90,7 +90,7 @@ function AppContent() {
                         </div>
                     </div>
                     <div className="sidebar-actions">
-                        <button onClick={toggleTheme} className="theme-toggle" title="Theme wechseln">
+                        <button onClick={toggleTheme} className="theme-toggle" title="Theme wechseln" style={{width:"70px"}}>
                             {theme === "dark" ? <><Sun size={14} /> Hell</> : <><Moon size={14} /> Dunkel</>}
                         </button>
                         <button onClick={logout} className="btn btn-danger btn-sm" style={{ flex: 1 }}>
@@ -108,7 +108,7 @@ function AppContent() {
                 <NavItem to="/classes" label="Klassen" icon="classes" />
                 <NavItem to="/propertygroups" label="Merkmalsgruppen" icon="propertygroups" />
                 <NavItem to="/properties" label="Merkmale" icon="properties" />
-                <NavItem to="/ontologies" label="Ontologien" icon="ontologies" />
+                <NavItem to="/ontology" label="Ontologie" icon="ontology" />
                 <NavItem to="/standards" label="Standards" icon="standards" />
 
                 <div className="nav-separator" />

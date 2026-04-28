@@ -35,6 +35,7 @@ class SubUseCaseBase(BaseModel):
     name: str
     useCase_id: int
     description: str
+    conx_id: Optional[str] = None
     objective: Optional[str] = None
     inputs: Optional[str] = None
     outputs: Optional[str] = None
@@ -65,6 +66,11 @@ class SubUseCase(SubUseCaseBase):
 class UseCaseBase(BaseModel):
     name: str
     keywords: Optional[List[str]] = None
+    description: Optional[str] = None
+    relation_to_other_useCases: Optional[str] = None
+    uc_owner_insitution: Optional[str] = None
+    uc_owner: Optional[str] = None
+    conx_id: Optional[str] = None
 
 class UseCaseCreate(UseCaseBase):
     roles: List[int] = []

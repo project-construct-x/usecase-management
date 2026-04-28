@@ -108,7 +108,7 @@ export default function PropertyGroupDetail() {
   ]
 
   return (
-    <div className="page-container-narrow animate-fade-in">
+    <div className="page-container animate-fade-in">
 
       <div className="page-header">
         <div className="page-header-icon">
@@ -122,7 +122,7 @@ export default function PropertyGroupDetail() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {/* Tabs */}
         <div className="tabs">
           {tabs.map(tab => {
@@ -145,7 +145,7 @@ export default function PropertyGroupDetail() {
         </div>
 
         <div className="card">
-          <div className="card-body form-section">
+          <div className="card-body form-section custom-scrollbar">
 
             {/* ── Grunddaten ── */}
             {activeTab === "basic" && (

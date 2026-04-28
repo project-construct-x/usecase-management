@@ -137,7 +137,7 @@ export default function PropertyDetail() {
     ];
 
     return (
-        <div className="page-container-narrow animate-fade-in">
+        <div className="page-container animate-fade-in">
 
             {/* Page Header */}
             <div className="page-header">
@@ -152,7 +152,7 @@ export default function PropertyDetail() {
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
 
                 {/* Tabs */}
                 <div className="tabs">
@@ -177,7 +177,7 @@ export default function PropertyDetail() {
 
                 {/* Tab Content */}
                 <div className="card">
-                    <div className="card-body form-section">
+                    <div className="card-body form-section custom-scrollbar">
 
                         {/* ── Grunddaten ── */}
                         {activeTab === "basic" && (

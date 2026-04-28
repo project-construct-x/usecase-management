@@ -92,7 +92,7 @@ export default function RoleDetail() {
     ]
 
     return (
-        <div className="page-container-narrow animate-fade-in">
+        <div className="page-container animate-fade-in">
 
             <div className="page-header">
                 <div className="page-header-icon">
@@ -106,7 +106,7 @@ export default function RoleDetail() {
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
                 {/* Tabs */}
                 <div className="tabs">
                     {tabs.map(tab => {
@@ -130,7 +130,7 @@ export default function RoleDetail() {
                 </div>
 
                 <div className="card">
-                    <div className="card-body form-section">
+                    <div className="card-body form-section custom-scrollbar">
 
                         {/* Grunddaten */}
                         {activeTab === "basic" && (
@@ -153,7 +153,7 @@ export default function RoleDetail() {
                                         rows={10}
                                         value={item.definition || ""}
                                         onChange={(e) => updateField("definition", e.target.value)}
-                                        className="form-input form-textarea"
+                                        className="form-input form-textarea custom-scrollbar"
                                     />
                                 </div>
                             </>

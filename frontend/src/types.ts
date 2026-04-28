@@ -64,6 +64,7 @@ export interface SubUseCaseRoleRead extends SubUseCaseRole {
 export interface SubUseCase {
     id: number;
     name: string;
+    conx_id?: string;
     useCase_id: number;
     description: string;
     objective: string;
@@ -80,6 +81,7 @@ export interface SubUseCase {
 
 export interface SubUseCaseCreate {
     name: string;
+    conx_id: string;
     description: string;
     useCase_id: number;
     objective: string;
@@ -96,6 +98,11 @@ export interface UseCase {
     id: number;
     name: string;
     keywords: string[];
+    description?: string;
+    relation_to_other_useCases?: string;
+    uc_owner_institution?: string;
+    uc_owner?: string;
+    conx_id?: string;
     roles: Role[];
     subUseCases: SubUseCase[];
 }
@@ -103,6 +110,11 @@ export interface UseCase {
 export interface UseCaseCreate {
     name: string;
     keywords?: string[];
+    description?: string;
+    relation_to_other_useCases?: string;
+    uc_owner_institution?: string;
+    uc_owner?: string;
+    conx_id?: string;
     roles: number[];
 }
 
@@ -210,4 +222,21 @@ export interface PropertyGroup {
     country_of_origin?: string | null;
     category: Category;
     groups?: string[] | null;
+}
+
+export interface OntologyNode {
+    id: string;
+    type: "class" | "group" | "property";
+    data: {
+        label: string;
+        definition: string;
+        uuid: string;
+    };
+}
+
+export interface OntologyEdge {
+    id: string;
+    source: string;
+    target: string;
+    type: string;
 }
