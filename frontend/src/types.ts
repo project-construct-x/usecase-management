@@ -223,3 +223,20 @@ export interface PropertyGroup {
     category: Category;
     groups?: string[] | null;
 }
+
+export interface OntologyNode {
+    id: string;
+    type: "class" | "group" | "property";
+    data: {
+        label: string;
+        definition: string;
+        uuid: string;
+    };
+}
+
+export interface OntologyEdge {
+    id: string;
+    source: string;
+    target: string;
+    type: string;
+}
