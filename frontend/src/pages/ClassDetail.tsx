@@ -179,7 +179,7 @@ export default function ClassDetail() {
                                         required
                                         value={item.definition || ""}
                                         onChange={e => updateField("definition", e.target.value)}
-                                        className="form-input form-textarea"
+                                        className="form-input form-textarea custom-scrollbar"
                                         placeholder="Beschreiben Sie das Merkmal"
                                     />
                                 </div>

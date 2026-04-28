@@ -220,7 +220,7 @@ export default function UseCaseDetail() {
                     rows={7}
                     value={item.description || ""}
                     onChange={(e) => updateField("description", e.target.value)}
-                    className="form-textarea"
+                    className="form-textarea custom-scrollbar"
                     placeholder="Beschreibe den Use Case..."
                   />
                 </div>
@@ -230,7 +230,7 @@ export default function UseCaseDetail() {
                     rows={7}
                     value={item.relation_to_other_useCases || ""}
                     onChange={(e) => updateField("relation_to_other_useCases", e.target.value)}
-                    className="form-textarea"
+                    className="form-textarea custom-scrollbar"
                     placeholder="Beschreibe den Bezug zu anderen Use Cases..."
                   />
                 </div>
