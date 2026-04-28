@@ -153,7 +153,7 @@ export default function RoleDetail() {
                                         rows={10}
                                         value={item.definition || ""}
                                         onChange={(e) => updateField("definition", e.target.value)}
-                                        className="form-input form-textarea"
+                                        className="form-input form-textarea custom-scrollbar"
                                     />
                                 </div>
                             </>

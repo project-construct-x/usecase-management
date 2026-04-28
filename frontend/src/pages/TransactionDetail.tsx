@@ -135,7 +135,7 @@ export default function TransactionDetail() {
   console.log(item.subUseCase_id)
 
   return (
-    <div className="page-container-narrow animate-fade-in">
+    <div className="page-container animate-fade-in">
       <div className="page-header">
         <div className="page-header-icon">
           <ArrowLeftRight size={22} />
@@ -217,17 +217,32 @@ export default function TransactionDetail() {
                   </select>
                 </div>
 
-                <div className="form-check-row">
-                  <input
-                    type="checkbox"
-                    id="usesDataspace"
-                    checked={item.usesDataspace || false}
-                    onChange={e => updateField("usesDataspace", e.target.checked)}
-                    className="form-checkbox"
-                  />
-                  <label htmlFor="usesDataspace" className="form-check-label">
-                    Transaktion nutzt den Datenraum
-                  </label>
+                <div className="form-grid-2">
+
+                  <div className="form-check-row">
+                    <input
+                      type="checkbox"
+                      id="usesDataspace"
+                      checked={item.usesDataspace || false}
+                      onChange={e => updateField("usesDataspace", e.target.checked)}
+                      className="form-checkbox"
+                    />
+                    <label htmlFor="usesDataspace" className="form-check-label">
+                      Transaktion nutzt den Datenraum
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="form-label form-label">Datenträger</label>
+                    <input
+                      type="text"
+                      required
+                      value={item.data_carrier || ""}
+                      onChange={(e) => updateField("data_carrier", e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
                 </div>
 
                 <div className="form-grid-2">
@@ -272,17 +287,6 @@ export default function TransactionDetail() {
                     required
                     value={item.related_class_id || ""}
                     onChange={(e) => updateField("related_class_id", e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-
-                <div>
-                  <label className="form-label form-label">Datenträger</label>
-                  <input
-                    type="text"
-                    required
-                    value={item.data_carrier || ""}
-                    onChange={(e) => updateField("data_carrier", e.target.value)}
                     className="form-input"
                   />
                 </div>

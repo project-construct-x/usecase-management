@@ -505,7 +505,7 @@ export default function SubUseCaseDetail() {
                     rows={7}
                     value={item.description || ""}
                     onChange={(e) => updateField("description", e.target.value)}
-                    className="form-textarea"
+                    className="form-textarea custom-scrollbar"
                     placeholder="Beschreibe den Sub Use Case..."
                   />
                 </div>
@@ -516,7 +516,7 @@ export default function SubUseCaseDetail() {
                     rows={7}
                     value={item.objective || ""}
                     onChange={(e) => updateField("objective", e.target.value)}
-                    className="form-textarea"
+                    className="form-textarea custom-scrollbar"
                     placeholder="Was ist das Gesamtziel des Sub Use Case?"
                   />
                 </div>
@@ -527,7 +527,7 @@ export default function SubUseCaseDetail() {
                     rows={7}
                     value={item.inputs || ""}
                     onChange={(e) => updateField("inputs", e.target.value)}
-                    className="form-textarea"
+                    className="form-textarea custom-scrollbar"
                     placeholder="Was sind die Inputs in den Sub Use Case?"
                   />
                 </div>
@@ -538,7 +538,7 @@ export default function SubUseCaseDetail() {
                     rows={7}
                     value={item.outputs || ""}
                     onChange={(e) => updateField("outputs", e.target.value)}
-                    className="form-textarea"
+                    className="form-textarea custom-scrollbar"
                     placeholder="Was sind die Outputs aus dem Sub Use Case?"
                   />
                 </div>
@@ -549,7 +549,7 @@ export default function SubUseCaseDetail() {
                     rows={7}
                     value={item.potential_risks || ""}
                     onChange={(e) => updateField("potential_risks", e.target.value)}
-                    className="form-textarea"
+                    className="form-textarea custom-scrollbar"
                     placeholder="Gibt es Risiken, die die Umsetzung des Sub Use Cases gefährden könnten?"
                   />
                 </div>
@@ -560,7 +560,7 @@ export default function SubUseCaseDetail() {
                     rows={7}
                     value={item.distinction_from_other_sucs || ""}
                     onChange={(e) => updateField("distinction_from_other_sucs", e.target.value)}
-                    className="form-textarea"
+                    className="form-textarea custom-scrollbar"
                     placeholder="Worin unterscheidet sich der Sub Use Case zu anderen (thematisch ähnlichen) Sub Use Cases?"
                   />
                 </div>
@@ -571,7 +571,7 @@ export default function SubUseCaseDetail() {
                     rows={7}
                     value={item.dependency_of_other_sucs || ""}
                     onChange={(e) => updateField("dependency_of_other_sucs", e.target.value)}
-                    className="form-textarea"
+                    className="form-textarea custom-scrollbar"
                     placeholder="Ist der Sub Use Case von anderen Sub Use Cases abhängig? Wenn ja, wie?"
                   />
                 </div>
@@ -582,7 +582,7 @@ export default function SubUseCaseDetail() {
                     rows={7}
                     value={item.assumptions || ""}
                     onChange={(e) => updateField("assumptions", e.target.value)}
-                    className="form-textarea"
+                    className="form-textarea custom-scrollbar"
                     placeholder="Welche Annahmen und Rahmenbedingungen liegen dem Sub Use Case und dessen Umsetzung zugrunde?"
                   />
                 </div>
