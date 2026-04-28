@@ -13,7 +13,9 @@ import type {
     UserUpdate,
     APIKey,
     APIKeyCreate,
-    Token
+    Token,
+    OntologyEdge,
+    OntologyNode,
 } from "../types.ts";
 
 export const BASE = import.meta.env.VITE_API_URL;
@@ -213,4 +215,9 @@ export const api = {
         }),
     deletePropertyGroup: (uuid: string) =>
         request<void>(`/propertygroups/${uuid}`, {method: "DELETE"}),
+
+    // ---Property Groups---
+    getOntologyGraph: () =>
+        request<{ nodes: OntologyNode[]; edges: OntologyEdge[] }>("/ontology/graph")
+
 }

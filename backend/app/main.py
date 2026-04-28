@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import useCases, subUseCases, roles, transactions, properties, propertyGroups, users
+from .routers import useCases, subUseCases, roles, transactions, properties, propertyGroups, users, ontology
 from .config import IMAGE_DIR
 import os
 
@@ -29,3 +29,4 @@ app.include_router(roles.router)
 app.include_router(transactions.router)
 app.include_router(properties.router)
 app.include_router(propertyGroups.router)
+app.include_router(ontology.router)

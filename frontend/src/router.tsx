@@ -17,6 +17,7 @@ import PropertyGroupDetail from "./pages/PropertyGroupDetail.tsx";
 import ClassList from "./pages/ClassList.tsx";
 import ClassDetail from "./pages/ClassDetail.tsx";
 import UserManagement from "./pages/UserManagement.tsx";
+import OntologyGraph from "./pages/OntologyGraph.tsx";
 
 
 export const router = createBrowserRouter([
@@ -138,6 +139,15 @@ export const router = createBrowserRouter([
                     </ProtectedRoute>
                 ),
             },
+            {
+                path: "ontology",
+                element: (
+                    <ProtectedRoute>
+                        <OntologyGraph />
+                    </ProtectedRoute>
+                ),
+            },
+
 
 
             {/* Admin Routes */},
