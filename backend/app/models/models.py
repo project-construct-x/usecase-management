@@ -20,7 +20,10 @@ class UseCase(Base):
     name = Column(String, index=True)
     keywords = Column(ARRAY(String))
     description = Column(String)
-    # relation_to_other_useCases = Column(String)
+    relation_to_other_useCases = Column(String)
+    uc_owner_institution = Column(String)
+    uc_owner = Column(String)
+    conx_id = Column(String)
 
     # Relationships
     subUseCases = relationship("SubUseCase", back_populates="useCase", cascade="all, delete-orphan")
@@ -33,6 +36,7 @@ class SubUseCase(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     short_name = Column(String, index=True)
+    conx_id = Column(String, nullable=True)
     description = Column(String)
     useCase_id = Column(Integer, ForeignKey("useCases.id"))
     objective = Column(String, nullable=True)

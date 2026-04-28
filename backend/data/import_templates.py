@@ -10,6 +10,13 @@ from sqlalchemy import text
 
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
+'''
+alembic revision --autogenerate -m "[betreff]"
+alembic upgrade head
+
+'''
+
+
 # Root logger → Datei
 logging.basicConfig(
     filename="import.log",
@@ -82,7 +89,7 @@ def seed_transactions(suc_conx_id, transactions_index: dict, sub_id, session):
     for filename, path in transactions_index.items():
         if suc_conx_id in filename:
             log.info(f"Transaktionstabelle für Sub Use Case {suc_conx_id} gefunden.")
-            df_transactions = read_transaction_table(path)
+            df_transactions, df_transactions_properties = read_transaction_table(path)
             transactions = []
             for r in df_transactions.itertuples(index=False):
                 role_out = get_or_create_role(session, r.role_out)
@@ -116,8 +123,17 @@ def read_transaction_table(filename):
         names=['number', 'name', 'related_class', 'data_carrier', 'role_out', 'role_in', 'uses_dataspace',
                'dataformat_available', 'dataformat', 'timing', 'policies', 'data_size'],
     )
+    df_transactions_properties = pd.read_excel(
+        filename,
+        sheet_name="Transaktionen-Merkmale",
+        header=2,
+        names=['number', 'name', 'class_sphere', 'class', 'prop_name', 'prop_definition', 'prop_description',
+               'prop_example', 'prop_physical_quantity', 'prop_unit', 'prop_datatype', 'prop_possible_values',
+               'prop_reference', 'prop_source']
+    )
+    df_transactions_properties = df_transactions_properties[df_transactions_properties['name'].notnull()]
     df_transactions = df_transactions[df_transactions['name'].notnull()]
-    return df_transactions
+    return df_transactions, df_transactions_properties
 
 
 def seed_use_case(session, data: dict, filename: str, bpmn_index: dict, transaction_index: dict) -> None:
@@ -143,6 +159,10 @@ def seed_use_case(session, data: dict, filename: str, bpmn_index: dict, transact
         name=uc_name,
         keywords=keywords,
         description=general.get("description", "").strip() or None,
+        relation_to_other_useCases=general.get("relation_to_other_ucs", "").strip() or None,
+        uc_owner_institution=general.get("uc_owner_institution", "").strip() or None,
+        uc_owner=general.get("uc_owner", "").strip() or None,
+        conx_id=general.get("id", "").strip() or None,
     )
     session.add(use_case)
     session.flush()
@@ -162,6 +182,7 @@ def seed_use_case(session, data: dict, filename: str, bpmn_index: dict, transact
 
         sub = SubUseCase(
             name=suc_name,
+            conx_id=(suc_data.get("id") or "").strip() or None,
             short_name=(suc_data.get("short_name") or "").strip() or None,
             description=(suc_data.get("description") or "").strip(),
             useCase_id=use_case.id,

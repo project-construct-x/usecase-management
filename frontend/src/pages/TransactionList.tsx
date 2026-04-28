@@ -54,15 +54,15 @@ export default function TransactionList() {
                 isLoading={isLoading}
                 columns={[
                     {
+                        key: "subUseCase_name",
+                        title: "Sub Use Case",
+                    },
+                    {
                         key: "name",
                         title: "Name",
                         render: (r) => (
                             <span style={{ fontWeight: 600 }}>{r.name}</span>
                         )
-                    },
-                    {
-                        key: "subUseCase_name",
-                        title: "Sub Use Case",
                     },
                     {
                         key: "roleOut",
@@ -77,6 +77,10 @@ export default function TransactionList() {
                         render: (r) => (
                             <span>{r.roleIn.name}</span>
                         )
+                    },
+                    {
+                        key: "related_class_id",
+                        title: "Klasse",
                     },
                     {
                         key: "usesDataspace",

@@ -66,6 +66,11 @@ def update_useCase(db: Session, useCase_id: int, data: schemas.UseCaseUpdate, ro
     uc.name = data.name
     uc.keywords = data.keywords
     uc.roles = roles
+    uc.description = data.description
+    uc.relation_to_other_useCases = data.relation_to_other_useCases
+    uc.uc_owner_institution = data.uc_owner_institution
+    uc.uc_owner = data.uc_owner
+    uc.conx_id = data.conx_id
 
     db.commit()
     db.refresh(uc)
@@ -92,6 +97,7 @@ def create_subUseCase(db: Session, data: schemas.SubUseCaseCreate):
     sub = models.SubUseCase(
         name=data.name,
         description = data.description,
+        conx_id= data.conx_id,
         useCase_id=data.useCase_id,
         objective=data.objective,
         inputs=data.inputs,
@@ -112,6 +118,7 @@ def update_subUseCase(db: Session, subUseCase_id: int, data: schemas.SubUseCaseU
     sub = db.query(models.SubUseCase).get(subUseCase_id)
     sub.name = data.name
     sub.description = data.description
+    sub.conx_id = data.conx_id
     sub.useCase_id = data.useCase_id
     sub.objective = data.objective
     sub.inputs = data.inputs
@@ -218,7 +225,7 @@ def delete_transaction(db: Session, transaction_id: int):
 
 
 # -------------Properties---------------
-def get_properties(db: Session, skip: int = 0, limit: int = 100) -> List[models.Property]:
+def get_properties(db: Session, skip: int = 0, limit: int = 1000) -> List[models.Property]:
     return db.query(models.Property).offset(skip).limit(limit).all()
 
 def get_property_by_uuid(db: Session, uuid: UUID) -> Optional[models.Property]:

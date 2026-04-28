@@ -54,6 +54,13 @@ export default function UseCaseList() {
                 isLoading={isLoading}
                 columns={[
                     {
+                        key: "conx_id",
+                        title: "ID",
+                        render: (r) => (
+                            <span style={{ fontWeight: 600 }}>{r.conx_id}</span>
+                        )
+                    },
+                    {
                         key: "name",
                         title: "Name",
                         render: (r) => (

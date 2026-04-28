@@ -8,14 +8,14 @@ from datetime import datetime, timezone
 
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
-file_name = "input/Picklist-Klassen-und-Merkmale_260327.xlsx"
+file_name = "input/Picklist-Klassen-und-Merkmale_260422.xlsx"
 
 def read_excel(file_name):
     df_classes = pd.read_excel(
         file_name,
         sheet_name="Klassen",
         header=0,
-        names=['ID', 'name', 'definition', 'parents', 'reference', 'used_in']
+        names=['ID', 'name', 'definition', 'parents', 'reference', 'used_in', 'relations']
     )
     df_classes = df_classes[df_classes['name'].notnull()]
     df_groups = pd.read_excel(

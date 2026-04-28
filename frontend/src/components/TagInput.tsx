@@ -57,7 +57,7 @@ export default function TagInput({ value, onChange, placeholder = "Tag eingeben 
                     onClick={addTag}
                     className="btn btn-primary"
                 >
-                    Add
+                    Hinzufügen
                 </button>
             </div>
         </div>
