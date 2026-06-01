@@ -23,6 +23,7 @@ backend/.env.local
 # Backend input data
 *.xlsx
 backend/data/input/
+backend/data/database_seed.py
 
 # ============================================
 # Frontend (React/Vite)

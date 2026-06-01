@@ -1,5 +1,6 @@
 import os
 import logging
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from .schemas import schemas
 from .models import models
@@ -193,7 +194,12 @@ def get_transaction_by_id(db: Session, transaction_id: int):
     return db.query(models.Transaction).get(transaction_id)
 
 def create_transaction(db: Session, data: schemas.TransactionMutate):
-    transaction = models.Transaction(**data.dict())
+    transaction = models.Transaction(**data.dict(exclude={"property_uuids"}))
+
+    if data.property_uuids:
+        props = db.execute(select(models.Property).where(models.Property.UUID.in_(data.property_uuids))).scalars().all()
+        transaction.properties = props
+
     db.add(transaction)
     db.commit()
     db.refresh(transaction)
@@ -214,6 +220,10 @@ def update_transaction(db: Session, transaction_id: int, data: schemas.Transacti
     transaction.timing = data.timing
     transaction.policies = data.policies
     transaction.data_size = data.data_size
+    if data.property_uuids is not None:
+        props = db.execute(select(models.Property).where(models.Property.UUID.in_(data.property_uuids))).scalars().all()
+        transaction.properties = props
+
     db.commit()
     db.refresh(transaction)
     return transaction
@@ -343,3 +353,24 @@ def search_propertyGroups(db: Session, search_term: str, limit: int = 50) -> Lis
         (models.PropertyGroup.name.ilike(f"%{search_term}%")) |
         (models.PropertyGroup.definition.ilike(f"%{search_term}%"))
     ).limit(limit).all()
+
+def get_class_property_tree(db: Session) -> list:
+    classes = get_propertyGroups_by_category(db, category="CLASS", limit=1000)
+
+    result = []
+    for cls in classes:
+        props = get_properties_by_group(db, group_uuid=cls.UUID)
+
+        result.append({
+            "uuid": str(cls.UUID),
+            "name": cls.name,
+            "properties": [
+                {
+                    "UUID": str(p.UUID),
+                    "name": p.name,
+                    "definition": p.definition or "",
+                }
+                for p in props
+            ]
+        })
+    return result

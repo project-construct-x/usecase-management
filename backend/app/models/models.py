@@ -14,6 +14,13 @@ useCase_roles = Table(
     Column("role_id", ForeignKey("roles.id"), primary_key=True),
 )
 
+transaction_properties = Table(
+    "transaction_properties",
+    Base.metadata,
+    Column("transaction_id", Integer, ForeignKey("transactions.id"), primary_key=True),
+    Column("property_uuid", PRUUID(as_uuid=True), ForeignKey("properties.UUID"), primary_key=True),
+)
+
 class UseCase(Base):
     __tablename__ = "useCases"
     id = Column(Integer, primary_key=True, index=True)
@@ -94,6 +101,7 @@ class Transaction(Base):
     subUseCase = relationship("SubUseCase", back_populates="transactions")
     roleOut = relationship("Role", foreign_keys=[roleOut_id], back_populates="transactions_out")
     roleIn = relationship("Role", foreign_keys=[roleIn_id], back_populates="transactions_in")
+    properties = relationship("Property", secondary=transaction_properties, backref="transactions")
 
 
 class Role(Base):

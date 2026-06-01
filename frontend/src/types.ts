@@ -1,5 +1,7 @@
 export type RoleEnum = "read" | "write";
 
+//----------USER-------------
+
 export interface User {
     id: number;
     email: string;
@@ -44,6 +46,7 @@ export interface APIKeyCreate {
     expires_at?: string;
 }
 
+//--------------ROLE-----------------
 export interface Role {
     id: number;
     name: string;
@@ -61,6 +64,7 @@ export interface SubUseCaseRoleRead extends SubUseCaseRole {
     role: Role;
 }
 
+//--------------SUB USE CASE-------------
 export interface SubUseCase {
     id: number;
     name: string;
@@ -94,6 +98,7 @@ export interface SubUseCaseCreate {
     subUseCase_roles: SubUseCaseRole[];
 }
 
+//--------------USE CASE----------------
 export interface UseCase {
     id: number;
     name: string;
@@ -118,6 +123,7 @@ export interface UseCaseCreate {
     roles: number[];
 }
 
+//---------------TRANSACTION--------------------
 export interface TransactionBase {
     id?: number;
     name: string;
@@ -138,13 +144,16 @@ export interface Transaction extends TransactionBase {
     roleOut: Role;
     roleIn: Role;
     subUseCase_name?: string;
+    properties: Property[];
 }
 
 export interface TransactionMutate extends TransactionBase {
     roleOut_id: number;
     roleIn_id: number;
+    property_uuids: string[];
 }
 
+//-------------------------PROPERTY----------------------
 export interface Property {
     UUID: string;
     active: boolean;
@@ -188,6 +197,7 @@ export interface Property {
     limit_values?: string[] | null;
 }
 
+//------------------------PROPERTY GROUP-----------------
 export const Category = {
     ALTERNATIVE_USAGE: "alternative_Verwendung",
     CLASS: "Klasse",
@@ -224,6 +234,13 @@ export interface PropertyGroup {
     groups?: string[] | null;
 }
 
+export interface ClassWithProperties {
+    uuid: string;
+    name: string;
+    properties: Property[];
+}
+
+//--------------------------ONTOLOGY----------------------
 export interface OntologyNode {
     id: string;
     type: "class" | "group" | "property";
