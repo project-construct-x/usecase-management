@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
-import type {Role, SubUseCase, Transaction, TransactionMutate} from "../types.ts";
-import {ArrowLeftRight, Tags} from "lucide-react";
+import type {Role, SubUseCase, Transaction, TransactionMutate, ClassWithProperties, Property} from "../types.ts";
+import {ArrowLeftRight, Tags, Search, Boxes, AlertCircle} from "lucide-react";
 
 const emptyTransaction: TransactionMutate = {
   process_number: "",
@@ -18,6 +18,7 @@ const emptyTransaction: TransactionMutate = {
   timing: "",
   policies: "",
   data_size: "",
+  property_uuids: [],
 }
 
 export default function TransactionDetail() {
@@ -28,10 +29,14 @@ export default function TransactionDetail() {
   const [activeTab, setActiveTab] = useState("basic");
   const [roles, setRoles] = useState<Role[]>([])
   const [subUseCases, setSubUseCases] = useState<SubUseCase[]>([])
+  const [classPropertyTree, setClassPropertyTree] = useState<ClassWithProperties[]>([]);
+  const [selectedClassUuid, setSelectedClassUuid] = useState<string>("");
+  const [propertySearchTerm, setPropertySearchTerm] = useState("");
 
   useEffect(() => {
     loadRoles();
     loadSubUseCases();
+    loadClassPropertyTree();
     if (id !== "new") {
       loadTransaction();
     }
@@ -51,6 +56,7 @@ export default function TransactionDetail() {
     timing: data.timing,
     policies: data.policies,
     data_size: data.data_size,
+    property_uuids: data.properties.map(p => p.UUID),
   });
 
   async function loadTransaction() {
@@ -92,6 +98,31 @@ export default function TransactionDetail() {
     }
   }
 
+  async function loadClassPropertyTree() {
+    setLoading(true);
+    try {
+      const classPropertyTree = await api.getClassPropertyTree();
+      setClassPropertyTree(classPropertyTree)
+    } catch (error) {
+      console.error("Fehler beim Laden: ", error);
+      alert("Klassen mit Merkmalen konnten nicht geladen werden.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function toggleProperty(uuid: string) {
+    setItem(prev => {
+      const already = prev.property_uuids.includes(uuid);
+      return {
+        ...prev,
+        property_uuids: already
+          ? prev.property_uuids.filter(u => u !== uuid)
+          : [...prev.property_uuids, uuid],
+      };
+    });
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -130,9 +161,9 @@ export default function TransactionDetail() {
 
   const tabs = [
     { id: "basic", label: "Grunddaten", badge: undefined, icon: Tags},
+    { id: "properties", label: "Klassen & Merkmale", icon: Boxes,
+      badge: item.property_uuids.length > 0 ? item.property_uuids.length : undefined}
   ]
-
-  console.log(item.subUseCase_id)
 
   return (
     <div className="page-container animate-fade-in">
@@ -352,6 +383,140 @@ export default function TransactionDetail() {
 
               </>
             )}
+
+            {/* Klassen und Merkmale */}
+            {activeTab === "properties" && (() => {
+              const selectedClass = classPropertyTree.find(c => c.uuid === selectedClassUuid);
+
+              const filteredProperties = selectedClass
+                ? selectedClass.properties.filter(p =>
+                  p.name.toLowerCase().includes(propertySearchTerm.toLowerCase()) ||
+                  p.definition.toLowerCase().includes(propertySearchTerm.toLowerCase())
+                )
+                : [];
+
+              // Alle ausgewählten Properties über alle Klassen hinweg mit Name anzeigen
+              const allSelectedWithLabel = item.property_uuids.map(uuid => {
+                for (const cls of classPropertyTree) {
+                  const found = cls.properties.find(p => p.UUID === uuid);
+                  if (found) return { ...found, className: cls.name };
+                }
+                return null;
+              }).filter(Boolean) as (Property & { className: string })[];
+
+              return (
+                <>
+                  {item.property_uuids.length === 0 && (
+                    <div className="alert alert-info">
+                      <AlertCircle size={18} />
+                      <span>Es sind noch keine Merkmale ausgewählt.</span>
+                    </div>
+                  )}
+
+                  {/* Klassen-Auswahl */}
+                  <div>
+                    <label className="form-label">Klasse auswählen</label>
+                    <select
+                      value={selectedClassUuid}
+                      onChange={e => {
+                          setSelectedClassUuid(e.target.value);
+                          setPropertySearchTerm("");
+                      }}
+                      className="form-input form-select"
+                    >
+                      <option value="">-- Klasse wählen --</option>
+                      {classPropertyTree.map(cls => (
+                        <option key={cls.uuid} value={cls.uuid}>
+                          {cls.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Ausgewählte Merkmale als Chips */}
+                  {allSelectedWithLabel.length > 0 && (
+                    <div className="selected-groups-box">
+                      <div className="selected-groups-label">
+                        Ausgewählt: {allSelectedWithLabel.length} Merkmal(e)
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {allSelectedWithLabel.map(p => (
+                          <button
+                            key={p.UUID}
+                            type="button"
+                            onClick={() => toggleProperty(p.UUID)}
+                            className="badge badge-primary badge-removable"
+                            title={p.className}
+                          >
+                            {p.name}
+                            <span style={{ marginLeft: 3, opacity: 0.7 }}>×</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Merkmale der gewählten Klasse */}
+                  {selectedClass && (
+                    <>
+                      <div className="search-wrapper" style={{ maxWidth: "none" }}>
+                        <Search className="search-icon" size={16} />
+                        <input
+                          type="text"
+                          placeholder="Merkmal suchen…"
+                          value={propertySearchTerm}
+                          onChange={e => setPropertySearchTerm(e.target.value)}
+                          className="search-input"
+                          style={{ width: "100%" }}
+                        />
+                      </div>
+
+                      <div className="group-list custom-scrollbar">
+                        {filteredProperties.length === 0 ? (
+                          <div className="group-list-empty">
+                            <span style={{ fontWeight: 600 }}>
+                              {selectedClass.properties.length === 0
+                                ? "Diese Klasse hat keine Merkmale"
+                                : "Keine Merkmale gefunden"}
+                            </span>
+                          </div>
+                        ) : (
+                          filteredProperties.map(prop => {
+                            const isSelected = item.property_uuids.includes(prop.UUID);
+                            return (
+                              <label
+                                key={prop.UUID}
+                                className={`group-list-item ${isSelected ? "group-list-item-selected" : ""}`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => toggleProperty(prop.UUID)}
+                                  className="form-checkbox"
+                                  style={{ marginTop: 2, flexShrink: 0 }}
+                                />
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: 13, marginBottom: 3 }}>
+                                    {prop.name}
+                                  </div>
+                                  <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
+                                    {prop.definition}
+                                  </p>
+                                </div>
+                              </label>
+                            );
+                          })
+                        )}
+                      </div>
+                    </>
+                  )}
+                </>
+              );
+            })()}
+
+
+
+
           </div>
         </div>
 
