@@ -18,6 +18,11 @@ def list_propertyGroups(db: Session = Depends(get_db), skip: int = 0, limit: int
 def list_propertyGroups_by_category(category: str, db: Session = Depends(get_db), skip: int = 0, limit: int = 100):
     return crud.get_propertyGroups_by_category(db, category=category, skip=skip, limit=limit)
 
+# ---------GET LIST OF CLASSES WITH PROPERTIES-------------
+@router.get("/class-property-tree", response_model=List[schemas.ClassWithProperties])
+def get_class_property_tree(db: Session = Depends(get_db)):
+    return crud.get_class_property_tree(db)
+
 # --------GET---------
 @router.get("/{uuid}", response_model=schemas.PropertyGroupResponse)
 def get_propertyGroup(uuid: UUID, db:Session = Depends(get_db)):
