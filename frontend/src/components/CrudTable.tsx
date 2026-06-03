@@ -109,6 +109,7 @@ export default function CrudTable<T extends { id: number | string }>({
   useEffect(() => {
     if (!sortKey && columns.length > 0) {
       setSortKey(String(columns[0].key));
+      setSortDirection("asc")
     }
   }, [columns, sortKey]);
 
@@ -206,7 +207,7 @@ export default function CrudTable<T extends { id: number | string }>({
                       style={{ color: "var(--text-muted)", opacity: 0.5 }}
                       strokeWidth={1.25}
                     />
-                    <span style={{ fontWeight: 600, color: "var(--text-secondary" }}>
+                    <span style={{ fontWeight: 600, color: "var(--text-secondary)" }}>
                                                 Keine Einträge gefunden
                                             </span>
                     {filterText && (
