@@ -1,7 +1,7 @@
 import os
 import logging
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from .schemas import schemas
 from .models import models
 from .config import IMAGE_DIR
@@ -20,7 +20,7 @@ def set_creation_timestamps(obj):
     return obj
 
 
-# ----------Roles---------
+# -----------------ROLES---------------------
 def get_roles(db: Session):
     return db.query(models.Role).all()
 
@@ -48,7 +48,64 @@ def delete_role(db: Session, role_id: int):
     db.commit()
 
 
-# --------UseCases-------
+# ------------------STANDARDS---------------
+def get_standards(db: Session):
+    return (
+        db.query(models.Standard)
+        .options(selectinload(models.Standard.useCases))
+        .all()
+    )
+
+def get_standard_by_id(db: Session, standard_id: int):
+    return (
+        db.query(models.Standard)
+        .options(selectinload(models.Standard.useCases))
+        .filter(models.Standard.id == standard_id)
+        .first()
+    )
+
+def create_standard(db: Session, data: schemas.StandardMutate):
+    payload = data.model_dump(exclude={"useCase_ids"})
+    standard = models.Standard(**payload)
+
+    usecase_ids = getattr(data, "useCase_ids", []) or []
+    standard.useCases = [get_useCase_by_id(db, id) for id in usecase_ids]
+
+    db.add(standard)
+    db.commit()
+    db.refresh(standard)
+    return standard
+
+def update_standard(db: Session, standard_id: int, data: schemas.StandardMutate):
+    s = db.query(models.Standard).get(standard_id)
+    if not s:
+        return None
+    s.number = data.number
+    s.category = data.category
+    s.title = data.title
+    s.subTitle = data.subTitle
+    s.date = data.date
+    s.reference_URL = data.reference_URL
+    s.keywords = data.keywords
+    s.description = data.description
+
+    if data.useCase_ids is not None:
+        usecases = [get_useCase_by_id(db, i) for i in data.useCase_ids]
+        missing = [i for i, uc in zip(data.useCase_ids, usecases) if uc is None]
+        if missing:
+            raise ValueError(f"UseCases nicht gefunden: {missing}")
+        s.useCases = [uc for uc in usecases if uc is not None]
+
+    db.commit()
+    db.refresh(s)
+    return s
+
+def delete_standard(db: Session, standard_id: int):
+    s = db.query(models.Standard).get(standard_id)
+    db.delete(s)
+    db.commit()
+
+# ----------------------USE CASES-------------------------
 def get_useCases(db: Session):
     return db.query(models.UseCase).all()
 
@@ -83,7 +140,7 @@ def delete_useCase(db: Session, useCase_id: int):
     db.commit()
 
 
-# -------SubUseCases-----
+# ---------------------SUB USE CASES-----------------------
 def get_subUseCases(db: Session):
     return db.query(models.SubUseCase).all()
 
@@ -183,7 +240,7 @@ def _sync_subUseCase_roles(db: Session, sub: models.SubUseCase, roles_data: list
         db.add(entry)
 
 
-# --------Transactions-------
+# ------------------TRANSACTIONS----------------------
 def get_transactions(db: Session):
     return db.query(models.Transaction).all()
 
@@ -234,7 +291,7 @@ def delete_transaction(db: Session, transaction_id: int):
     db.commit()
 
 
-# -------------Properties---------------
+# -----------------------PROPERTIES-----------------------------
 def get_properties(db: Session, skip: int = 0, limit: int = 1000) -> List[models.Property]:
     return db.query(models.Property).offset(skip).limit(limit).all()
 
@@ -288,7 +345,7 @@ def search_properties(db: Session, search_term: str, limit: int = 50) -> List[mo
     ).limit(limit).all()
 
 
-# ----------- Property Group --------------
+# -----------------------PROPERTY GROUP------------------------
 def get_propertyGroups(db: Session, skip: int = 0, limit: int = 100) -> List[models.PropertyGroup]:
     """Alle PropertyGroups mit Pagination abrufen"""
     return db.query(models.PropertyGroup).offset(skip).limit(limit).all()

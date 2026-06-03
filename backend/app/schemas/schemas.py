@@ -2,10 +2,40 @@ from pydantic import BaseModel, model_validator
 from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
-from ..models.models import Category
+from ..models.models import Category, StandardCategory
 
 
-# ----------Role---------
+# ------------------STANDARDS-------------------------
+class StandardBase(BaseModel):
+    number: str
+    category: StandardCategory
+    title: str
+    subTitle: Optional[str] = None
+    date: Optional[str] = None
+    reference_URL: Optional[str] = None
+    keywords: Optional[List[str]] = None
+    description: Optional[str] = None
+
+class StandardMutate(StandardBase):
+    useCase_ids: list[int] = []
+    pass
+
+class UseCaseShort(BaseModel):
+    id: int
+    name: str
+    conx_id: Optional[str] = None
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class Standard(StandardBase):
+    id: int
+    useCases: list[UseCaseShort] = []
+    class Config:
+        from_attributes = True
+
+# -----------------ROLE-------------------------------
 class RoleBase(BaseModel):
     name: str
     definition: str
@@ -19,7 +49,7 @@ class Role(RoleBase):
         from_attributes = True
 
 
-# --------SubUseCase-------
+# -----------------SUB USE CASE-----------------------
 class SubUseCaseRoleBase(BaseModel):
     role_id: int
     motivation: Optional[str] = None
@@ -62,7 +92,7 @@ class SubUseCase(SubUseCaseBase):
         from_attributes = True
 
 
-# --------UseCase-------
+# --------------------USE CASE----------------------------
 class UseCaseBase(BaseModel):
     name: str
     keywords: Optional[List[str]] = None
@@ -82,10 +112,11 @@ class UseCase(UseCaseBase):
     id: int
     roles: List[Role] = []
     subUseCases: List[SubUseCase] = []
+    standards: List[Standard] = []
     class Config:
         from_attributes = True
 
-# -------------Base for Property and PropertyGroup------------------
+# -------------BASE FOR PROPERTY AND PROPERTY GROUP------------------
 class TimestampedEntityBase(BaseModel):
     """Gemeinsame Felder für Property und PropertyGroup"""
     active: bool
@@ -117,7 +148,7 @@ class TimestampedEntityResponse(TimestampedEntityBase):
     class Config:
         from_attributes = True
 
-# --------Property-------
+# ------------------------PROPERTY--------------------------
 class PropertyBase(TimestampedEntityBase):
     dynamic: bool
 
@@ -197,7 +228,7 @@ class PropertyShort(BaseModel):
         from_attributes = True
 
 
-# ========== PropertyGroup Schemas ==========
+# ----------------------PROPERTY GROUP----------------------
 class PropertyGroupBase(TimestampedEntityBase):
     category: Category
 
@@ -250,7 +281,7 @@ class ClassWithProperties(BaseModel):
     name: str
     properties: list[PropertyShort]
 
-# --------Transaction-------
+# ---------------------------TRANSACTION---------------------------------
 class Transaction(BaseModel):
     id: int
     name: str

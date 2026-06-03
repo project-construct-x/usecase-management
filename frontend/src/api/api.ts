@@ -17,6 +17,7 @@ import type {
   Token,
   OntologyEdge,
   OntologyNode,
+  Standard
 } from "../types.ts";
 
 export const BASE = import.meta.env.VITE_API_URL;
@@ -158,6 +159,24 @@ export const api = {
     }),
   deleteRole: (id: number) =>
     request<void>(`/roles/${id}`, {method: "DELETE"}),
+
+  // ---Standards---
+  listStandards: () => request<Standard[]>("/standards/"),
+  getStandard: (id: number) => request<Standard>(`/standards/${id}`),
+  createStandard: (data: Partial<Standard>) =>
+    request<Standard>("/standards/", {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {"Content-Type": "application/json"},
+    }),
+  updateStandard: (id: number, data: Partial<Standard>) =>
+    request<Standard>(`/standards/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+      headers: {"Content-Type": "application/json"},
+    }),
+  deleteStandard: (id: number) =>
+    request<void>(`/standards/${id}`, {method: "DELETE"}),
 
   // ---Transactions---
   listTransactions: () => request<Transaction[]>("/transactions/"),

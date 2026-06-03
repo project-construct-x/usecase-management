@@ -21,6 +21,13 @@ transaction_properties = Table(
     Column("property_uuid", PRUUID(as_uuid=True), ForeignKey("properties.UUID"), primary_key=True),
 )
 
+useCase_standards = Table(
+    "useCase_standards",
+    Base.metadata,
+    Column("useCase_id", ForeignKey("useCases.id"), primary_key=True),
+    Column("standard_id", ForeignKey("standards.id"), primary_key=True)
+)
+
 class UseCase(Base):
     __tablename__ = "useCases"
     id = Column(Integer, primary_key=True, index=True)
@@ -35,6 +42,7 @@ class UseCase(Base):
     # Relationships
     subUseCases = relationship("SubUseCase", back_populates="useCase", cascade="all, delete-orphan")
     roles = relationship("Role", secondary=useCase_roles, back_populates="useCases")
+    standards = relationship("Standard", secondary=useCase_standards, back_populates="useCases")
 
 
 class SubUseCase(Base):
@@ -513,17 +521,37 @@ class PropertyGroup(Base):
     })
 
 # -----------Standards----------
+class StandardCategory(str, enum.Enum):
+    FILE_FORMAT = "Dateiformat"
+    DATA_STANDARD = "Datenstandard"
+    EUROPEAN_GUIDELINE = "Europäische Richtlinie"
+    EUROPEAN_REGULATION = "Europäische Verordnung"
+    EUROPEAN_STANDARD = "Europäische Norm"
+    GUIDELINE = "Leitfaden"
+    INTERNATIONAL_GUIDELINE = "Internationale Richtlinie"
+    INTERNATIONAL_STANDARD = "Internationale Norm"
+    NATIONAL_GUIDELINE = "Deutsche Richtlinie"
+    NATIONAL_LAW = "Deutsches Gesetz"
+    NATIONAL_STANDARD = "Deutsche Norm"
+    ONTOLOGY = "Ontologie"
+    SPECIALIST_BOOK = "Fachbuch"
+    TECHNICAL_REPORT = "Technischer Bericht"
+    TECHNICAL_STANDARD = "Technischer Standard"
+    WORKING_GROUP = "Arbeitsgruppe"
+
 class Standard(Base):
     __tablename__ = "standards"
 
     id = Column(Integer, primary_key=True, index=True)
     number = Column(String, index=True)
+    category = Column(Enum(StandardCategory, name="standardcategory"), nullable=False, default=StandardCategory.TECHNICAL_STANDARD)
     title = Column(String)
     subTitle = Column(String)
-    date = Column(Date)
-    link = Column(String)
+    date = Column(String)
+    reference_URL = Column(String)
     keywords = Column(ARRAY(String))
     description = Column(String)
 
     # Relationships
     roles = relationship("Role", back_populates="standard")
+    useCases = relationship("UseCase", secondary=useCase_standards, back_populates="standards")

@@ -64,6 +64,43 @@ export interface SubUseCaseRoleRead extends SubUseCaseRole {
   role: Role;
 }
 
+//--------------STANDARD-----------------
+export const StandardCategory = {
+  FILE_FORMAT: "Dateiformat",
+  DATA_STANDARD: "Datenstandard",
+  EUROPEAN_GUIDELINE: "Europäische Richtlinie",
+  EUROPEAN_REGULATION: "Europäische Verordnung",
+  EUROPEAN_STANDARD: "Europäische Norm",
+  GUIDELINE: "Leitfaden",
+  INTERNATIONAL_GUIDELINE: "Internationle Richtlinie",
+  INTERNATIONAL_STANDARD: "Internationle Norm",
+  NATIONAL_GUIDELINE: "Deutsche Richtlinie",
+  NATIONAL_LAW: "Deutsches Gesetz",
+  NATIONAL_STANDARD: "Deutsche Norm",
+  ONTOLOGY: "Ontologie",
+  SPECIALIST_BOOK: "Fachbuch",
+  TECHNICAL_REPORT: "Technischer Bericht",
+  TECHNICAL_STANDARD: "Technischer Standard",
+  WORKING_GROUP: "Arbeitsgruppe",
+} as const;
+
+export type StandardCategory = typeof StandardCategory[keyof typeof StandardCategory]
+
+export interface Standard {
+  id: number;
+  number: string;
+  category: StandardCategory;
+  title: string;
+  subTitle?: string;
+  date?: string;
+  reference_URL?: string;
+  keywords?: string[];
+  description?: string;
+  useCases?: UseCase[];
+  useCase_ids?: number[];
+}
+
+
 //--------------SUB USE CASE-------------
 export interface SubUseCase {
   id: number;
