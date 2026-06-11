@@ -280,7 +280,7 @@ export interface ClassWithProperties {
 //--------------------------ONTOLOGY----------------------
 export interface OntologyNode {
   id: string;
-  type: "class" | "group" | "property";
+  type: "class" | "propertyGroup" | "property";
   data: {
     label: string;
     definition: string;

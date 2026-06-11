@@ -1,13 +1,9 @@
-from lib2to3.fixes.fix_print import parend_expr
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import select
 from ..db import get_db
 from .. import crud
 from ..models.models import PropertyGroup, Property, Category
-from ..schemas import schemas
-import uuid
+import re
 
 router = APIRouter(prefix="/ontology", tags=["ontology"])
 
@@ -32,11 +28,12 @@ def get_ontology_graph(db: Session = Depends(get_db)):
 
     for g in groups:
         is_class = (g.category == Category.CLASS)
+        d = dict(part.strip("() ").split(", ", 1) for part in g.name.split("), (")) # workaround as long as values are in database as '(de, [deutsch]), (en, [englisch])'
         nodes.append({
             "id": str(g.UUID),
-            "type": "class" if is_class else "group",
+            "type": "class" if is_class else "propertyGroup",
             "data": {
-                "label": g.name,
+                "label": d["de"] if "de" in d else d["en"], # alternativ: g.name
                 "definition": g.definition,
                 "uuid": str(g.UUID),
             }
@@ -52,11 +49,12 @@ def get_ontology_graph(db: Session = Depends(get_db)):
                 })
 
     for p in properties:
+        d = dict(part.strip("() ").split(", ", 1) for part in p.name.split("), ("))  # workaround as long as values are in database as '(de, [deutsch]), (en, [englisch])'
         nodes.append({
             "id": str(p.UUID),
             "type": "property",
             "data": {
-                "label": p.name,
+                "label": d["de"] if "de" in d else d["en"],
                 "definition": p.definition,
                 "uuid": str(p.UUID),
             }
