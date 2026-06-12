@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useCallback, useEffect, useState} from "react";
 import {
   ReactFlow,
   Background,
@@ -14,8 +14,10 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import dagre from "dagre";
+import { useNavigate} from "react-router-dom";
 import { Database } from "lucide-react";
 import { api } from "../api/api.ts";
+import {getLabel} from "../components/helper.tsx";
 
 // ------Layout-Funktion mit Dagre--------------------------
 const NODE_WIDTH = 200;
@@ -25,14 +27,14 @@ const NODE_HEIGHT_PROP = 50;
 
 function getNodeHeight(type: string) {
   if (type === "class") return NODE_HEIGHT_CLASS;
-  if (type === "group") return NODE_HEIGHT_GROUP;
+  if (type === "featureGroup") return NODE_HEIGHT_GROUP;
   return NODE_HEIGHT_PROP;
 }
 
 function applyDagreLayout(nodes: Node[], edges: Edge[]): Node[] {
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "TB", nodesep: 40, ranksep: 60 });
+  g.setGraph({ rankdir: "LR", nodesep: 0, ranksep: 100 });
 
   nodes.forEach((n) => {
     g.setNode(n.id, { width: NODE_WIDTH, height: getNodeHeight(n.type ?? "") });
@@ -55,92 +57,154 @@ function applyDagreLayout(nodes: Node[], edges: Edge[]): Node[] {
 
 // ─── Custom Nodes ─────────────────────────────────────────────────────────────
 
-function ClassNode({ data }: { data: any }) {
+function ClassNode({ data }: { data: { label: string; id: string; definition: string; onNavigate: (path: string) => void} }) {
   return (
-    <div style={{
-      background: "var(--blue-600, #2563eb)",
-      color: "var(--text-primary)",
-      borderRadius: 10,
-      padding: "10px 16px",
-      minWidth: NODE_WIDTH,
-      maxWidth: NODE_WIDTH,
-      boxShadow: "0 4px 12px rgba(37,99,235,0.35)",
-      border: "2px solid var(--blue-400, #60a5fa)",
-      fontSize: 13,
-    }}>
-      <Handle type="target" position={Position.Top} style={{ background: "#60a5fa" }} />
-      <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 3 }}>{data.label}</div>
-      {data.definition && (
-        <div style={{ fontSize: 11, opacity: 0.85, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-             title={data.definition}>
-          {data.definition}
-        </div>
-      )}
-      <Handle type="source" position={Position.Bottom} style={{ background: "#60a5fa" }} />
+    <div
+      onClick={() => data.onNavigate(`/classes/${data.id}`)}
+      style={{
+        background: "var(--blue-500)",
+        color: "var(--text-primary)",
+        borderRadius: 10,
+        padding: "3px",
+        textAlign: "center",
+        minWidth: NODE_WIDTH,
+        maxWidth: NODE_WIDTH,
+        boxShadow: "0 1px 6px var(--blue-700)",
+        border: "2px solid var(--blue-600)",
+        cursor: "pointer",
+        transition: "filter 0.15s"
+      }}
+      onMouseEnter={(e) =>
+        ((e.currentTarget as HTMLDivElement).style.filter = "brightness(1.15)")
+      }
+      onMouseLeave={(e) =>
+        ((e.currentTarget as HTMLDivElement).style.filter ="")
+      }
+    >
+      <Handle type="target" position={Position.Left} style={{ background: "var(--blue-600)" }} />
+      <div style={{ fontWeight: 700, fontSize: 13 }} title={data.definition}>{data.label}</div>
+      <Handle type="source" position={Position.Right} style={{ background: "var(--blue-600)" }} />
     </div>
   );
 }
 
-function GroupNode({ data }: { data: any }) {
+function PropertyGroupNode({ data }: { data: { label: string; id: string; definition: string; onNavigate: (path: string) => void} }) {
   return (
-    <div style={{
-      background: "var(--amber-500)",
-      color: "var(--text-primary)",
-      borderRadius: 8,
-      padding: "8px 14px",
-      minWidth: NODE_WIDTH,
-      maxWidth: NODE_WIDTH,
-      border: "1.5px solid var(--border-color, #334155)",
-      fontSize: 12,
-    }}>
-      <Handle type="target" position={Position.Top} />
-      <div style={{ fontWeight: 600, fontSize: 12 }}>{data.label}</div>
-      {data.definition && (
-        <div style={{ fontSize: 11, opacity: 0.6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-             title={data.definition}>
-          {data.definition}
-        </div>
-      )}
-      <Handle type="source" position={Position.Bottom} />
+    <div
+      onClick={() => data.onNavigate(`/propertyGroups/${data.id}`)}
+      style={{
+        background: "var(--amber-500)",
+        color: "var(--text-primary)",
+        borderRadius: 6,
+        padding: "3px",
+        textAlign: "center",
+        minWidth: NODE_WIDTH,
+        maxWidth: NODE_WIDTH,
+        boxShadow: "0 1px 6px var(--amber-600)",
+        border: "1px solid var(--amber-600)",
+        cursor: "pointer",
+        transition: "filter 0.15s"
+      }}
+      onMouseEnter={(e) =>
+        ((e.currentTarget as HTMLDivElement).style.filter = "brightness(1.15)")
+      }
+      onMouseLeave={(e) =>
+        ((e.currentTarget as HTMLDivElement).style.filter ="")
+      }
+    >
+      <Handle type="target" position={Position.Left} style={{ background: "var(--amber-600)" }} />
+      <div style={{ fontWeight: 600, fontSize: 12 }} title={data.definition}>{data.label}</div>
+      <Handle type="source" position={Position.Right} style={{ background: "var(--amber-600)" }} />
     </div>
   );
 }
 
-function PropertyNode({ data }: { data: any }) {
+function PropertyNode({ data }: { data: { label: string; id: string; definition: string; onNavigate: (path: string) => void} }) {
   return (
-    <div style={{
-      background: "var(--green-500)",
-      color: "var(--text-primary)",
-      borderRadius: 6,
-      padding: "6px 12px",
-      minWidth: NODE_WIDTH,
-      maxWidth: NODE_WIDTH,
-      border: "1px solid var(--green-700, #15803d)",
-      fontSize: 11,
-    }}>
-      <Handle type="target" position={Position.Top} style={{ background: "#15803d" }} />
-      <div style={{ fontWeight: 500 }}>{data.label}</div>
+    <div
+      onClick={() => data.onNavigate(`/properties/${data.id}`)}
+      style={{
+        background: "var(--green-600)",
+        color: "var(--text-primary)",
+        borderRadius: 10,
+        padding: "3px",
+        textAlign: "center",
+        minWidth: NODE_WIDTH,
+        maxWidth: NODE_WIDTH,
+        boxShadow: "0 1px 4px var(--green-600)",
+        border: "1px solid var(--green-600)",
+        cursor: "pointer",
+        transition: "filter 0.15s",
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis"
+      }}
+      onMouseEnter={(e) =>
+        ((e.currentTarget as HTMLDivElement).style.filter = "brightness(1.15)")
+      }
+      onMouseLeave={(e) =>
+        ((e.currentTarget as HTMLDivElement).style.filter ="")
+      }
+    >
+      <Handle type="target" position={Position.Left} style={{ background: "var(--green-600)" }} />
+      <div style={{ fontSize: 11, fontWeight: 500 }} title={data.definition}>{data.label}</div>
     </div>
   );
 }
 
 const nodeTypes = {
   class: ClassNode,
-  group: GroupNode,
+  propertyGroup: PropertyGroupNode,
   property: PropertyNode,
 };
+
+
+// Inject ReactFlow Controls dark-mode CSS once
+const CONTROLS_STYLE_ID = "rf-controls-dark";
+if (typeof document !== "undefined" && !document.getElementById(CONTROLS_STYLE_ID)) {
+  const style = document.createElement("style");
+  style.id = CONTROLS_STYLE_ID;
+  style.textContent = `
+    .react-flow__controls {
+      background: var(--bg-app) !important;
+      border: 1px solid var(--border) !important;
+      box-shadow: none !important;
+    }
+    .react-flow__controls-button {
+      background: var(--bg-app) !important;
+      border-bottom: 1px solid var(--border) !important;
+      color: var(--text-primary) !important;
+      fill: var(--text-secondary) !important;
+    }
+    .react-flow__controls-button:hover {
+      background: var(--bg-hover) !important;
+    }
+    .react-flow__controls-button svg {
+      fill: var(--text-primary) !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+
 
 // ─── Hauptkomponente ──────────────────────────────────────────────────────────
 
 type FilterMode = "all" | "classes-only" | "no-properties";
 
 export default function OntologyGraph() {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const navigate = useNavigate();
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [loading, setLoading] = useState(true);
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
   const [rawNodes, setRawNodes] = useState<Node[]>([]);
   const [rawEdges, setRawEdges] = useState<Edge[]>([]);
+
+  const handleNavigate = useCallback(
+    (path: string) => navigate(path),
+    [navigate]
+  )
 
   // Daten laden
   useEffect(() => {
@@ -149,13 +213,19 @@ export default function OntologyGraph() {
         ...e,
         animated: false,
         markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 },
-        style: { stroke: "var(--border-color, #475569)", strokeWidth: 1.5 },
+        style: { stroke: "var(--text-secondary)", strokeWidth: 1.5 },
       }));
 
       const flowNodes: Node[] = rn.map((n) => ({
         id: n.id,
         type: n.type,
-        data: n.data,
+        data: {
+          ...n.data,
+          label: getLabel(n.data.label),
+          definition: getLabel(n.data.definition),
+          id: n.id,
+          onNavigate: handleNavigate,
+        },
         position: { x: 0, y: 0 }, // wird von Dagre überschrieben
       }));
 
@@ -163,7 +233,7 @@ export default function OntologyGraph() {
       setRawEdges(flowEdges);
       setLoading(false);
     });
-  }, []);
+  }, [handleNavigate]);
 
   // Filter anwenden + Layout neu berechnen
   useEffect(() => {
@@ -226,15 +296,15 @@ export default function OntologyGraph() {
         {/* Legende */}
         <div style={{ marginLeft: "auto", display: "flex", gap: 14, alignItems: "center", fontSize: 12 }}>
                     <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <span style={{ width: 12, height: 12, borderRadius: 3, background: "#2563eb", display: "inline-block" }} />
+                        <span style={{ width: 12, height: 12, borderRadius: 3, background: "var(--blue-500)", display: "inline-block" }} />
                         Klasse
                     </span>
           <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <span style={{ width: 12, height: 12, borderRadius: 3, background: "var(--bg-secondary)", border: "1.5px solid var(--border-color)", display: "inline-block" }} />
+                        <span style={{ width: 12, height: 12, borderRadius: 3, background: "var(--amber-500)", display: "inline-block" }} />
                         Merkmalsgruppe
                     </span>
           <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <span style={{ width: 12, height: 12, borderRadius: 3, background: "#052e16", border: "1px solid #15803d", display: "inline-block" }} />
+                        <span style={{ width: 12, height: 12, borderRadius: 3, background: "var(--green-500)", display: "inline-block" }} />
                         Merkmal
                     </span>
         </div>
@@ -255,18 +325,22 @@ export default function OntologyGraph() {
             nodeTypes={nodeTypes}
             fitView
             fitViewOptions={{ padding: 0.15 }}
-            minZoom={0.1}
-            maxZoom={2}
+            minZoom={0.01}
+            maxZoom={1.5}
             proOptions={{ hideAttribution: true }}
           >
             <Background gap={16} size={1} color="var(--border-color, #334155)" />
             <Controls />
             <MiniMap
               nodeColor={(n) =>
-                n.type === "class" ? "#2563eb" :
-                  n.type === "group" ? "#475569" : "#15803d"
+                n.type === "class" ? "var(--blue-500)" :
+                  n.type === "propertyGroup" ? "var(--amber-500)" : "var(--green-500)"
               }
               maskColor="rgba(0,0,0,0.3)"
+              nodeStrokeWidth={2}
+              nodeBorderRadius={0}
+              pannable
+              zoomable
             />
           </ReactFlow>
         )}

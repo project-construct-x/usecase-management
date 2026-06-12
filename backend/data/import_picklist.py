@@ -8,33 +8,38 @@ from datetime import datetime, timezone
 
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
-file_name = "input/Picklist-Klassen-und-Merkmale_260422.xlsx"
+file_name = "input/Picklist-Klassen-und-Merkmale_260608.xlsx"
 
 def read_excel(file_name):
     df_classes = pd.read_excel(
         file_name,
         sheet_name="Klassen",
         header=0,
-        names=['ID', 'name', 'definition', 'parents', 'reference', 'used_in', 'relations']
+        names=['ID', 'name', 'definition', 'parents', 'reference', 'used_in', 'relations'],
+        index_col=False
     )
     df_classes = df_classes[df_classes['name'].notnull()]
+    df_classes = df_classes.fillna("")
     df_groups = pd.read_excel(
         file_name,
         sheet_name="Merkmalsgruppen",
         names=['ID', 'name', 'definition', 'parents', 'reference', 'used_in'],
     )
     df_groups = df_groups[df_groups['name'].notnull()]
+    df_groups = df_groups.fillna("")
     df_properties = pd.read_excel(
         file_name,
         sheet_name="Merkmale",
         names=['ID', 'name', 'parents', 'definition', 'description', 'examples', 'physical_quantity', 'unit', 'data_type', 'possible_values', 'reference', 'used_in']
     )
     df_properties = df_properties[df_properties['name'].notnull()]
+    df_properties = df_properties.fillna("")
 
     return df_classes, df_groups, df_properties
 
 def reset_tables():
     with engine.connect() as conn:
+        conn.execute(text('DELETE FROM "transaction_properties"'))
         conn.execute(text("DELETE FROM properties"))
         conn.execute(text('DELETE FROM "propertyGroups"'))
         conn.commit()

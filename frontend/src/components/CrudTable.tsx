@@ -1,6 +1,7 @@
 import React, {useState, useMemo, useEffect} from "react";
 import { Link } from "react-router-dom";
 import { ChevronUp, ChevronDown, Search, Trash2, Edit2, Plus, Inbox } from "lucide-react";
+import type {MultiLangString} from "../types.ts";
 
 export interface Column<T> {
   key: keyof T | string;
@@ -28,12 +29,26 @@ type SortDirection = "asc" | "desc" | null;
 function resolveValue(value: unknown): string | number {
   if (value === null || value === undefined) return "";
   if (typeof value === "number") return value;
+  if (typeof value === "string") return value;
   if (typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+
+    if (isMultiLangString(obj)) {
+      const de = obj.de?.trim() ?? "";
+      const en = obj.en?.trim() ?? "";
+      return `${de}${en}`
+    }
     if ("name" in value) return String((value as any).name);
     if ("label" in value) return String((value as any).label);
     return "";
   }
   return String(value);
+}
+
+function isMultiLangString(value: unknown): value is MultiLangString {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const obj = value as Record<string, unknown>;
+  return "de" in obj || "en" in obj;
 }
 
 export default function CrudTable<T extends { id: number | string }>({
@@ -46,7 +61,6 @@ export default function CrudTable<T extends { id: number | string }>({
                                                                        onCreateClick,
                                                                        createDisabled,
                                                                        isLoading = false,
-                                                                      maxHeight,
                                                                      }: Props<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");

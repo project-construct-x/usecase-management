@@ -1,13 +1,9 @@
-from lib2to3.fixes.fix_print import parend_expr
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import select
 from ..db import get_db
 from .. import crud
 from ..models.models import PropertyGroup, Property, Category
-from ..schemas import schemas
-import uuid
+import re
 
 router = APIRouter(prefix="/ontology", tags=["ontology"])
 
@@ -34,7 +30,7 @@ def get_ontology_graph(db: Session = Depends(get_db)):
         is_class = (g.category == Category.CLASS)
         nodes.append({
             "id": str(g.UUID),
-            "type": "class" if is_class else "group",
+            "type": "class" if is_class else "propertyGroup",
             "data": {
                 "label": g.name,
                 "definition": g.definition,

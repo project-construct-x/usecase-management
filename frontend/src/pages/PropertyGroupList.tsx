@@ -4,6 +4,7 @@ import { api } from "../api/api.ts";
 import type { PropertyGroup } from "../types.ts";
 import CrudTable from "../components/CrudTable.tsx";
 import { FolderTree } from "lucide-react";
+import {getLabel} from "../components/helper.tsx";
 
 export default function PropertyGroupList() {
   const navigate = useNavigate();
@@ -60,12 +61,15 @@ export default function PropertyGroupList() {
             key: "name",
             title: "Name",
             render: (r) => (
-              <span style={{ fontWeight: 600 }}>{r.name}</span>
+              <span style={{ fontWeight: 600 }}>{getLabel(r.name)}</span>
             )
           },
           {
             key: "definition",
             title: "Definition",
+            render: (r) => (
+              <span>{getLabel(r.definition)}</span>
+            )
           },
           {
             key: "active",
