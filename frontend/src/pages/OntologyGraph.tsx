@@ -135,6 +135,9 @@ function PropertyNode({ data }: { data: { label: string; id: string; definition:
         border: "1px solid var(--green-600)",
         cursor: "pointer",
         transition: "filter 0.15s",
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis"
       }}
       onMouseEnter={(e) =>
         ((e.currentTarget as HTMLDivElement).style.filter = "brightness(1.15)")
