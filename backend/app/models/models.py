@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy import Boolean, Column, Date, Integer, String, ForeignKey, Table, DateTime, func, Enum, Text
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.dialects.postgresql import UUID as PRUUID
 import enum
 from ..db import Base
@@ -219,25 +219,25 @@ class Property(Base):
         'beschreibung': 'Sprache des Erstellers des Merkmals',
         'beispiel': 'en-EN, en-GB, IFC-IFC, EN (für internationales Englisch)',
     })
-    name = Column(String, nullable=False, index=True, info={
+    name = Column(JSONB, nullable=False, index=True, info={
         'code': 'PA016',
         'name': 'Namen in Sprache N',
         'beschreibung': 'Liste von Paaren (Name des Merkmals und Sprache) dieses Attribut kann verwendet werden, um Synonyme für verschiedene Domänen hinzuzufügen',
         'beispiel': '((PropertyName | en-EN),(Nompropriété | fr-FR),(IfcPropertyName | IFC))',
     })
-    definition = Column(String, nullable=False, info={
+    definition = Column(JSONB, nullable=False, info={
         'code': 'PA017',
         'name': 'Definition in Sprache N',
         'beschreibung': 'Liste von Paaren (Definition des Merkmals, Sprache)',
         'beispiel': '',
     })
-    description = Column(String, nullable=True, info={
+    description = Column(JSONB, nullable=True, info={
         'code': 'PA018',
         'name': 'Beschreibungen in Sprache N',
         'beschreibung': 'Liste von Paaren (Beschreibung des Merkmals, Sprache) dieses Attribut wird verwendet, um eine Beschreibung des Merkmals als Klartext bereitzustellen',
         'beispiel': '',
     })
-    examples = Column(String, nullable=True, info={
+    examples = Column(JSONB, nullable=True, info={
         'code': 'PA019',
         'name': 'Beispiele in Sprache N',
         'beschreibung': 'Liste von Paaren (Beispielwerte, Sprache) dieses Attribut kann zur Veranschaulichung der möglichen Werte des Merkmals verwendet',
@@ -471,13 +471,13 @@ class PropertyGroup(Base):
         'beschreibung': 'Sprache des Erstellers der Merkmalsgruppe',
         'beispiel': 'en-EN, en-GB, IFC-IFC, EN (für internationales Englisch)',
     })
-    name = Column(String, nullable=False, index=True, info={
+    name = Column(JSONB, nullable=False, index=True, info={
         'code': 'GA016',
         'name': 'Namen in Sprache N',
         'beschreibung': 'Liste von Paaren (Name der Merkmalsgruppe und Sprache) dieses Attribut kann verwendet werden, um Synonyme für verschiedene Domänen hinzuzufügen',
         'beispiel': '((PropertyName | en-EN),(Nompropriété | fr-FR))',
     })
-    definition = Column(String, nullable=False, info={
+    definition = Column(JSONB, nullable=False, info={
         'code': 'GA017',
         'name': 'Definition in Sprache N',
         'beschreibung': 'Liste von Paaren (Definition der Merkmalsgruppe, Sprache)',

@@ -117,13 +117,17 @@ class UseCase(UseCaseBase):
         from_attributes = True
 
 # -------------BASE FOR PROPERTY AND PROPERTY GROUP------------------
+class MultiLangField(BaseModel):
+    en: Optional[str] = None
+    de: Optional[str] = None
+
 class TimestampedEntityBase(BaseModel):
     """Gemeinsame Felder für Property und PropertyGroup"""
     active: bool
     version: int
     language_of_creator: str
-    name: str
-    definition: str
+    name: MultiLangField
+    definition: MultiLangField
 
     # Optionale Felder
     date_of_deactivation: Optional[datetime] = None
@@ -155,8 +159,8 @@ class PropertyBase(TimestampedEntityBase):
     # Property-spezifische optionale Felder
     list_of_replaced_properties: Optional[List[UUID]] = None
     list_of_replacing_properties: Optional[List[UUID]] = None
-    description: Optional[str] = None
-    examples: Optional[str] = None
+    description: Optional[MultiLangField] = None
+    examples: Optional[MultiLangField] = None
     related_properties: Optional[List[UUID]] = None
     symbols: Optional[List[str]] = None
     physical_quantity: Optional[List[str]] = None
@@ -183,8 +187,8 @@ class PropertyUpdate(BaseModel):
     active: Optional[bool] = None
     version: Optional[int] = None
     language_of_creator: Optional[str] = None
-    name: Optional[str] = None
-    definition: Optional[str] = None
+    name: Optional[MultiLangField] = None
+    definition: Optional[MultiLangField] = None
     dynamic: Optional[bool] = None
     date_of_deactivation: Optional[datetime] = None
     number_of_revision: Optional[int] = None
@@ -196,8 +200,8 @@ class PropertyUpdate(BaseModel):
     country_of_origin: Optional[str] = None
     list_of_replaced_properties: Optional[List[UUID]] = None
     list_of_replacing_properties: Optional[List[UUID]] = None
-    description: Optional[str] = None
-    examples: Optional[str] = None
+    description: Optional[MultiLangField] = None
+    examples: Optional[MultiLangField] = None
     related_properties: Optional[List[UUID]] = None
     symbols: Optional[List[str]] = None
     physical_quantity: Optional[List[str]] = None
@@ -221,8 +225,8 @@ class PropertyResponse(PropertyBase, TimestampedEntityResponse):
 
 class PropertyShort(BaseModel):
     UUID: UUID
-    name: str
-    definition: str
+    name: MultiLangField
+    definition: MultiLangField
 
     class Config:
         from_attributes = True
@@ -248,8 +252,8 @@ class PropertyGroupUpdate(BaseModel):
     active: Optional[bool] = None
     version: Optional[int] = None
     language_of_creator: Optional[str] = None
-    name: Optional[str] = None
-    definition: Optional[str] = None
+    name: Optional[MultiLangField] = None
+    definition: Optional[MultiLangField] = None
     category: Optional[Category] = None
     date_of_deactivation: Optional[datetime] = None
     number_of_revision: Optional[int] = None
@@ -270,7 +274,7 @@ class PropertyGroupResponse(PropertyGroupBase, TimestampedEntityResponse):
 
 class PropertyGroupShort(BaseModel):
     UUID: UUID
-    name: str
+    name: MultiLangField
     category: str
 
     class Config:
@@ -278,7 +282,7 @@ class PropertyGroupShort(BaseModel):
 
 class ClassWithProperties(BaseModel):
     uuid: str
-    name: str
+    name: MultiLangField
     properties: list[PropertyShort]
 
 # ---------------------------TRANSACTION---------------------------------

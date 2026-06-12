@@ -28,12 +28,11 @@ def get_ontology_graph(db: Session = Depends(get_db)):
 
     for g in groups:
         is_class = (g.category == Category.CLASS)
-        d = dict(part.strip("() ").split(", ", 1) for part in g.name.split("), (")) # workaround as long as values are in database as '(de, [deutsch]), (en, [englisch])'
         nodes.append({
             "id": str(g.UUID),
             "type": "class" if is_class else "propertyGroup",
             "data": {
-                "label": d["de"] if "de" in d else d["en"], # alternativ: g.name
+                "label": g.name,
                 "definition": g.definition,
                 "uuid": str(g.UUID),
             }
@@ -49,12 +48,11 @@ def get_ontology_graph(db: Session = Depends(get_db)):
                 })
 
     for p in properties:
-        d = dict(part.strip("() ").split(", ", 1) for part in p.name.split("), ("))  # workaround as long as values are in database as '(de, [deutsch]), (en, [englisch])'
         nodes.append({
             "id": str(p.UUID),
             "type": "property",
             "data": {
-                "label": d["de"] if "de" in d else d["en"],
+                "label": p.name,
                 "definition": p.definition,
                 "uuid": str(p.UUID),
             }

@@ -3,11 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
 import type { Property, PropertyGroup } from "../types.ts";
 import { Search, Tags, AlertCircle } from "lucide-react";
+import {getLabel} from "../components/helper.tsx";
+import {MultiLangInput} from "../components/MultiLanguageField.tsx";
 
 const emptyProperty: Partial<Property> = {
   active: true,
-  name: "",
-  definition: "",
+  name: {"de": ""},
+  definition: {"de": ""},
   language_of_creator: "de-DE",
   version: 1,
   groups: [],
@@ -56,8 +58,8 @@ export default function PropertyDetail() {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(g =>
-        g.name.toLowerCase().includes(term) ||
-        g.definition.toLowerCase().includes(term)
+        getLabel(g.name).toLowerCase().includes(term) ||
+        getLabel(g.definition).toLowerCase().includes(term)
       );
     }
 
@@ -146,7 +148,7 @@ export default function PropertyDetail() {
         </div>
         <div>
           <div className="page-header-title">
-            {uuid === "new" ? "Neues Merkmal" : item.name}
+            {uuid === "new" ? "Neues Merkmal" : getLabel(item.name ?? {}, "de") || ""}
           </div>
           <div className="page-header-sub">Merkmal</div>
         </div>
@@ -184,14 +186,11 @@ export default function PropertyDetail() {
               <>
                 <div className="form-grid-2">
                   <div>
-                    <label className="form-label form-label-required">Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={item.name || ""}
-                      onChange={e => updateField("name", e.target.value)}
-                      className="form-input"
-                      placeholder="Merkmalname eingeben"
+                    <MultiLangInput
+                    label="Name"
+                    required
+                    value={item.name ?? {}}
+                    onChange={(val) => updateField("name", val)}
                     />
                   </div>
                   <div>
@@ -210,34 +209,30 @@ export default function PropertyDetail() {
                 </div>
 
                 <div>
-                  <label className="form-label form-label-required">Definition</label>
-                  <textarea
+                  <MultiLangInput
+                    label="Definition"
                     required
-                    value={item.definition || ""}
-                    onChange={e => updateField("definition", e.target.value)}
-                    className="form-input form-textarea"
-                    placeholder="Beschreiben Sie das Merkmal"
+                    value={item.definition ?? {}}
+                    onChange={(val) => updateField("definition", val)}
+                    multiline
                   />
                 </div>
 
                 <div>
-                  <label className="form-label">Beschreibung</label>
-                  <textarea
-                    value={item.description || ""}
-                    onChange={e => updateField("description", e.target.value)}
-                    className="form-input form-textarea"
-                    placeholder="Zusätzliche Beschreibung (optional)"
+                  <MultiLangInput
+                    label="Beschreibung"
+                    value={item.description ?? {}}
+                    onChange={(val) => updateField("description", val)}
+                    multiline
                   />
                 </div>
 
                 <div>
-                  <label className="form-label">Beispiele</label>
-                  <textarea
-                    rows={3}
-                    value={item.examples || ""}
-                    onChange={e => updateField("examples", e.target.value)}
-                    className="form-input form-textarea"
-                    placeholder="Beispielwerte für dieses Merkmal"
+                  <MultiLangInput
+                    label="Beispiele"
+                    value={item.examples ?? {}}
+                    onChange={(val) => updateField("examples", val)}
+                    multiline
                   />
                 </div>
 
@@ -309,7 +304,7 @@ export default function PropertyDetail() {
                             onClick={() => togglePropertyGroup(groupUuid)}
                             className="badge badge-primary badge-removable"
                           >
-                            {group.name}
+                            {getLabel(group.name)}
                             <span style={{ marginLeft: 3, opacity: 0.7 }}>×</span>
                           </button>
                         ) : null;
@@ -345,14 +340,14 @@ export default function PropertyDetail() {
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 3 }}>
                                                             <span style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: 13 }}>
-                                                                {group.name}
+                                                                {getLabel(group.name)}
                                                             </span>
                               <span className="badge badge-gray">
                                                                 {group.category.replace(/_/g, " ")}
                                                             </span>
                             </div>
                             <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
-                              {group.definition}
+                              {getLabel(group.definition)}
                             </p>
                           </div>
                         </label>

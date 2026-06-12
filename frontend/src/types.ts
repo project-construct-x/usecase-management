@@ -191,6 +191,10 @@ export interface TransactionMutate extends TransactionBase {
 }
 
 //-------------------------PROPERTY----------------------
+export type MultiLangString = {
+  [languageCode: string]: string;
+}
+
 export interface Property {
   UUID: string;
   active: boolean;
@@ -207,10 +211,10 @@ export interface Property {
   reason_for_rejection?: string | null;
   relation_to_other_catalogues?: string | null;
   language_of_creator: string;
-  name: string;
-  definition: string;
-  description?: string | null;
-  examples?: string | null;
+  name: MultiLangString;
+  definition: MultiLangString;
+  description?: MultiLangString | null;
+  examples?: MultiLangString | null;
   related_properties?: string[] | null;
   groups: string[] | null;
   symbols?: string[] | null;
@@ -261,8 +265,8 @@ export interface PropertyGroup {
   reason_for_rejection?: string | null;
   relation_to_other_catalogues?: string | null;
   language_of_creator: string;
-  name: string;
-  definition: string;
+  name: MultiLangString;
+  definition: MultiLangString;
   picture_url?: string | null;
   used_in_countries?: string[] | null;
   subdivision_of_usage?: string[] | null;
@@ -273,7 +277,7 @@ export interface PropertyGroup {
 
 export interface ClassWithProperties {
   uuid: string;
-  name: string;
+  name: MultiLangString;
   properties: Property[];
 }
 
@@ -282,8 +286,8 @@ export interface OntologyNode {
   id: string;
   type: "class" | "propertyGroup" | "property";
   data: {
-    label: string;
-    definition: string;
+    label: MultiLangString;
+    definition: MultiLangString;
     uuid: string;
   };
 }

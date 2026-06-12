@@ -4,11 +4,13 @@ import { api } from "../api/api.ts";
 import type { PropertyGroup, Property } from "../types.ts";
 import { Category } from "../types.ts";
 import {Tags, AlertCircle, FolderTree } from "lucide-react";
+import {getLabel} from "../components/helper.tsx";
+import {MultiLangInput} from "../components/MultiLanguageField.tsx";
 
 const emptyPropertyGroup: Partial<PropertyGroup> = {
   active: true,
-  name: "",
-  definition: "",
+  name: {"de": ""},
+  definition: {"de": ""},
   language_of_creator: "de-DE",
   version: 1,
   groups: [],
@@ -116,7 +118,7 @@ export default function PropertyGroupDetail() {
         </div>
         <div>
           <div className="page-header-title">
-            {uuid === "new" ? "Neue Merkmalsgruppe" : item.name}
+            {uuid === "new" ? "Neue Merkmalsgruppe" : getLabel(item.name ?? {}, "de") || ""}
           </div>
           <div className="page-header-sub">Merkmalsgruppe</div>
         </div>
@@ -166,13 +168,11 @@ export default function PropertyGroupDetail() {
 
                 <div className="form-grid-2">
                   <div>
-                    <label className="form-label form-label-required">Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={item.name || ""}
-                      onChange={(e) => updateField("name", e.target.value)}
-                      className="form-input"
+                    <MultiLangInput
+                    label="Name"
+                    required
+                    value={item.name ?? {}}
+                    onChange={(val) => updateField("name", val)}
                     />
                   </div>
                   <div>
@@ -191,13 +191,12 @@ export default function PropertyGroupDetail() {
                 </div>
 
                 <div>
-                  <label className="form-label form-label-required">Definition</label>
-                  <textarea
+                  <MultiLangInput
+                    label="Definition"
                     required
-                    rows={3}
-                    value={item.definition || ""}
-                    onChange={(e) => updateField("definition", e.target.value)}
-                    className="form-input form-textarea"
+                    value={item.definition ?? {}}
+                    onChange={(val) => updateField("definition", val)}
+                    multiline
                   />
                 </div>
 
@@ -254,7 +253,7 @@ export default function PropertyGroupDetail() {
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 3 }}>
                                                                 <span style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: 13 }}>
-                                                                    {prop.name}
+                                                                    {getLabel(prop.name ?? {}, "de")}
                                                                 </span>
                                 {prop.data_type && (
                                   <span className="badge badge-gray">
@@ -266,9 +265,9 @@ export default function PropertyGroupDetail() {
                                                                 </span>
                               </div>
                               <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
-                                {prop.definition.length > 80
-                                  ? `${prop.definition.substring(0, 80)}...`
-                                  : prop.definition}
+                                {getLabel(prop.definition).length > 80
+                                  ? `${getLabel(prop.definition).substring(0, 80)}...`
+                                  : getLabel(prop.definition)}
                               </p>
                             </div>
                             <button

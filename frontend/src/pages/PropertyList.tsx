@@ -4,6 +4,7 @@ import { api } from "../api/api.ts";
 import type { Property } from "../types.ts";
 import CrudTable from "../components/CrudTable.tsx";
 import { Tags } from "lucide-react";
+import {getLabel} from "../components/helper.tsx";
 
 export default function PropertyList() {
   const navigate = useNavigate();
@@ -64,12 +65,15 @@ export default function PropertyList() {
             key: "name",
             title: "Name",
             render: (r) => (
-              <span style={{ fontWeight: 600 }}>{r.name}</span>
+              <span style={{ fontWeight: 600 }}>{getLabel(r.name)}</span>
             )
           },
           {
-            key: "definition",
-            title: "Definition",
+            key: "description",
+            title: "Beschreibung",
+            render: (r) => (
+              <span>{getLabel(r.description ?? {})}</span>
+            )
           },
           {
             key: "active",

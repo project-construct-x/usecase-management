@@ -17,6 +17,7 @@ import dagre from "dagre";
 import { useNavigate} from "react-router-dom";
 import { Database } from "lucide-react";
 import { api } from "../api/api.ts";
+import {getLabel} from "../components/helper.tsx";
 
 // ------Layout-Funktion mit Dagre--------------------------
 const NODE_WIDTH = 200;
@@ -217,6 +218,8 @@ export default function OntologyGraph() {
         type: n.type,
         data: {
           ...n.data,
+          label: getLabel(n.data.label),
+          definition: getLabel(n.data.definition),
           id: n.id,
           onNavigate: handleNavigate,
         },

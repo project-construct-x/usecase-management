@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
 import type {Role, SubUseCase, Transaction, TransactionMutate, ClassWithProperties, Property} from "../types.ts";
 import {ArrowLeftRight, Tags, Search, Boxes, AlertCircle} from "lucide-react";
+import {getLabel} from "../components/helper.tsx";
 
 const emptyTransaction: TransactionMutate = {
   process_number: "",
@@ -390,8 +391,8 @@ export default function TransactionDetail() {
 
               const filteredProperties = selectedClass
                 ? selectedClass.properties.filter(p =>
-                  p.name.toLowerCase().includes(propertySearchTerm.toLowerCase()) ||
-                  p.definition.toLowerCase().includes(propertySearchTerm.toLowerCase())
+                  getLabel(p.name).toLowerCase().includes(propertySearchTerm.toLowerCase()) ||
+                  getLabel(p.definition).toLowerCase().includes(propertySearchTerm.toLowerCase())
                 )
                 : [];
 
@@ -399,7 +400,7 @@ export default function TransactionDetail() {
               const allSelectedWithLabel = item.property_uuids.map(uuid => {
                 for (const cls of classPropertyTree) {
                   const found = cls.properties.find(p => p.UUID === uuid);
-                  if (found) return { ...found, className: cls.name };
+                  if (found) return { ...found, className: getLabel(cls.name) };
                 }
                 return null;
               }).filter(Boolean) as (Property & { className: string })[];
@@ -427,7 +428,7 @@ export default function TransactionDetail() {
                       <option value="">-- Klasse wählen --</option>
                       {classPropertyTree.map(cls => (
                         <option key={cls.uuid} value={cls.uuid}>
-                          {cls.name}
+                          {getLabel(cls.name)}
                         </option>
                       ))}
                     </select>
@@ -448,7 +449,7 @@ export default function TransactionDetail() {
                             className="badge badge-primary badge-removable"
                             title={p.className}
                           >
-                            {p.name}
+                            {getLabel(p.name)}
                             <span style={{ marginLeft: 3, opacity: 0.7 }}>×</span>
                           </button>
                         ))}
@@ -497,10 +498,10 @@ export default function TransactionDetail() {
                                 />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: 13, marginBottom: 3 }}>
-                                    {prop.name}
+                                    {getLabel(prop.name)}
                                   </div>
                                   <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
-                                    {prop.definition}
+                                    {getLabel(prop.definition)}
                                   </p>
                                 </div>
                               </label>
