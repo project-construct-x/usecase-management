@@ -1,35 +1,48 @@
-# Construct-X Template Repository
+# UseCase Management
 
-Template repository for Construct-X.
+Web-Anwendung zur strukturierten, verknüpften Darstellung der Inhalte aus den Arbeitspaketen 1 und 2 im Projekt **Construct-X**.
 
-## About
-Use this template during repository creation to include relevant files and a default configuration. For your project, please add a description with additional details about your project here.
+## Über das Projekt
 
-## Documentation
-This documentation is located in the `/docs` folder.
+Das Repository **usecase-management** enthält den Quellcode einer Web-Anwendung, die im Projekt Construct-X eingesetzt wird.  
+Die Anwendung sammelt Inhalte aus den Arbeitspaketen 1 und 2, stellt diese für Projektbeteiligte zusammenhängend und nachvollziehbar dar und ermöglicht deren Bearbeitung.  
+Für Authentifizierung und Autorisierung wird **Keycloak** eingesetzt.
 
-## Getting Started
-Relevant prerequisites and installation instructions are introduced.
+Die Entwicklung erfolgt vorwiegend durch das Lehr- und Forschungsgebiet **Digitales Planen, Bauen und Betreiben** der **Bergischen Universität Wuppertal**.
+<p>
+  <img src="docs/Logo_DPBB_02_10092025_RGB.png" alt="Logo Digitales Planen und Betreiben" width="260" />
+</p>
 
-### Prerequisites
-To run and work with this project, the following prerequisites are needed:
-- Tool 1
-- Tool 2
+## Zielgruppe
 
-### Installation
-To run this project, execute the following steps:
-1. Clone this repository
-   ```sh
-   git clone https://github.com/Projekt-Construct-X/XXX.git
-   ```
-2. Do this
-   ```sh
-   cd XXX
-   ```
-3. Do that
-   ```sh
-   docker compose up
-   ```
+Die Anwendung richtet sich insbesondere an:
+- Projektpartner im Construct-X-Kontext
+- Beteiligte aus Forschung und Entwicklung
+- Weitere Stakeholder mit Bedarf an strukturierter Use-Case-Transparenz
+
+## Tech-Stack
+
+- **Frontend:** Vite + React
+- **Backend:** FastAPI
+- **Datenbank:** PostgreSQL
+- **Deployment:** Docker / Docker Compose
+
+## Zugriff
+
+- **Deployment:** `https://beispiel.com/usecase-management`
+- **Repository:** `https://github.com/project-construct-x/usecase-management`
+
+## Projektstruktur
+
+```text
+usecase-management/
+├─ frontend/              # Vite + React Frontend
+├─ backend/               # FastAPI Backend
+├─ docs/                  # Projektdokumentation / Assets
+├─ .env.example           # Ports und Umgebungsvariablen
+├─ docker-compose.yml
+└─ README.md
+```
 
 ## License
 All code files are distributed under the Apache 2.0 license. See [LICENSE](./LICENSE) for more information.
