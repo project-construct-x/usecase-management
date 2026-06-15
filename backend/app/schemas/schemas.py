@@ -98,7 +98,7 @@ class UseCaseBase(BaseModel):
     keywords: Optional[List[str]] = None
     description: Optional[str] = None
     relation_to_other_useCases: Optional[str] = None
-    uc_owner_insitution: Optional[str] = None
+    uc_owner_institution: Optional[str] = None
     uc_owner: Optional[str] = None
     conx_id: Optional[str] = None
 
