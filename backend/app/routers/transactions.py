@@ -1,36 +1,37 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..db import get_db
-from .. import crud
-from ..schemas import schemas
+from ..crud import transactions as crud
+from ..models.users import User
+from ..schemas.transactions import *
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
 # --------LIST--------
-@router.get("/", response_model=list[schemas.Transaction])
+@router.get("/", response_model=list[Transaction])
 def list_transactions(db: Session = Depends(get_db)):
     return crud.get_transactions(db)
 
 # --------GET---------
-@router.get("/{id}", response_model=schemas.Transaction)
+@router.get("/{id}", response_model=Transaction)
 def get_transaction(id: int, db:Session = Depends(get_db)):
     transaction = crud.get_transaction_by_id(db, id)
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaktion nicht gefunden")
     return transaction
 
-@router.get("/by-subusecase/{sub_id}", response_model=list[schemas.Transaction])
+@router.get("/by-subusecase/{sub_id}", response_model=list[Transaction])
 def list_transactions_by_subusecase(sub_id: int, db: Session = Depends(get_db)):
     return crud.get_transactions_by_subusecase(db, sub_id)
 
 # --------CREATE-------
-@router.post("/", response_model=schemas.Transaction)
-def create_transaction(data: schemas.TransactionMutate, db: Session = Depends(get_db)):
+@router.post("/", response_model=Transaction)
+def create_transaction(data: TransactionMutate, db: Session = Depends(get_db)):
     return crud.create_transaction(db, data)
 
 # --------UPDATE-------
-@router.put("/{id}", response_model=schemas.Transaction)
-def update_transaction(id: int, data: schemas.TransactionMutate, db: Session = Depends(get_db)):
+@router.put("/{id}", response_model=Transaction)
+def update_transaction(id: int, data: TransactionMutate, db: Session = Depends(get_db)):
     transaction = crud.get_transaction_by_id(db, id)
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaktion nicht gefunden")

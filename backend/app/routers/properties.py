@@ -1,24 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..db import get_db
-from .. import crud
-from ..schemas import schemas
+from ..crud import properties as crud
+from ..schemas.properties import *
 from typing import List
 from uuid import UUID
 
 router = APIRouter(prefix="/properties", tags=["Properties"])
 
 # --------LIST--------
-@router.get("/", response_model=List[schemas.PropertyResponse])
+@router.get("/", response_model=List[PropertyResponse])
 def list_properties(db: Session = Depends(get_db), skip: int = 0, limit: int = 1000):
     return crud.get_properties(db, skip=skip, limit=limit)
 
-@router.get("/by-group/{group_uuid}", response_model=List[schemas.PropertyResponse])
+@router.get("/by-group/{group_uuid}", response_model=List[PropertyResponse])
 def get_properties_by_group(group_uuid: UUID, db: Session = Depends(get_db)):
     return crud.get_properties_by_group(db, group_uuid=group_uuid)
 
 # --------GET---------
-@router.get("/{uuid}", response_model=schemas.PropertyResponse)
+@router.get("/{uuid}", response_model=PropertyResponse)
 def get_property(uuid: UUID, db:Session = Depends(get_db)):
     prop = crud.get_property_by_uuid(db, uuid=uuid)
     if not prop:
@@ -26,14 +26,14 @@ def get_property(uuid: UUID, db:Session = Depends(get_db)):
     return prop
 
 # --------CREATE-------
-@router.post("/", response_model=schemas.PropertyResponse, status_code=201)
-def create_property(prop: schemas.PropertyCreate, db: Session = Depends(get_db)):
+@router.post("/", response_model=PropertyResponse, status_code=201)
+def create_property(prop: PropertyCreate, db: Session = Depends(get_db)):
     return crud.create_property(db, prop=prop)
 
 
 # --------UPDATE-------
-@router.put("/{uuid}", response_model=schemas.PropertyResponse)
-def update_property(uuid: UUID, prop: schemas.PropertyUpdate, db: Session = Depends(get_db)):
+@router.put("/{uuid}", response_model=PropertyResponse)
+def update_property(uuid: UUID, prop: PropertyUpdate, db: Session = Depends(get_db)):
     updated = crud.update_property(db, uuid=uuid, prop=prop)
     if not updated:
         raise HTTPException(status_code=404, detail="Property not found")

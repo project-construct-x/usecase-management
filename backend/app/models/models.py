@@ -388,7 +388,7 @@ class Property(Base):
 
 # ------------Merkmalsgruppen---------------
 
-class Category(enum.Enum):
+class PropertyGroupCategory(enum.Enum):
     ALTERNATIVE_USAGE = "alternative_Verwendung"
     CLASS = "Klasse"
     COMPOSITE_PROPERTY = "zusammengesetztes_Merkmal"
@@ -523,7 +523,7 @@ class PropertyGroup(Base):
         'beschreibung': 'Land, in dem die Anforderung für diese Merkmalsgruppe festgelegt wurde',
         'beispiel': 'FR',
     })
-    category = Column(Enum(Category), nullable=False, default=Category.CLASS, info={
+    category = Column(Enum(PropertyGroupCategory), nullable=False, default=PropertyGroupCategory.CLASS, info={
         'code': 'GA022',
         'name': 'Kategorie der Merkmalsgruppe',
         'beschreibung': 'gibt die Kategorie der erstellten Merkmalsgruppe an',

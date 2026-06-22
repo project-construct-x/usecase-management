@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ..db import get_db
-from .. import crud
-from ..models.models import PropertyGroup, Property, Category
-import re
+from ..crud import propertyGroups as propertyGroups_crud
+from ..crud import properties as properties_crud
+from ..models.models import PropertyGroup, Property, PropertyGroupCategory
 
 router = APIRouter(prefix="/ontology", tags=["ontology"])
 
@@ -19,15 +19,15 @@ def get_ontology_graph(db: Session = Depends(get_db)):
         - group.groups (GA023)          -> Eltern-Kind-Beziehung zwischen Groups
         - property.groups (PA021)       -> Property gehört zu Group
     """
-    groups: list[PropertyGroup] = crud.get_propertyGroups(db)
+    groups: list[PropertyGroup] = propertyGroups_crud.get_propertyGroups(db)
 
-    properties: list[Property] = crud.get_properties(db)
+    properties: list[Property] = properties_crud.get_properties(db)
 
     nodes = []
     edges = []
 
     for g in groups:
-        is_class = (g.category == Category.CLASS)
+        is_class = (g.category == PropertyGroupCategory.CLASS)
         nodes.append({
             "id": str(g.UUID),
             "type": "class" if is_class else "propertyGroup",

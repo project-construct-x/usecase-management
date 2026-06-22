@@ -6,9 +6,9 @@ from jose import JWTError, jwt
 import bcrypt
 from sqlalchemy.orm import Session
 import secrets
-from .db import get_db
-from .models.users import User, APIKey, RoleEnum
-from .schemas.users import TokenData
+from ..db import get_db
+from ..models.users import User, APIKey, RoleEnum
+from ..schemas.users import TokenData
 import os
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -92,8 +92,6 @@ async def get_user_from_api_key(
     if key_obj.expires_at and key_obj.expires_at < datetime.utcnow():
         return None
 
-    print("key_obj.role")
-
     return {"role": key_obj.role, "auth_type": "api_key"}
 
 async def get_current_user(
@@ -109,8 +107,6 @@ async def get_current_user(
     # Fallback auf API-Key
     if api_key_user:
         return api_key_user
-
-    print("TEST")
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
