@@ -197,7 +197,7 @@ def update_useCase(db: Session, useCase_id: int, data: schemas.UseCaseUpdate, ro
     db.refresh(uc)
     return uc
 
-def delete_useCase(db: Session, useCase_id: int):
+def delete_useCase(db: Session, useCase_id: int, current_user: str):
     uc = db.query(models.UseCase).get(useCase_id)
     old_snapshot = jsonable_encoder(build_snapshot(uc))
     log = create_audit_log("useCases", str(useCase_id), current_user, old_snapshot, "", "deleted")

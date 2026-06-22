@@ -46,10 +46,10 @@ def update_useCase(id: int, data: schemas.UseCaseUpdate, db: Session = Depends(g
 
 # ---------DELETE--------
 @router.delete("/{id}", status_code=204)
-def delete_useCase(id: int, db: Session = Depends(get_db)):
+def delete_useCase(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     useCase = crud.get_useCase_by_id(db, id)
     if not useCase:
         raise HTTPException(status_code=404, detail="Use Case nicht gefunden")
 
-    crud.delete_useCase(db, id)
+    crud.delete_useCase(db, id, current_user.username)
     return None
