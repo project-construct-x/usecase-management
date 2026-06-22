@@ -5,6 +5,13 @@ from datetime import datetime
 from ..models.models import Category, StandardCategory
 
 
+# ------------------LOGGING--------------------------
+class VersionInfo(BaseModel):
+    version: int
+    updated_by: str | None = None
+    updated_at: datetime | None = None
+
+
 # ------------------STANDARDS-------------------------
 class StandardBase(BaseModel):
     number: str

@@ -7,6 +7,12 @@ export type VersionConflictDetail = {
   updated_at?: string | null;
 }
 
+export interface VersionInfo {
+  version: number;
+  updated_by: string | null;
+  updated_at: string | null;
+}
+
 //----------USER-------------
 
 export type RoleEnum = "read" | "write";

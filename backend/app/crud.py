@@ -155,6 +155,13 @@ def get_useCases(db: Session):
 def get_useCase_by_id(db: Session, useCase_id: int):
     return db.query(models.UseCase).get(useCase_id)
 
+def get_useCase_version(db: Session, useCase_id: int):
+    return db.query(
+        models.UseCase.version,
+        models.UseCase.updated_by,
+        models.UseCase.updated_at,
+    ).filter(models.UseCase.id == useCase_id).first()
+
 def create_useCase(db: Session, data: schemas.UseCaseCreate, roles: list):
     uc = models.UseCase(name=data.name, keywords=data.keywords, roles=roles)
     db.add(uc)

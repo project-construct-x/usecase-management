@@ -22,6 +22,13 @@ def get_useCase(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="UseCase nicht gefunden")
     return useCase
 
+@router.get("/{id}/version", response_model=schemas.VersionInfo)
+def get_useCase_version(id: int, db: Session = Depends(get_db)):
+    result = crud.get_useCase_version(db, id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Use Case nicht gefunden")
+    return result
+
 # ---------CREATE--------
 @router.post("/", response_model=schemas.UseCase)
 def create_useCase(data: schemas.UseCaseCreate, db: Session = Depends(get_db)):

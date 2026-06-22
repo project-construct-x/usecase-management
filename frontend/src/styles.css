@@ -580,7 +580,9 @@ a { color: inherit; text-decoration: none; }
 
 .conflict-alert-actions {
   display: flex;
+  justify-content: center;
   gap: 6px;
+  margin-top: 11px;
   flex-shrink: 0;
 }
 

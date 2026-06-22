@@ -6,6 +6,8 @@ import TagInput from "../components/TagInput.tsx";
 import CrudTable from "../components/CrudTable.tsx";
 import VersionConflictAlert from "../components/VersionConflictAlert.tsx";
 import {Tags, AlertCircle, FileText, Layers, Search, Users} from "lucide-react";
+import {useStaleCheck} from "../hooks/useStaleCheck.ts";
+import StaleDataAlert from "../components/StaleDataAlert.tsx";
 
 const emptyUseCase: UseCase = {
   id: 0,
@@ -31,6 +33,11 @@ export default function UseCaseDetail() {
   const [filteredRoles, setFilteredRoles] = useState<Role[]>([])
   const [searchTerm, setSearchTerm] = useState("");
   const [conflict, setConflict] = useState<VersionConflictDetail | null>(null);
+  const [staleWarning, setStaleWarning] = useStaleCheck(
+    item?.version,
+    () => api.getUseCaseVersion(Number(id)),
+    id !== "new" && !!item,
+  );
 
   useEffect(() => {
     loadRoles();
@@ -49,6 +56,7 @@ export default function UseCaseDetail() {
       const data = await api.getUseCase(Number(id!));
       setItem(data);
       setConflict(null);
+      setStaleWarning(null);
     } catch (error) {
       console.error("Fehler beim Laden:", error);
       alert("Use Case konnte nicht geladen werden");
@@ -164,6 +172,12 @@ export default function UseCaseDetail() {
         conflict={conflict}
         onReload={loadUseCase}
         onForceOverwrite={() => setConflict(null)}
+      />
+
+      <StaleDataAlert
+        staleInfo={staleWarning}
+        onReload={loadUseCase}
+        onDismiss={() => setStaleWarning(null)}
       />
 
       <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>

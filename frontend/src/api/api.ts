@@ -17,7 +17,8 @@ import type {
   Token,
   OntologyEdge,
   OntologyNode,
-  Standard
+  Standard,
+  VersionInfo
 } from "../types.ts";
 
 export const BASE = import.meta.env.VITE_API_URL;
@@ -113,6 +114,7 @@ export const api = {
   // ---UseCases---
   listUseCases: () => request<UseCase[]>("/usecases/"),
   getUseCase: (id: number) => request<UseCase>(`/usecases/${id}`),
+  getUseCaseVersion: (id: number) => request<VersionInfo>(`/usecases/${id}/version`),
   createUseCase: (data: UseCaseCreate) =>
     request<UseCase>("/usecases/", {
       method: "POST",
