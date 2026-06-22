@@ -107,9 +107,13 @@ class UseCaseCreate(UseCaseBase):
 
 class UseCaseUpdate(UseCaseBase):
     roles: List[int] = []
+    version: int
 
 class UseCase(UseCaseBase):
     id: int
+    version: int
+    updated_at: datetime | None = None
+    updated_by: str | None = None
     roles: List[Role] = []
     subUseCases: List[SubUseCase] = []
     standards: List[Standard] = []

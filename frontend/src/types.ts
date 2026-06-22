@@ -1,6 +1,15 @@
-export type RoleEnum = "read" | "write";
+//---------LOGGING----------
+export type VersionConflictDetail = {
+  error: "version_conflict";
+  current_version: number;
+  your_version: number;
+  updated_by?: string | null;
+  updated_at?: string | null;
+}
 
 //----------USER-------------
+
+export type RoleEnum = "read" | "write";
 
 export interface User {
   id: number;
@@ -138,6 +147,7 @@ export interface SubUseCaseCreate {
 //--------------USE CASE----------------
 export interface UseCase {
   id: number;
+  version: number;
   name: string;
   keywords: string[];
   description?: string;
@@ -151,6 +161,7 @@ export interface UseCase {
 
 export interface UseCaseCreate {
   name: string;
+  version: number;
   keywords?: string[];
   description?: string;
   relation_to_other_useCases?: string;

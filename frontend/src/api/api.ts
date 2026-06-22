@@ -22,6 +22,17 @@ import type {
 
 export const BASE = import.meta.env.VITE_API_URL;
 
+export class ApiError extends Error {
+  status: number;
+  detail: unknown;
+
+  constructor(status: number, detail: unknown) {
+    super(`HTTP ${status}`);
+    this.status = status;
+    this.detail = detail;
+  }
+}
+
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
   // Token oder API-Key aus localStorage holen
   const token = localStorage.getItem('access_token');
@@ -36,14 +47,16 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
     headers.set('X-API-Key', apiKey);
   }
 
-  const res = await fetch(`${BASE}${path}`, {
-    ...opts,
-    headers
-  });
+  const res = await fetch(`${BASE}${path}`, {...opts, headers});
 
   if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`${res.status} ${res.statusText}: ${errorText}`);
+    let detail: unknown;
+    try {
+      detail = await res.json();
+    } catch {
+      detail = await res.text();
+    }
+    throw new ApiError(res.status, detail);
   }
   if (res.status === 204) return null as T;
   return res.json() as Promise<T>;

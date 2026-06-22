@@ -561,6 +561,43 @@ a { color: inherit; text-decoration: none; }
   }
 }
 
+.conflict-alert {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.conflict-alert-content {
+  min-width: 0;
+}
+
+.conflict-alert-title {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.conflict-alert-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 680px) {
+  .conflict-alert {
+    flex-direction: column;
+  }
+
+  .conflict-alert-actions {
+    width: 100%;
+  }
+
+  .conflict-alert-actions .btn {
+    flex: 1;
+  }
+}
+
 /* ============================================================
    TAG INPUT  (Ergänzung zu Section 6. FORMS)
    ============================================================ */

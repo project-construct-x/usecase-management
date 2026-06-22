@@ -1,13 +1,19 @@
+import copy
 import os
 import logging
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.inspection import inspect
+from sqlalchemy.sql.functions import current_user
+
 from .schemas import schemas
 from .models import models
 from .config import IMAGE_DIR
-from typing import List, Optional
+from typing import List, Optional, Iterable, Any
 from uuid import UUID, uuid4
 from datetime import datetime
+from .exceptions import VersionConflictError
 
 
 def set_creation_timestamps(obj):
@@ -18,6 +24,43 @@ def set_creation_timestamps(obj):
     obj.date_of_revision = now
     obj.date_of_version = now
     return obj
+
+def build_snapshot(
+        obj: Any,
+        include_fields: Iterable[str] | None = None,
+        exclude_fields: Iterable[str] | None = None,
+) -> dict:
+    mapper = inspect(obj.__class__)
+    column_names = [attr.key for attr in mapper.column_attrs]
+
+    if include_fields is not None:
+        fields = [f for f in include_fields if f in column_names]
+    else:
+        fields = column_names
+
+    if exclude_fields:
+        exclude_set = set(exclude_fields)
+        fields = [f for f in fields if f not in exclude_set]
+
+    snapshot = {}
+    for field in fields:
+        value = getattr(obj, field)
+        snapshot[field] = copy.deepcopy(value)
+
+    return snapshot
+
+
+#--------------------------AUDIT LOGS---------------------
+def create_audit_log(table_name, record_id, current_user, old_data, new_data, action="updated"):
+    log = models.AuditLog(
+        table_name=table_name,
+        record_id=record_id,
+        action=action,
+        changed_by=current_user,
+        old_data=old_data,
+        new_data=new_data,
+    )
+    return log
 
 
 # -----------------ROLES---------------------
@@ -119,8 +162,24 @@ def create_useCase(db: Session, data: schemas.UseCaseCreate, roles: list):
     db.refresh(uc)
     return uc
 
-def update_useCase(db: Session, useCase_id: int, data: schemas.UseCaseUpdate, roles: list):
-    uc = db.query(models.UseCase).get(useCase_id)
+def update_useCase(db: Session, useCase_id: int, data: schemas.UseCaseUpdate, roles: list, current_user: str):
+    uc = db.query(models.UseCase).filter(
+        models.UseCase.id == useCase_id
+    ).with_for_update().first()
+
+    if not uc:
+        return None
+
+    if uc.version != data.version:
+        raise VersionConflictError(
+            current_version=uc.version,
+            your_version=data.version,
+            updated_by=uc.updated_by,
+            updated_at=uc.updated_at,
+        )
+
+    old_snapshot = jsonable_encoder(build_snapshot(uc))
+
     uc.name = data.name
     uc.keywords = data.keywords
     uc.roles = roles
@@ -129,13 +188,20 @@ def update_useCase(db: Session, useCase_id: int, data: schemas.UseCaseUpdate, ro
     uc.uc_owner_institution = data.uc_owner_institution
     uc.uc_owner = data.uc_owner
     uc.conx_id = data.conx_id
+    uc.version += 1
+    uc.updated_by = current_user
 
+    log = create_audit_log("useCases", str(useCase_id), current_user, old_snapshot, data.model_dump(exclude={"version", "roles"}))
+    db.add(log)
     db.commit()
     db.refresh(uc)
     return uc
 
 def delete_useCase(db: Session, useCase_id: int):
     uc = db.query(models.UseCase).get(useCase_id)
+    old_snapshot = jsonable_encoder(build_snapshot(uc))
+    log = create_audit_log("useCases", str(useCase_id), current_user, old_snapshot, "", "deleted")
+    db.add(log)
     db.delete(uc)
     db.commit()
 

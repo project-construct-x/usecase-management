@@ -1,10 +1,21 @@
 import uuid
 from sqlalchemy import Boolean, Column, Date, Integer, String, ForeignKey, Table, DateTime, func, Enum, Text
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, JSON
 from sqlalchemy.dialects.postgresql import UUID as PRUUID
 import enum
 from ..db import Base
+
+class AuditLog(Base):
+    __tablename__ = "audit_log"
+    id = Column(PRUUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
+    table_name = Column(String, nullable=False)
+    record_id = Column(String, nullable=False)
+    action = Column(String)
+    changed_by = Column(String, nullable=False)
+    changed_at = Column(DateTime(timezone=True), server_default=func.now())
+    old_data = Column(JSON, nullable=True)
+    new_data = Column(JSON, nullable=True)
 
 # Many-to-Many Beziehung zwischen UseCase und Role
 useCase_roles = Table(
@@ -38,6 +49,11 @@ class UseCase(Base):
     uc_owner_institution = Column(String)
     uc_owner = Column(String)
     conx_id = Column(String)
+
+    # Optimistic Locking + Sichtbarkeit
+    version = Column(Integer, nullable=False, default=1)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_by = Column(String, nullable=False)
 
     # Relationships
     subUseCases = relationship("SubUseCase", back_populates="useCase", cascade="all, delete-orphan")
