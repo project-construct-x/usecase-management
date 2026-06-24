@@ -17,10 +17,22 @@ import type {
   Token,
   OntologyEdge,
   OntologyNode,
-  Standard
+  Standard,
+  VersionInfo
 } from "../types.ts";
 
 export const BASE = import.meta.env.VITE_API_URL;
+
+export class ApiError extends Error {
+  status: number;
+  detail: unknown;
+
+  constructor(status: number, detail: unknown) {
+    super(`HTTP ${status}`);
+    this.status = status;
+    this.detail = detail;
+  }
+}
 
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
   // Token oder API-Key aus localStorage holen
@@ -36,14 +48,16 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
     headers.set('X-API-Key', apiKey);
   }
 
-  const res = await fetch(`${BASE}${path}`, {
-    ...opts,
-    headers
-  });
+  const res = await fetch(`${BASE}${path}`, {...opts, headers});
 
   if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`${res.status} ${res.statusText}: ${errorText}`);
+    let detail: unknown;
+    try {
+      detail = await res.json();
+    } catch {
+      detail = await res.text();
+    }
+    throw new ApiError(res.status, detail);
   }
   if (res.status === 204) return null as T;
   return res.json() as Promise<T>;
@@ -100,6 +114,7 @@ export const api = {
   // ---UseCases---
   listUseCases: () => request<UseCase[]>("/usecases/"),
   getUseCase: (id: number) => request<UseCase>(`/usecases/${id}`),
+  getUseCaseVersion: (id: number) => request<VersionInfo>(`/usecases/${id}/version`),
   createUseCase: (data: UseCaseCreate) =>
     request<UseCase>("/usecases/", {
       method: "POST",
@@ -120,6 +135,7 @@ export const api = {
   listSubUseCasesByRole: (roleId: number) =>
     request<SubUseCase[]>(`/subusecases/by-role/${roleId}`),
   getSubUseCase: (id: number) => request<SubUseCase>(`/subusecases/${id}`),
+  getSubUseCaseVersion: (id: number) => request<VersionInfo>(`/subusecases/${id}/version`),
   createSubUseCase: (data: Partial<SubUseCaseCreate>) =>
     request<SubUseCase>("/subusecases/", {
       method: "POST",
@@ -145,6 +161,7 @@ export const api = {
   // ---Roles---
   listRoles: () => request<Role[]>("/roles/"),
   getRole: (id: number) => request<Role>(`/roles/${id}`),
+  getRoleVersion: (id: number) => request<VersionInfo>(`/roles/${id}/version`),
   createRole: (data: Partial<Role>) =>
     request<Role>("/roles/", {
       method: "POST",
@@ -163,6 +180,7 @@ export const api = {
   // ---Standards---
   listStandards: () => request<Standard[]>("/standards/"),
   getStandard: (id: number) => request<Standard>(`/standards/${id}`),
+  getStandardVersion: (id: number) => request<VersionInfo>(`/standards/${id}/version`),
   createStandard: (data: Partial<Standard>) =>
     request<Standard>("/standards/", {
       method: "POST",
@@ -183,6 +201,7 @@ export const api = {
   listTransactionsBySubUseCase: (subId: number) =>
     request<Transaction[]>(`/transactions/by-subusecase/${subId}`),
   getTransaction: (id: number) => request<Transaction>(`/transactions/${id}`),
+  getTransactionVersion: (id: number) => request<VersionInfo>(`/transactions/${id}/version`),
   createTransaction: (data: TransactionMutate) =>
     request<Transaction>("/transactions/", {
       method: "POST",
@@ -202,6 +221,7 @@ export const api = {
   listProperties: () => request<Property[]>("/properties/"),
   getPropertiesByGroup: (group_uuid: string) => request<Property[]>(`/properties/by-group/${group_uuid}`),
   getProperty: (uuid: string) => request<Property>(`/properties/${uuid}`),
+  getPropertyVersion: (uuid: string) => request<VersionInfo>(`/properties/${uuid}/version`),
   createProperty: (data: Partial<Property>) =>
     request<Property>(`/properties/`, {
       method: "POST",
@@ -222,6 +242,7 @@ export const api = {
   listPropertyGroupsByCategory: (category: string) => request<PropertyGroup[]>(`/propertygroups/category/${category}`),
   getClassPropertyTree: () => request<ClassWithProperties[]>("/propertygroups/class-property-tree/"),
   getPropertyGroup: (uuid: string) => request<PropertyGroup>(`/propertygroups/${uuid}`),
+  getPropertyGroupVersion: (uuid: string) => request<VersionInfo>(`/propertygroups/${uuid}/version`),
   createPropertyGroup: (data: Partial<PropertyGroup>) =>
     request<PropertyGroup>(`/propertygroups/`, {
       method: "POST",

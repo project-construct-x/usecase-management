@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "../api/api.ts";
-import type { PropertyGroup, Property } from "../types.ts";
+import {api, ApiError} from "../api/api.ts";
+import type {PropertyGroup, Property, VersionConflictDetail} from "../types.ts";
 import {Tags, AlertCircle, Boxes} from "lucide-react";
 import {getLabel} from "../components/helper.tsx";
 import {MultiLangInput} from "../components/MultiLanguageField.tsx";
+import {useStaleCheck} from "../hooks/useStaleCheck.ts";
+import VersionConflictAlert from "../components/VersionConflictAlert.tsx";
+import StaleDataAlert from "../components/StaleDataAlert.tsx";
 
 // hier wird zwar von Klassen geschrieben, im Hintergrund handelt es sich aber technisch um ProjectGroups
 // auch im Backend sind Klassen als ProjectGroups gespeichert
@@ -25,10 +28,14 @@ export default function ClassDetail() {
   const [item, setItem] = useState<Partial<PropertyGroup>>(emptyClass);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
-
-  // Properties State
   const [relatedProperties, setRelatedProperties] = useState<Property[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(false);
+  const [conflict, setConflict] = useState<VersionConflictDetail | null>(null);
+  const [staleWarning, setStaleWarning] = useStaleCheck(
+    item?.version,
+    () => api.getPropertyGroupVersion(uuid!),
+    uuid !== "new" && !!item,
+  );
 
   useEffect(() => {
     if (uuid !== "new") {
@@ -42,6 +49,8 @@ export default function ClassDetail() {
     try {
       const data = await api.getPropertyGroup(uuid!);
       setItem(data);
+      setConflict(null);
+      setStaleWarning(null);
     } catch (error) {
       console.error("Fehler beim Laden:", error);
       alert("Klasse konnte nicht geladen werden");
@@ -71,15 +80,19 @@ export default function ClassDetail() {
 
     try {
       if (uuid === "new") {
-        console.log(JSON.stringify(item))
         const created = await api.createPropertyGroup(item);
         navigate(`/classes/${created.UUID}`);
       } else {
-        await api.updatePropertyGroup(uuid!, item);
-        await loadClass();
+        const updated = await api.updatePropertyGroup(uuid!, item);
+        setItem(updated);
+        setConflict(null);
         alert("Klasse erfolgreich aktualisiert");
       }
     } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        setConflict(error.detail as VersionConflictDetail);
+        return;
+      }
       console.error("Fehler beim Speichern:", error);
       alert("Fehler beim Speichern der Klasse");
     } finally {
@@ -118,6 +131,18 @@ export default function ClassDetail() {
           <div className="page-header-sub">Klasse</div>
         </div>
       </div>
+
+      <VersionConflictAlert
+        conflict={conflict}
+        onReload={loadClass}
+        onForceOverwrite={() => setConflict(null)}
+      />
+
+      <StaleDataAlert
+        staleInfo={staleWarning}
+        onReload={loadClass}
+        onDismiss={() => setStaleWarning(null)}
+      />
 
       <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {/* Tabs */}

@@ -4,56 +4,65 @@ import shutil
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from xml.etree import ElementTree as ET
-from ..db import SessionLocal, get_db
-from .. import crud
-from ..models import models
-from ..schemas import schemas
+from ..models.users import User
+from ..crud.auth import get_current_user
+from ..db import get_db
+from ..crud import subUseCases as crud
+from ..schemas.subUseCases import *
+from ..schemas.logs import VersionInfo
 from ..config import IMAGE_DIR
 
 router = APIRouter(prefix="/subusecases", tags=["Sub Use Cases"])
 
 # -------LIST--------
-@router.get("/", response_model=list[schemas.SubUseCase])
+@router.get("/", response_model=list[SubUseCase])
 def list_subUseCases(db: Session = Depends(get_db)):
     return crud.get_subUseCases(db)
 
 # ---------GET---------
-@router.get("/{id}", response_model=schemas.SubUseCase)
+@router.get("/{id}", response_model=SubUseCase)
 def get_subUseCase(id: int, db: Session = Depends(get_db)):
     subUseCase = crud.get_subUseCase_by_id(db, id)
     if not subUseCase:
         raise HTTPException(status_code=404, detail="SubUseCase nicht gefunden")
     return subUseCase
 
-@router.get("/by-role/{role_id}", response_model=list[schemas.SubUseCase])
+@router.get("/{id}/version", response_model=VersionInfo)
+def get_subUseCase_version(id: int, db: Session = Depends(get_db)):
+    result = crud.get_subUseCase_version(db, id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Sub Use Case nicht gefunden")
+    return result
+
+@router.get("/by-role/{role_id}", response_model=list[SubUseCase])
 def list_subUseCases_by_role(role_id: int, db: Session = Depends(get_db)):
     return crud.get_subUseCases_by_role(db, role_id)
 
 # --------CREATE--------
-@router.post("/", response_model=schemas.SubUseCase)
-def create_subUseCase(data: schemas.SubUseCaseCreate, db: Session = Depends(get_db)):
-    return crud.create_subUseCase(db, data)
+@router.post("/", response_model=SubUseCase)
+def create_subUseCase(data: SubUseCaseCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return crud.create_subUseCase(db, data, current_user.username)
 
 # --------UPDATE--------
-@router.put("/{id}", response_model=schemas.SubUseCase)
-def update_subUseCase(id: int, data: schemas.SubUseCaseUpdate, db: Session = Depends(get_db)):
+@router.put("/{id}", response_model=SubUseCase)
+def update_subUseCase(id: int, data: SubUseCaseUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     subUseCase = crud.get_subUseCase_by_id(db, id)
     if not subUseCase:
         raise HTTPException(status_code=404, detail="Sub Use Case nicht gefunden")
-    return crud.update_subUseCase(db, id, data)
+    return crud.update_subUseCase(db, id, data, current_user.username)
 
 # ---------DELETE--------
 @router.delete("/{id}", status_code=204)
-def delete_subUseCase(id: int, db: Session = Depends(get_db)):
+def delete_subUseCase(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     subUseCase = crud.get_subUseCase_by_id(db, id)
     if not subUseCase:
         raise HTTPException(status_code=404, detail="Sub Use Case nicht gefunden")
 
-    crud.delete_subUseCase(db, id)
+    crud.delete_subUseCase(db, id, current_user.username)
     return None
 
 # --------UPLOAD BPMN---------
-@router.post("/{id}/upload-bpmn-png", response_model=schemas.SubUseCase)
+@router.post("/{id}/upload-bpmn-png", response_model=SubUseCase)
 async def upload_bpmn_for_subUseCase(
         id: int,
         file: UploadFile = File(..., description="BPMN-Modell als PNG-Datei hochladen."),
@@ -86,7 +95,7 @@ async def upload_bpmn_for_subUseCase(
     return updated_subUseCase
 
 
-@router.post("/{id}/upload-bpmn-xml", response_model=schemas.SubUseCase)
+@router.post("/{id}/upload-bpmn-xml", response_model=SubUseCase)
 async def upload_bpmn_xml_for_subUseCase(
         id: int,
         file: UploadFile = File(..., description="BPMN-Modell als XML-Datei hochladen."),
@@ -121,8 +130,8 @@ async def upload_bpmn_xml_for_subUseCase(
 
 
 # --------UPDATE BPMN XML (direkt in DB)--------
-@router.put("/{id}/bpmn-xml", response_model=schemas.SubUseCase)
-def update_bpmn_xml(id: int, data: schemas.BpmnXmlUpdate, db: Session = Depends(get_db)):
+@router.put("/{id}/bpmn-xml", response_model=SubUseCase)
+def update_bpmn_xml(id: int, data: BpmnXmlUpdate, db: Session = Depends(get_db)):
     subUseCase = crud.get_subUseCase_by_id(db, id)
     if not subUseCase:
         raise HTTPException(status_code=404, detail="Sub Use Case nicht gefunden")

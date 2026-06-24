@@ -1,13 +1,17 @@
 import {useEffect, useState} from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "../api/api.ts";
-import type {UseCase, Role} from "../types.ts";
+import { api, ApiError } from "../api/api.ts";
+import type {UseCase, Role, VersionConflictDetail} from "../types.ts";
 import TagInput from "../components/TagInput.tsx";
 import CrudTable from "../components/CrudTable.tsx";
+import VersionConflictAlert from "../components/VersionConflictAlert.tsx";
 import {Tags, AlertCircle, FileText, Layers, Search, Users} from "lucide-react";
+import {useStaleCheck} from "../hooks/useStaleCheck.ts";
+import StaleDataAlert from "../components/StaleDataAlert.tsx";
 
 const emptyUseCase: UseCase = {
   id: 0,
+  version: 0,
   name: "",
   keywords: [],
   description: "",
@@ -28,6 +32,12 @@ export default function UseCaseDetail() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [filteredRoles, setFilteredRoles] = useState<Role[]>([])
   const [searchTerm, setSearchTerm] = useState("");
+  const [conflict, setConflict] = useState<VersionConflictDetail | null>(null);
+  const [staleWarning, setStaleWarning] = useStaleCheck(
+    item?.version,
+    () => api.getUseCaseVersion(Number(id)),
+    id !== "new" && !!item,
+  );
 
   useEffect(() => {
     loadRoles();
@@ -45,6 +55,8 @@ export default function UseCaseDetail() {
     try {
       const data = await api.getUseCase(Number(id!));
       setItem(data);
+      setConflict(null);
+      setStaleWarning(null);
     } catch (error) {
       console.error("Fehler beim Laden:", error);
       alert("Use Case konnte nicht geladen werden");
@@ -98,6 +110,12 @@ export default function UseCaseDetail() {
     const payload = {
       name: item.name,
       keywords: item.keywords,
+      description: item.description,
+      relation_to_other_useCases: item.relation_to_other_useCases,
+      uc_owner_institution: item.uc_owner_institution,
+      uc_owner: item.uc_owner,
+      conx_id: item.conx_id,
+      version: item.version,
       roles: item.roles.map((r) => r.id),
     };
 
@@ -107,11 +125,16 @@ export default function UseCaseDetail() {
         const created = await api.createUseCase(payload);
         navigate(`/usecases/${created.id}`);
       } else {
-        await api.updateUseCase(Number(id)!, payload);
-        await loadUseCase();
+        const updated = await api.updateUseCase(Number(id)!, payload);
+        setItem(updated);
+        setConflict(null);
         alert("Use Case erfolgreich aktualisiert");
       }
     } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        setConflict(error.detail as VersionConflictDetail);
+        return;
+      }
       console.error("Fehler beim Speichern:", error);
       alert("Fehler beim Speichern des Use Case");
     } finally {
@@ -144,6 +167,18 @@ export default function UseCaseDetail() {
           <div className="page-header-sub">Use Case</div>
         </div>
       </div>
+
+      <VersionConflictAlert
+        conflict={conflict}
+        onReload={loadUseCase}
+        onForceOverwrite={() => setConflict(null)}
+      />
+
+      <StaleDataAlert
+        staleInfo={staleWarning}
+        onReload={loadUseCase}
+        onDismiss={() => setStaleWarning(null)}
+      />
 
       <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         <div className="tabs">

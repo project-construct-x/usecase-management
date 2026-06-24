@@ -1,10 +1,21 @@
 import uuid
 from sqlalchemy import Boolean, Column, Date, Integer, String, ForeignKey, Table, DateTime, func, Enum, Text
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, JSON
 from sqlalchemy.dialects.postgresql import UUID as PRUUID
 import enum
 from ..db import Base
+
+class AuditLog(Base):
+    __tablename__ = "audit_log"
+    id = Column(PRUUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
+    table_name = Column(String, nullable=False)
+    record_id = Column(String, nullable=False)
+    action = Column(String)
+    changed_by = Column(String, nullable=False)
+    changed_at = Column(DateTime(timezone=True), server_default=func.now())
+    old_data = Column(JSON, nullable=True)
+    new_data = Column(JSON, nullable=True)
 
 # Many-to-Many Beziehung zwischen UseCase und Role
 useCase_roles = Table(
@@ -39,6 +50,11 @@ class UseCase(Base):
     uc_owner = Column(String)
     conx_id = Column(String)
 
+    # Optimistic Locking + Sichtbarkeit
+    version = Column(Integer, nullable=False, default=1)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_by = Column(String, nullable=False)
+
     # Relationships
     subUseCases = relationship("SubUseCase", back_populates="useCase", cascade="all, delete-orphan")
     roles = relationship("Role", secondary=useCase_roles, back_populates="useCases")
@@ -64,6 +80,11 @@ class SubUseCase(Base):
 
     bpmn_png_url = Column(String, nullable=True)
     bpmn_xml = Column(Text, nullable=True)
+
+    # Version
+    version = Column(Integer, nullable=False, default=1)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_by = Column(String, nullable=False)
 
     # Relationships
     useCase = relationship("UseCase", back_populates="subUseCases")
@@ -105,6 +126,10 @@ class Transaction(Base):
     policies = Column(String, nullable=True)
     data_size = Column(String, nullable=True)
 
+    version = Column(Integer, nullable=False, default=1)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_by = Column(String, nullable=False)
+
     # Relationships
     subUseCase = relationship("SubUseCase", back_populates="transactions")
     roleOut = relationship("Role", foreign_keys=[roleOut_id], back_populates="transactions_out")
@@ -118,6 +143,10 @@ class Role(Base):
     name = Column(String, index=True)
     definition = Column(String)
     source = Column(Integer, ForeignKey("standards.id"))
+
+    version = Column(Integer, nullable=False, default=1)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_by = Column(String, nullable=False)
 
     # Relationships
     useCases = relationship("UseCase", secondary=useCase_roles, back_populates="roles")
@@ -153,7 +182,7 @@ class Property(Base):
         'beschreibung': 'Datum, nach dem das Merkmal verwendet werden kann',
         'beispiel': '2024-12-16 14:30:00+01:00',
     })
-    date_of_change = Column(DateTime(timezone=True), nullable=False, info={
+    date_of_change = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now(), info={
         'code': 'PA005',
         'name': 'Datum der letzten Änderung',
         'beschreibung': 'Datum der Validierung der letzten Änderungsanfrage durch Sachverständige',
@@ -165,7 +194,7 @@ class Property(Base):
         'beschreibung': 'Datum der Überarbeitung',
         'beispiel': '2024-12-16 14:30:00+01:00',
     })
-    date_of_version = Column(DateTime(timezone=True), nullable=False, info={
+    date_of_version = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, info={
         'code': 'PA007',
         'name': 'Datum der Version',
         'beschreibung': 'Datum der Version',
@@ -370,9 +399,11 @@ class Property(Base):
         'beispiel': '({(−15,−10),(−5,15)}, °C)',
     })
 
+    updated_by = Column(String, nullable=False)
+
 # ------------Merkmalsgruppen---------------
 
-class Category(enum.Enum):
+class PropertyGroupCategory(enum.Enum):
     ALTERNATIVE_USAGE = "alternative_Verwendung"
     CLASS = "Klasse"
     COMPOSITE_PROPERTY = "zusammengesetztes_Merkmal"
@@ -507,7 +538,7 @@ class PropertyGroup(Base):
         'beschreibung': 'Land, in dem die Anforderung für diese Merkmalsgruppe festgelegt wurde',
         'beispiel': 'FR',
     })
-    category = Column(Enum(Category), nullable=False, default=Category.CLASS, info={
+    category = Column(Enum(PropertyGroupCategory), nullable=False, default=PropertyGroupCategory.CLASS, info={
         'code': 'GA022',
         'name': 'Kategorie der Merkmalsgruppe',
         'beschreibung': 'gibt die Kategorie der erstellten Merkmalsgruppe an',
@@ -519,6 +550,8 @@ class PropertyGroup(Base):
         'beschreibung': 'ermöglicht die Verknüpfung einer Untergruppe mit einer übergeordneten Gruppe über ihre global eindeutigen Bezeichner (Attribut GA001) jedes einer Gruppe zugehörige Merkmal wird von der/den Untergruppe(n) übernommen',
         'beispiel': '(945DA01F-9BBD-4D9D-80C7-02AF-85C822A8, 945DA01F-9BBD-4D9D-80C7-02AF85C822A7)',
     })
+
+    updated_by = Column(String, nullable=False)
 
 # -----------Standards----------
 class StandardCategory(str, enum.Enum):
@@ -551,6 +584,11 @@ class Standard(Base):
     reference_URL = Column(String)
     keywords = Column(ARRAY(String))
     description = Column(String)
+
+    # Version
+    version = Column(Integer, nullable=False, default=1)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_by = Column(String, nullable=False)
 
     # Relationships
     roles = relationship("Role", back_populates="standard")

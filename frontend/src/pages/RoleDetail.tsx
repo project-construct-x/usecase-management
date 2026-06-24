@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "../api/api.ts";
-import type { Role, SubUseCase } from "../types.ts";
+import {api, ApiError} from "../api/api.ts";
+import type {Role, SubUseCase, VersionConflictDetail} from "../types.ts";
 import { AlertCircle, Users, Layers } from "lucide-react";
-
+import {useStaleCheck} from "../hooks/useStaleCheck.ts";
+import VersionConflictAlert from "../components/VersionConflictAlert.tsx";
+import StaleDataAlert from "../components/StaleDataAlert.tsx";
 
 const emptyRole: Partial<Role> = {
   name: "",
   definition: "",
+  version: 1,
 };
 
 export default function RoleDetail() {
@@ -17,8 +20,13 @@ export default function RoleDetail() {
   const [loading, setLoading] = useState(false);
   const [loadingSubUseCases, setLoadingSubUseCases] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
-
   const [relatedSubUseCases, setRelatedSubUseCases] = useState<SubUseCase[]>([]);
+  const [conflict, setConflict] = useState<VersionConflictDetail | null>(null);
+  const [staleWarning, setStaleWarning] = useStaleCheck(
+    item?.version,
+    () => api.getRoleVersion(Number(id)),
+    id !== "new" && !!item,
+  );
 
   useEffect(() => {
     if (id !== "new") {
@@ -32,6 +40,8 @@ export default function RoleDetail() {
     try {
       const data = await api.getRole(Number(id));
       setItem(data);
+      setConflict(null);
+      setStaleWarning(null);
     } catch (error) {
       console.error("Fehler beim Laden: ", error);
       alert("Rolle konnte nicht geladen werden.");
@@ -62,11 +72,16 @@ export default function RoleDetail() {
         const created = await api.createRole(item);
         navigate(`/roles/${created.id}`);
       } else {
-        await api.updateRole(Number(id)!, item);
-        await loadRole();
+        const updated = await api.updateRole(Number(id)!, item);
+        setItem(updated);
+        setConflict(null);
         alert("Role erfolgreich aktualisiert");
       }
     } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        setConflict(error.detail as VersionConflictDetail);
+        return;
+      }
       console.error("Fehler beim Speichern:", error);
       alert("Fehler beim Speichern der Rolle");
     } finally {
@@ -105,6 +120,18 @@ export default function RoleDetail() {
           <div className="page-header-sub">Rolle</div>
         </div>
       </div>
+
+      <VersionConflictAlert
+        conflict={conflict}
+        onReload={loadRole}
+        onForceOverwrite={() => setConflict(null)}
+      />
+
+      <StaleDataAlert
+        staleInfo={staleWarning}
+        onReload={loadRole}
+        onDismiss={() => setStaleWarning(null)}
+      />
 
       <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {/* Tabs */}

@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "../api/api.ts";
-import {type Standard, StandardCategory, type UseCase} from "../types.ts";
+import {api, ApiError} from "../api/api.ts";
+import {type Standard, StandardCategory, type UseCase, type VersionConflictDetail} from "../types.ts";
 import {AlertCircle, BookOpen, FileText, Search, Tags} from "lucide-react";
 import TagInput from "../components/TagInput.tsx";
-
+import {useStaleCheck} from "../hooks/useStaleCheck.ts";
+import VersionConflictAlert from "../components/VersionConflictAlert.tsx";
+import StaleDataAlert from "../components/StaleDataAlert.tsx";
 
 const emptyStandard: Partial<Standard> = {
   number: "",
+  version: 1,
   category: StandardCategory.TECHNICAL_STANDARD,
   title: "",
   subTitle: "",
@@ -27,7 +30,12 @@ export default function StandardDetail() {
   const [useCases, setUseCases] = useState<UseCase[]>([])
   const [filteredUseCases, setFilteredUseCases] = useState<UseCase[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [conflict, setConflict] = useState<VersionConflictDetail | null>(null);
+  const [staleWarning, setStaleWarning] = useStaleCheck(
+    item?.version,
+    () => api.getStandardVersion(Number(id)),
+    id !== "new" && !!item,
+  );
   const categories = Object.values(StandardCategory).map((value) => ({
     value,
     label: value,
@@ -70,6 +78,8 @@ export default function StandardDetail() {
         ...data,
         useCase_ids: data.useCase_ids ?? data.useCases?.map((uc: UseCase) => uc.id) ?? [],
       });
+      setConflict(null);
+      setStaleWarning(null);
     } catch (error) {
       console.error("Fehler beim Laden: ", error);
       alert("Standard konnte nicht geladen werden.");
@@ -96,9 +106,10 @@ export default function StandardDetail() {
     setLoading(true);
 
     const payload = {
-      number: item.number ?? "",
-      category: item.category ?? StandardCategory.TECHNICAL_STANDARD,
-      title: item.title ?? "",
+      number: item.number,
+      version: item.version,
+      category: item.category,
+      title: item.title,
       subTitle: item.subTitle ?? "",
       date: item.date ?? "",
       reference_URL: item.reference_URL ?? "",
@@ -112,11 +123,16 @@ export default function StandardDetail() {
         const created = await api.createStandard(payload);
         navigate(`/standards/${created.id}`);
       } else {
-        await api.updateStandard(Number(id)!, payload);
-        await loadStandard();
+        const updated = await api.updateStandard(Number(id)!, payload);
+        setItem(updated);
+        setConflict(null);
         alert("Standard erfolgreich aktualisiert");
       }
     } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        setConflict(error.detail as VersionConflictDetail);
+        return;
+      }
       console.error("Fehler beim Speichern:", error);
       alert("Fehler beim Speichern des Standards");
     } finally {
@@ -170,6 +186,18 @@ export default function StandardDetail() {
         </div>
       </div>
 
+      <VersionConflictAlert
+        conflict={conflict}
+        onReload={loadStandard}
+        onForceOverwrite={() => setConflict(null)}
+      />
+
+      <StaleDataAlert
+        staleInfo={staleWarning}
+        onReload={loadStandard}
+        onDismiss={() => setStaleWarning(null)}
+      />
+
       <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {/* Tabs */}
         <div className="tabs">
@@ -207,7 +235,7 @@ export default function StandardDetail() {
                     className="form-input form-select"
                   >
                     {categories.map(cat => (
-                      <option key={cat} value={cat.value}>{cat.label}</option>
+                      <option key={cat.label} value={cat.value}>{cat.label}</option>
                     ))}
                   </select>
                 </div>

@@ -1,6 +1,21 @@
-export type RoleEnum = "read" | "write";
+//---------LOGGING----------
+export type VersionConflictDetail = {
+  error: "version_conflict";
+  current_version: number;
+  your_version: number;
+  updated_by?: string | null;
+  updated_at?: string | null;
+}
+
+export interface VersionInfo {
+  version: number;
+  updated_by: string | null;
+  updated_at: string | null;
+}
 
 //----------USER-------------
+
+export type RoleEnum = "read" | "write";
 
 export interface User {
   id: number;
@@ -49,6 +64,7 @@ export interface APIKeyCreate {
 //--------------ROLE-----------------
 export interface Role {
   id: number;
+  version: number;
   name: string;
   definition: string;
 }
@@ -88,6 +104,7 @@ export type StandardCategory = typeof StandardCategory[keyof typeof StandardCate
 
 export interface Standard {
   id: number;
+  version: number;
   number: string;
   category: StandardCategory;
   title: string;
@@ -105,6 +122,7 @@ export interface Standard {
 export interface SubUseCase {
   id: number;
   name: string;
+  version: number;
   conx_id?: string;
   useCase_id: number;
   description: string;
@@ -122,6 +140,7 @@ export interface SubUseCase {
 
 export interface SubUseCaseCreate {
   name: string;
+  version: number;
   conx_id: string;
   description: string;
   useCase_id: number;
@@ -138,6 +157,7 @@ export interface SubUseCaseCreate {
 //--------------USE CASE----------------
 export interface UseCase {
   id: number;
+  version: number;
   name: string;
   keywords: string[];
   description?: string;
@@ -151,6 +171,7 @@ export interface UseCase {
 
 export interface UseCaseCreate {
   name: string;
+  version: number;
   keywords?: string[];
   description?: string;
   relation_to_other_useCases?: string;
@@ -164,6 +185,7 @@ export interface UseCaseCreate {
 export interface TransactionBase {
   id?: number;
   name: string;
+  version: number;
   subUseCase_id: number | null;
   usesDataspace: boolean;
   process_number: string;

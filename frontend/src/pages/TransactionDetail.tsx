@@ -1,11 +1,23 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "../api/api.ts";
-import type {Role, SubUseCase, Transaction, TransactionMutate, ClassWithProperties, Property} from "../types.ts";
+import {api, ApiError} from "../api/api.ts";
+import type {
+  Role,
+  SubUseCase,
+  Transaction,
+  TransactionMutate,
+  ClassWithProperties,
+  Property,
+  VersionConflictDetail
+} from "../types.ts";
 import {ArrowLeftRight, Tags, Search, Boxes, AlertCircle} from "lucide-react";
 import {getLabel} from "../components/helper.tsx";
+import {useStaleCheck} from "../hooks/useStaleCheck.ts";
+import VersionConflictAlert from "../components/VersionConflictAlert.tsx";
+import StaleDataAlert from "../components/StaleDataAlert.tsx";
 
 const emptyTransaction: TransactionMutate = {
+  version: 1,
   process_number: "",
   name: "",
   subUseCase_id: null,
@@ -33,6 +45,13 @@ export default function TransactionDetail() {
   const [classPropertyTree, setClassPropertyTree] = useState<ClassWithProperties[]>([]);
   const [selectedClassUuid, setSelectedClassUuid] = useState<string>("");
   const [propertySearchTerm, setPropertySearchTerm] = useState("");
+  const [conflict, setConflict] = useState<VersionConflictDetail | null>(null);
+  const [staleWarning, setStaleWarning] = useStaleCheck(
+    item?.version,
+    () => api.getTransactionVersion(Number(id)),
+    id !== "new" && !!item,
+  );
+
 
   useEffect(() => {
     loadRoles();
@@ -44,6 +63,7 @@ export default function TransactionDetail() {
   }, [id]);
 
   const toMutate = (data: Transaction): TransactionMutate => ({
+    version: data.version,
     process_number: data.process_number,
     name: data.name,
     subUseCase_id: data.subUseCase_id,
@@ -65,6 +85,8 @@ export default function TransactionDetail() {
     try {
       const data = await api.getTransaction(Number(id));
       setItem(toMutate(data));
+      setConflict(null);
+      setStaleWarning(null);
     } catch (error) {
       console.error("Fehler beim Laden: ", error);
       alert("Transaktion konnte nicht geladen werden.");
@@ -129,15 +151,19 @@ export default function TransactionDetail() {
     setLoading(true);
     try {
       if (id === "new") {
-        console.log(JSON.stringify(item))
         const created = await api.createTransaction(item);
         navigate(`/transactions/${created.id}`);
       } else {
-        await api.updateTransaction(Number(id)!, item);
-        await loadTransaction();
+        const updated = await api.updateTransaction(Number(id)!, item);
+        setItem(toMutate(updated));
+        setConflict(null);
         alert("Transaktion erfolgreich aktualisiert");
       }
     } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        setConflict(error.detail as VersionConflictDetail);
+        return;
+      }
       console.error("Fehler beim Speichern:", error);
       alert("Fehler beim Speichern der Transaktion");
     } finally {
@@ -179,6 +205,18 @@ export default function TransactionDetail() {
           <div className="page-header-sub">Transaktion</div>
         </div>
       </div>
+
+      <VersionConflictAlert
+        conflict={conflict}
+        onReload={loadTransaction}
+        onForceOverwrite={() => setConflict(null)}
+      />
+
+      <StaleDataAlert
+        staleInfo={staleWarning}
+        onReload={loadTransaction}
+        onDismiss={() => setStaleWarning(null)}
+      />
 
       <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {/* Tabs */}

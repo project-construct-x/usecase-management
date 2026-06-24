@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "../api/api.ts";
-import type { Property, PropertyGroup } from "../types.ts";
+import {api, ApiError} from "../api/api.ts";
+import type { Property, PropertyGroup, VersionConflictDetail } from "../types.ts";
 import { Search, Tags, AlertCircle } from "lucide-react";
 import {getLabel} from "../components/helper.tsx";
 import {MultiLangInput} from "../components/MultiLanguageField.tsx";
+import {useStaleCheck} from "../hooks/useStaleCheck.ts";
+import VersionConflictAlert from "../components/VersionConflictAlert.tsx";
+import StaleDataAlert from "../components/StaleDataAlert.tsx";
 
 const emptyProperty: Partial<Property> = {
   active: true,
@@ -22,11 +25,16 @@ export default function PropertyDetail() {
   const [item, setItem] = useState<Partial<Property>>(emptyProperty);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
-
   const [allPropertyGroups, setAllPropertyGroups] = useState<PropertyGroup[]>([]);
   const [filteredGroups, setFilteredGroups] = useState<PropertyGroup[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [conflict, setConflict] = useState<VersionConflictDetail | null>(null);
+  const [staleWarning, setStaleWarning] = useStaleCheck(
+    item?.version,
+    () => api.getPropertyVersion(uuid!),
+    uuid !== "new" && !!item,
+  );
 
   useEffect(() => {
     loadPropertyGroups();
@@ -71,6 +79,8 @@ export default function PropertyDetail() {
     try {
       const data = await api.getProperty(uuid!);
       setItem(data);
+      setConflict(null);
+      setStaleWarning(null);
     } catch (error) {
       console.error("Fehler beim Laden:", error);
       alert("Property konnte nicht geladen werden");
@@ -94,11 +104,16 @@ export default function PropertyDetail() {
         const created = await api.createProperty(item);
         navigate(`/properties/${created.UUID}`);
       } else {
-        await api.updateProperty(uuid!, item);
-        await loadProperty();
+        const updated = await api.updateProperty(uuid!, item);
+        setItem(updated);
+        setConflict(null);
         alert("Property erfolgreich aktualisiert");
       }
     } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        setConflict(error.detail as VersionConflictDetail);
+        return;
+      }
       console.error("Fehler beim Speichern:", error);
       alert("Fehler beim Speichern des Properties");
     } finally {
@@ -153,6 +168,18 @@ export default function PropertyDetail() {
           <div className="page-header-sub">Merkmal</div>
         </div>
       </div>
+
+      <VersionConflictAlert
+        conflict={conflict}
+        onReload={loadProperty}
+        onForceOverwrite={() => setConflict(null)}
+      />
+
+      <StaleDataAlert
+        staleInfo={staleWarning}
+        onReload={loadProperty}
+        onDismiss={() => setStaleWarning(null)}
+      />
 
       <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
 
