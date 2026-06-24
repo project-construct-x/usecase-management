@@ -64,6 +64,7 @@ export interface APIKeyCreate {
 //--------------ROLE-----------------
 export interface Role {
   id: number;
+  version: number;
   name: string;
   definition: string;
 }
@@ -103,6 +104,7 @@ export type StandardCategory = typeof StandardCategory[keyof typeof StandardCate
 
 export interface Standard {
   id: number;
+  version: number;
   number: string;
   category: StandardCategory;
   title: string;
@@ -120,6 +122,7 @@ export interface Standard {
 export interface SubUseCase {
   id: number;
   name: string;
+  version: number;
   conx_id?: string;
   useCase_id: number;
   description: string;
@@ -137,6 +140,7 @@ export interface SubUseCase {
 
 export interface SubUseCaseCreate {
   name: string;
+  version: number;
   conx_id: string;
   description: string;
   useCase_id: number;
@@ -181,6 +185,7 @@ export interface UseCaseCreate {
 export interface TransactionBase {
   id?: number;
   name: string;
+  version: number;
   subUseCase_id: number | null;
   usesDataspace: boolean;
   process_number: string;

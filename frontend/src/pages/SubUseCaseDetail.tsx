@@ -1,11 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, useSearchParams, useBlocker } from "react-router-dom";
-import { api } from "../api/api.ts";
-import type {SubUseCase, Role, UseCase, Transaction} from "../types.ts";
+import {api, ApiError} from "../api/api.ts";
+import type {SubUseCase, Role, UseCase, Transaction, VersionConflictDetail} from "../types.ts";
 import BpmnModelerComponent from "../components/Bpmn/BpmnModelerComponent.tsx";
 import type BpmnModeler from "bpmn-js/lib/Modeler";
 import {Tags, Layers, AlertCircle, FileText, Users, Search, ArrowLeftRight} from "lucide-react";
 import CrudTable from "../components/CrudTable.tsx";
+import {useStaleCheck} from "../hooks/useStaleCheck.ts";
+import VersionConflictAlert from "../components/VersionConflictAlert.tsx";
+import StaleDataAlert from "../components/StaleDataAlert.tsx";
 
 const emptyDiagram = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
@@ -27,6 +30,7 @@ const emptyDiagram = `<?xml version="1.0" encoding="UTF-8"?>
 
 const emptySubUseCase: Partial<SubUseCase> = {
   name: "",
+  version: 1,
   description: "",
   conx_id: "",
   subUseCase_roles: [],
@@ -52,6 +56,12 @@ export default function SubUseCaseDetail() {
   const [filteredRoles, setFilteredRoles] = useState<Role[]>([])
   const [searchTerm, setSearchTerm] = useState("");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [conflict, setConflict] = useState<VersionConflictDetail | null>(null);
+  const [staleWarning, setStaleWarning] = useStaleCheck(
+    item?.version,
+    () => api.getSubUseCaseVersion(Number(id)),
+    id !== "new" && !!item,
+  );
 
   // BPMN state
   const modelerRef = useRef<BpmnModeler | null>(null);
@@ -117,6 +127,8 @@ export default function SubUseCaseDetail() {
     try {
       const data = await api.getSubUseCase(Number(id));
       setItem(data);
+      setConflict(null);
+      setStaleWarning(null);
       api.listTransactionsBySubUseCase(Number(data.id!)).then(setTransactions);
       setBpmnXml(data.bpmn_xml || emptyDiagram);
       setLoadedBpmnXml(data.bpmn_xml || emptyDiagram);
@@ -213,6 +225,7 @@ export default function SubUseCaseDetail() {
 
       const payload = {
         name: item.name!,
+        version: item.version,
         description: item.description!,
         conx_id: item.conx_id,
         useCase_id: item.useCase_id,
@@ -239,7 +252,9 @@ export default function SubUseCaseDetail() {
 
         navigate(`/subusecases/${created.id}`);
       } else {
-        await api.updateSubUseCase(Number(id), payload);
+        const updated = await api.updateSubUseCase(Number(id), payload);
+        setItem(updated);
+        setConflict(null);
 
         if (currentBpmnXml) {
           await api.updateSubUseCaseBPMNXML(Number(id), currentBpmnXml);
@@ -253,6 +268,10 @@ export default function SubUseCaseDetail() {
         alert("SubUseCase erfolgreich aktualisiert");
       }
     } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        setConflict(error.detail as VersionConflictDetail);
+        return;
+      }
       console.error("Fehler beim Speichern:", error);
       alert("Fehler beim Speichern des SubUseCase");
     } finally {
@@ -422,6 +441,18 @@ export default function SubUseCaseDetail() {
           <div className="page-header-sub">Sub Use Case</div>
         </div>
       </div>
+
+      <VersionConflictAlert
+        conflict={conflict}
+        onReload={loadSubUseCase}
+        onForceOverwrite={() => setConflict(null)}
+      />
+
+      <StaleDataAlert
+        staleInfo={staleWarning}
+        onReload={loadSubUseCase}
+        onDismiss={() => setStaleWarning(null)}
+      />
 
       <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {/* Tabs */}

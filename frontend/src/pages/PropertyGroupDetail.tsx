@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "../api/api.ts";
-import type { PropertyGroup, Property } from "../types.ts";
+import {api, ApiError} from "../api/api.ts";
+import type {PropertyGroup, Property, VersionConflictDetail} from "../types.ts";
 import { Category } from "../types.ts";
 import {Tags, AlertCircle, FolderTree } from "lucide-react";
 import {getLabel} from "../components/helper.tsx";
 import {MultiLangInput} from "../components/MultiLanguageField.tsx";
+import {useStaleCheck} from "../hooks/useStaleCheck.ts";
+import VersionConflictAlert from "../components/VersionConflictAlert.tsx";
+import StaleDataAlert from "../components/StaleDataAlert.tsx";
 
 const emptyPropertyGroup: Partial<PropertyGroup> = {
   active: true,
@@ -23,10 +26,14 @@ export default function PropertyGroupDetail() {
   const [item, setItem] = useState<Partial<PropertyGroup>>(emptyPropertyGroup);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
-
-  // Properties State
   const [relatedProperties, setRelatedProperties] = useState<Property[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(false);
+  const [conflict, setConflict] = useState<VersionConflictDetail | null>(null);
+  const [staleWarning, setStaleWarning] = useStaleCheck(
+    item?.version,
+    () => api.getPropertyGroupVersion(uuid!),
+    uuid !== "new" && !!item,
+  );
 
   const categories = Object.entries(Category).map(([key, value]) => ({
     key,
@@ -46,6 +53,8 @@ export default function PropertyGroupDetail() {
     try {
       const data = await api.getPropertyGroup(uuid!);
       setItem(data);
+      setConflict(null);
+      setStaleWarning(null);
     } catch (error) {
       console.error("Fehler beim Laden:", error);
       alert("Property Group konnte nicht geladen werden");
@@ -75,15 +84,19 @@ export default function PropertyGroupDetail() {
 
     try {
       if (uuid === "new") {
-        console.log(JSON.stringify(item))
         const created = await api.createPropertyGroup(item);
         navigate(`/propertygroups/${created.UUID}`);
       } else {
-        await api.updatePropertyGroup(uuid!, item);
-        await loadPropertyGroup();
+        const updated = await api.updatePropertyGroup(uuid!, item);
+        setItem(updated);
+        setConflict(null);
         alert("Property Group erfolgreich aktualisiert");
       }
     } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        setConflict(error.detail as VersionConflictDetail);
+        return;
+      }
       console.error("Fehler beim Speichern:", error);
       alert("Fehler beim Speichern der Property Group");
     } finally {
@@ -123,6 +136,18 @@ export default function PropertyGroupDetail() {
           <div className="page-header-sub">Merkmalsgruppe</div>
         </div>
       </div>
+
+      <VersionConflictAlert
+        conflict={conflict}
+        onReload={loadPropertyGroup}
+        onForceOverwrite={() => setConflict(null)}
+      />
+
+      <StaleDataAlert
+        staleInfo={staleWarning}
+        onReload={loadPropertyGroup}
+        onDismiss={() => setStaleWarning(null)}
+      />
 
       <form onSubmit={handleSubmit} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {/* Tabs */}
