@@ -13,6 +13,7 @@ class PropertyGroupBase(TimestampedEntityBase):
     list_of_replaced_property_groups: Optional[List[UUID]] = None
     list_of_replacing_property_groups: Optional[List[UUID]] = None
     groups: Optional[List[UUID]] = None
+    updated_by: Optional[str] = None
 
 
 class PropertyGroupCreate(PropertyGroupBase):
@@ -39,6 +40,7 @@ class PropertyGroupUpdate(BaseModel):
     list_of_replaced_property_groups: Optional[List[UUID]] = None
     list_of_replacing_property_groups: Optional[List[UUID]] = None
     groups: Optional[List[UUID]] = None
+    updated_by: Optional[str] = None
 
 
 class PropertyGroupResponse(PropertyGroupBase, TimestampedEntityResponse):

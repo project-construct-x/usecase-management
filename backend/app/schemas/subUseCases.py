@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from .roles import Role
+from datetime import datetime
 
 class SubUseCaseRoleBase(BaseModel):
     role_id: int
@@ -31,12 +32,16 @@ class SubUseCaseCreate(SubUseCaseBase):
 
 class SubUseCaseUpdate(SubUseCaseBase):
     subUseCase_roles: List[SubUseCaseRoleBase] = []
+    version: int
 
 class BpmnXmlUpdate(BaseModel):
     bpmn_xml: str
 
 class SubUseCase(SubUseCaseBase):
     id: int
+    version: int
+    updated_at: datetime | None = None
+    updated_by: str | None = None
     subUseCase_roles: List[SubUseCaseRoleRead] = []
     bpmn_png_url: Optional[str] = None
     bpmn_xml: Optional[str] = None

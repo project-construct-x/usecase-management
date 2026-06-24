@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, model_validator
 from typing import Optional
 from uuid import UUID
@@ -21,6 +22,7 @@ class Transaction(BaseModel):
     policies: Optional[str] = None
     data_size: Optional[str] = None
     properties: list[PropertyShort] = []
+    version: int
 
     @model_validator(mode="before")
     @classmethod
@@ -34,6 +36,7 @@ class Transaction(BaseModel):
 
 class TransactionMutate(BaseModel):
     process_number: Optional[str] = None
+    version: int
     name: str
     subUseCase_id: int | None = None
     usesDataspace : bool
@@ -47,3 +50,5 @@ class TransactionMutate(BaseModel):
     policies: Optional[str] = None
     data_size: Optional[str] = None
     property_uuids: list[UUID] = []
+    updated_by: str | None = None
+    updated_at: datetime | None = None

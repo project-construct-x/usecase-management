@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..db import get_db
+from ..models.users import User
+from ..crud.auth import get_current_user
 from ..crud import propertyGroups as crud
 from ..schemas.propertyGroups import *
+from ..schemas.logs import VersionInfo
 from typing import List
 from uuid import UUID
 
@@ -31,23 +34,30 @@ def get_propertyGroup(uuid: UUID, db:Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Property Group not found")
     return prop
 
+@router.get("/{uuid}/version", response_model=VersionInfo)
+def get_propertyGroup_version(uuid: UUID, db: Session = Depends(get_db)):
+    result = crud.get_propertyGroup_version(db, uuid)
+    if not result:
+        raise HTTPException(status_code=404, detail="Property Group not found")
+    return result
+
 # --------CREATE-------
 @router.post("/", response_model=PropertyGroupResponse, status_code=201)
-def create_propertyGroup(property_group: PropertyGroupCreate, db: Session = Depends(get_db)):
-    return crud.create_propertyGroup(db, property_group=property_group)
+def create_propertyGroup(property_group: PropertyGroupCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return crud.create_propertyGroup(db, property_group, current_user.username)
 
 # --------UPDATE-------
 @router.put("/{uuid}", response_model=PropertyGroupResponse)
-def update_propertyGroup(uuid: UUID, property_group: PropertyGroupUpdate, db: Session = Depends(get_db)):
-    updated = crud.update_propertyGroup(db, uuid=uuid, property_group=property_group)
+def update_propertyGroup(uuid: UUID, property_group: PropertyGroupUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    updated = crud.update_propertyGroup(db, uuid, property_group, current_user.username)
     if not updated:
         raise HTTPException(status_code=404, detail="Property Group not found")
     return updated
 
 # --------DELETE-------
 @router.delete("/{uuid}", status_code=204)
-def delete_propertyGroup(uuid: UUID, db: Session = Depends(get_db)):
-    success = crud.delete_propertyGroup(db, uuid=uuid)
+def delete_propertyGroup(uuid: UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    success = crud.delete_propertyGroup(db, uuid, current_user.username)
     if not success:
         raise HTTPException(status_code=404, detail="Property Group not found")
     return None

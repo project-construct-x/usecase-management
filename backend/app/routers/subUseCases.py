@@ -4,9 +4,12 @@ import shutil
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from xml.etree import ElementTree as ET
+from ..models.users import User
+from ..crud.auth import get_current_user
 from ..db import get_db
 from ..crud import subUseCases as crud
 from ..schemas.subUseCases import *
+from ..schemas.logs import VersionInfo
 from ..config import IMAGE_DIR
 
 router = APIRouter(prefix="/subusecases", tags=["Sub Use Cases"])
@@ -24,31 +27,38 @@ def get_subUseCase(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="SubUseCase nicht gefunden")
     return subUseCase
 
+@router.get("/{id}/version", response_model=VersionInfo)
+def get_subUseCase_version(id: int, db: Session = Depends(get_db)):
+    result = crud.get_subUseCase_version(db, id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Sub Use Case nicht gefunden")
+    return result
+
 @router.get("/by-role/{role_id}", response_model=list[SubUseCase])
 def list_subUseCases_by_role(role_id: int, db: Session = Depends(get_db)):
     return crud.get_subUseCases_by_role(db, role_id)
 
 # --------CREATE--------
 @router.post("/", response_model=SubUseCase)
-def create_subUseCase(data: SubUseCaseCreate, db: Session = Depends(get_db)):
-    return crud.create_subUseCase(db, data)
+def create_subUseCase(data: SubUseCaseCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return crud.create_subUseCase(db, data, current_user.username)
 
 # --------UPDATE--------
 @router.put("/{id}", response_model=SubUseCase)
-def update_subUseCase(id: int, data: SubUseCaseUpdate, db: Session = Depends(get_db)):
+def update_subUseCase(id: int, data: SubUseCaseUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     subUseCase = crud.get_subUseCase_by_id(db, id)
     if not subUseCase:
         raise HTTPException(status_code=404, detail="Sub Use Case nicht gefunden")
-    return crud.update_subUseCase(db, id, data)
+    return crud.update_subUseCase(db, id, data, current_user.username)
 
 # ---------DELETE--------
 @router.delete("/{id}", status_code=204)
-def delete_subUseCase(id: int, db: Session = Depends(get_db)):
+def delete_subUseCase(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     subUseCase = crud.get_subUseCase_by_id(db, id)
     if not subUseCase:
         raise HTTPException(status_code=404, detail="Sub Use Case nicht gefunden")
 
-    crud.delete_subUseCase(db, id)
+    crud.delete_subUseCase(db, id, current_user.username)
     return None
 
 # --------UPLOAD BPMN---------

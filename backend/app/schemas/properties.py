@@ -28,6 +28,7 @@ class PropertyBase(TimestampedEntityBase):
     possible_values: Optional[List[str]] = None
     limit_values: Optional[List[str]] = None
     groups: Optional[List[UUID]] = None # TODO soll eigentlich nicht optional sein
+    updated_by: Optional[str] = None
 
 class PropertyCreate(PropertyBase):
     """Create - keine Timestamps vom Frontend"""
@@ -69,6 +70,7 @@ class PropertyUpdate(BaseModel):
     possible_values: Optional[List[str]] = None
     limit_values: Optional[List[str]] = None
     groups: Optional[List[UUID]] = None
+    updated_by: Optional[str] = None
 
 class PropertyResponse(PropertyBase, TimestampedEntityResponse):
     """Response mit allen Timestamps"""

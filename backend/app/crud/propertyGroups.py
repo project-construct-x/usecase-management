@@ -1,4 +1,7 @@
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
+from ..exceptions import VersionConflictError
+from .logs import create_audit_log, build_snapshot
 from ..schemas.propertyGroups import *
 from .properties import get_properties_by_group
 from ..models import models
@@ -16,38 +19,63 @@ def get_propertyGroups(db: Session, skip: int = 0, limit: int = 100) -> List[mod
 def get_propertyGroup_by_uuid(db: Session, uuid: UUID) -> Optional[models.PropertyGroup]:
     return db.query(models.PropertyGroup).filter(models.PropertyGroup.UUID == uuid).first()
 
+def get_propertyGroup_version(db: Session, uuid: UUID):
+    return db.query(models.PropertyGroup.version,
+                 models.PropertyGroup.updated_by,
+                 models.PropertyGroup.date_of_change.label("updated_at")
+                 ).filter(models.PropertyGroup.UUID == uuid).first()
 
-def create_propertyGroup(db: Session, property_group: PropertyGroupCreate) -> models.PropertyGroup:
+def create_propertyGroup(db: Session, property_group: PropertyGroupCreate, current_user: str) -> models.PropertyGroup:
     db_property_group = models.PropertyGroup(**property_group.dict())
     set_creation_timestamps(db_property_group)
 
     db.add(db_property_group)
+    db.flush()
+    log = create_audit_log("propertyGroups", str(db_property_group.UUID), current_user, "", property_group.model_dump(mode="json"), "created")
+    db.add(log)
     db.commit()
     db.refresh(db_property_group)
     return db_property_group
 
 
-def update_propertyGroup(db: Session, uuid: UUID, property_group: PropertyGroupUpdate) -> Optional[models.PropertyGroup]:
+def update_propertyGroup(db: Session, uuid: UUID, property_group: PropertyGroupUpdate, current_user: str) -> Optional[models.PropertyGroup]:
     db_property_group = get_propertyGroup_by_uuid(db, uuid=uuid)
     if not db_property_group:
         return None
 
+    if db_property_group.version != property_group.version:
+        raise VersionConflictError(
+            current_version=db_property_group.version,
+            your_version=property_group.version,
+            updated_by=db_property_group.updated_by,
+            updated_at=db_property_group.date_of_change,
+        )
+
+    old_snapshot = jsonable_encoder(build_snapshot(db_property_group))
+
     update_data = property_group.dict(exclude_unset=True)
     update_data["date_of_change"] = datetime.now()
+    update_data["version"] += 1
+    update_data["updated_by"] = current_user
 
     for field, value in update_data.items():
         setattr(db_property_group, field, value)
 
+    log = create_audit_log("propertyGroups", str(uuid), current_user, old_snapshot, property_group.model_dump(mode="json"))
+    db.add(log)
     db.commit()
     db.refresh(db_property_group)
     return db_property_group
 
 
-def delete_propertyGroup(db: Session, uuid: UUID) -> bool:
+def delete_propertyGroup(db: Session, uuid: UUID, current_user: str) -> bool:
     db_property_group = get_propertyGroup_by_uuid(db, uuid=uuid)
     if not db_property_group:
         return False
 
+    old_snapshot = jsonable_encoder(build_snapshot(db_property_group))
+    log = create_audit_log("propertyGroups", str(uuid), current_user, old_snapshot, "", "deleted")
+    db.add(log)
     db.delete(db_property_group)
     db.commit()
     return True

@@ -19,9 +19,12 @@ def get_useCase_version(db: Session, useCase_id: int):
         models.UseCase.updated_at,
     ).filter(models.UseCase.id == useCase_id).first()
 
-def create_useCase(db: Session, data: UseCaseCreate, roles: list):
+def create_useCase(db: Session, data: UseCaseCreate, roles: list, current_user: str):
     uc = models.UseCase(name=data.name, keywords=data.keywords, roles=roles)
     db.add(uc)
+    db.flush()
+    log = create_audit_log("useCases", str(uc.id), current_user, "", data.model_dump(exclude={"version", "roles"}), "created")
+    db.add(log)
     db.commit()
     db.refresh(uc)
     return uc

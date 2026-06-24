@@ -32,11 +32,11 @@ def get_useCase_version(id: int, db: Session = Depends(get_db)):
 
 # ---------CREATE--------
 @router.post("/", response_model=UseCase)
-def create_useCase(data: UseCaseCreate, db: Session = Depends(get_db)):
+def create_useCase(data: UseCaseCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     roles = db.query(models.Role).filter(models.Role.id.in_(data.roles)).all()
     if len(roles) != len(data.roles):
         raise HTTPException(status_code=400, detail="Eine oder mehrere Rollen nicht gefunden")
-    return crud.create_useCase(db, data, roles)
+    return crud.create_useCase(db, data, roles, current_user.username)
 
 # ---------UPDATE--------
 @router.put("/{id}", response_model=UseCase)

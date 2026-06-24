@@ -81,6 +81,11 @@ class SubUseCase(Base):
     bpmn_png_url = Column(String, nullable=True)
     bpmn_xml = Column(Text, nullable=True)
 
+    # Version
+    version = Column(Integer, nullable=False, default=1)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_by = Column(String, nullable=False)
+
     # Relationships
     useCase = relationship("UseCase", back_populates="subUseCases")
     subUseCase_roles = relationship(
@@ -121,6 +126,10 @@ class Transaction(Base):
     policies = Column(String, nullable=True)
     data_size = Column(String, nullable=True)
 
+    version = Column(Integer, nullable=False, default=1)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_by = Column(String, nullable=False)
+
     # Relationships
     subUseCase = relationship("SubUseCase", back_populates="transactions")
     roleOut = relationship("Role", foreign_keys=[roleOut_id], back_populates="transactions_out")
@@ -134,6 +143,10 @@ class Role(Base):
     name = Column(String, index=True)
     definition = Column(String)
     source = Column(Integer, ForeignKey("standards.id"))
+
+    version = Column(Integer, nullable=False, default=1)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_by = Column(String, nullable=False)
 
     # Relationships
     useCases = relationship("UseCase", secondary=useCase_roles, back_populates="roles")
@@ -169,7 +182,7 @@ class Property(Base):
         'beschreibung': 'Datum, nach dem das Merkmal verwendet werden kann',
         'beispiel': '2024-12-16 14:30:00+01:00',
     })
-    date_of_change = Column(DateTime(timezone=True), nullable=False, info={
+    date_of_change = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now(), info={
         'code': 'PA005',
         'name': 'Datum der letzten Änderung',
         'beschreibung': 'Datum der Validierung der letzten Änderungsanfrage durch Sachverständige',
@@ -181,7 +194,7 @@ class Property(Base):
         'beschreibung': 'Datum der Überarbeitung',
         'beispiel': '2024-12-16 14:30:00+01:00',
     })
-    date_of_version = Column(DateTime(timezone=True), nullable=False, info={
+    date_of_version = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False, info={
         'code': 'PA007',
         'name': 'Datum der Version',
         'beschreibung': 'Datum der Version',
@@ -386,6 +399,8 @@ class Property(Base):
         'beispiel': '({(−15,−10),(−5,15)}, °C)',
     })
 
+    updated_by = Column(String, nullable=False)
+
 # ------------Merkmalsgruppen---------------
 
 class PropertyGroupCategory(enum.Enum):
@@ -536,6 +551,8 @@ class PropertyGroup(Base):
         'beispiel': '(945DA01F-9BBD-4D9D-80C7-02AF-85C822A8, 945DA01F-9BBD-4D9D-80C7-02AF85C822A7)',
     })
 
+    updated_by = Column(String, nullable=False)
+
 # -----------Standards----------
 class StandardCategory(str, enum.Enum):
     FILE_FORMAT = "Dateiformat"
@@ -567,6 +584,11 @@ class Standard(Base):
     reference_URL = Column(String)
     keywords = Column(ARRAY(String))
     description = Column(String)
+
+    # Version
+    version = Column(Integer, nullable=False, default=1)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_by = Column(String, nullable=False)
 
     # Relationships
     roles = relationship("Role", back_populates="standard")
