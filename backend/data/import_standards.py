@@ -27,8 +27,8 @@ def reset_tables():
     with engine.connect() as conn:
         conn.execute(text('DELETE FROM "useCase_standards"'))
         conn.execute(text("DELETE FROM standards"))
+        conn.execute(text('DELETE FROM audit_log WHERE table_name = :table'), {"table": "standards"})
         conn.commit()
-
 
 def load_ucs(db):
     ucs = db.query(models.UseCase).all()
@@ -60,6 +60,7 @@ def create_standards(df, db):
             reference_URL = str(r.link),
             keywords = parse_keywords(str(r.keywords)),
             description = str(r.description),
+            updated_by="system"
         )
 
         linked_ucs = []

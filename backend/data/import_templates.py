@@ -41,7 +41,7 @@ def get_or_create_role(session, role_name: str) -> Role | None:
     role_name = role_name.strip().split()[0]
     role = session.query(Role).filter_by(name=role_name).first()
     if not role:
-        role = Role(name=role_name, definition="Fehlt noch", source=None)
+        role = Role(name=role_name, definition="Fehlt noch", source=None, updated_by="system")
         session.add(role)
         session.flush()
         log.info(f"  → Neue Rolle angelegt: '{role_name}'")
@@ -108,7 +108,8 @@ def seed_transactions(suc_conx_id, transactions_index: dict, sub_id, session):
                     dataformat=r.dataformat,
                     timing=r.timing,
                     policies=r.policies,
-                    data_size=r.data_size
+                    data_size=r.data_size,
+                    updated_by="system"
                 )
                 session.add(transaction)
                 session.flush()
@@ -127,7 +128,7 @@ def read_transaction_table(filename):
         filename,
         sheet_name="Transaktionen-Merkmale",
         header=2,
-        names=['number', 'name', 'class_sphere', 'class', 'prop_name', 'prop_definition', 'prop_description',
+        names=['number', 'name', 'class_sphere', 'class', 'prop_name','prop_group', 'prop_definition', 'prop_description',
                'prop_example', 'prop_physical_quantity', 'prop_unit', 'prop_datatype', 'prop_possible_values',
                'prop_reference', 'prop_source']
     )
@@ -163,6 +164,7 @@ def seed_use_case(session, data: dict, filename: str, bpmn_index: dict, transact
         uc_owner_institution=general.get("uc_owner_institution", "").strip() or None,
         uc_owner=general.get("uc_owner", "").strip() or None,
         conx_id=general.get("id", "").strip() or None,
+        updated_by="system"
     )
     session.add(use_case)
     session.flush()
@@ -194,6 +196,7 @@ def seed_use_case(session, data: dict, filename: str, bpmn_index: dict, transact
             distinction_from_other_sucs=(suc_data.get("distinction_to_other_sucs") or "").strip() or None,
             dependency_of_other_sucs=(suc_data.get("dependency_of_other_sucs") or "").strip() or None,
             assumptions=(suc_data.get("assumptions") or "").strip() or None,
+            updated_by="system"
         )
         session.add(sub)
         session.flush()
@@ -243,8 +246,6 @@ def seed_use_case(session, data: dict, filename: str, bpmn_index: dict, transact
 
 
 def seed_folder(folder:str) -> None:
-    db = SessionLocal()
-
     json_files = glob.glob(os.path.join(folder, "*.json"))
     if not json_files:
         log.warning(f"Keine .json Dateien in '{folder}' gefunden.")
@@ -257,34 +258,33 @@ def seed_folder(folder:str) -> None:
     for filepath in sorted(json_files):
         filename = os.path.basename(filepath)
         log.info(f"\nVerarbeite: {filename}")
+
+        db = SessionLocal()
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
             seed_use_case(db, data, filename, bpmn_index, transaction_index)
-        except json.JSONDecodeError as e:
-            log.error(f"JSON-Fehler in '{filename}': {e}")
+            db.commit()
+            log.info(f"{filename}: committed")
         except Exception as e:
             log.error(f"Fehler bei '{filename}': {e}")
             db.rollback()
-            continue
-
-    try:
-        db.commit()
-        log.info("\nAlle Änderungen erfolgreich gespeichert.")
-    except Exception as e:
-        db.rollback()
-        log.error(f"Commit fehlgeschlagen: {e}")
-    finally:
-        db.close()
+        finally:
+            db.close()
 
 
 def reset_tables():
     with engine.connect() as conn:
         conn.execute(text('DELETE FROM "transactions"'))
+        conn.execute(text('DELETE FROM audit_log WHERE table_name = :table'), {"table": "transactions"})
         conn.execute(text('DELETE FROM "subUseCases"'))
+        conn.execute(text('DELETE FROM audit_log WHERE table_name = :table'), {"table": "subUseCases"})
+        conn.execute(text('DELETE FROM "useCase_standards"'))
         conn.execute(text('DELETE FROM "useCase_roles"'))
         conn.execute(text('DELETE FROM "useCases"'))
+        conn.execute(text('DELETE FROM audit_log WHERE table_name = :table'), {"table": "useCases"})
         conn.execute(text('DELETE FROM "roles"'))
+        conn.execute(text('DELETE FROM audit_log WHERE table_name = :table'), {"table": "roles"})
         conn.execute(text('DELETE FROM "subUseCase_roles"'))
         conn.commit()
 

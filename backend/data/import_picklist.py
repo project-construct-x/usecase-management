@@ -5,10 +5,23 @@ from sqlalchemy import text
 import warnings
 import uuid
 from datetime import datetime, timezone
+import re
 
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
-file_name = "input/Picklist-Klassen-und-Merkmale_260608.xlsx"
+file_name = "input/Picklist-Klassen-und-Merkmale_260624.xlsx"
+
+
+def parse_multilang(raw: str) -> dict:
+    if not raw or not str(raw).strip():
+        return {"en": ""}
+
+    matches = re.findall(r'\((\w+),\s*([^)]+)\)', str(raw))
+    if matches:
+        return {lang.strip(): val.strip() for lang, val in matches}
+
+    # Kein Sprachmuster gefunden → als de und en speichern
+    return {"en": str(raw).strip(), "de": str(raw).strip()}
 
 def read_excel(file_name):
     df_classes = pd.read_excel(
@@ -42,6 +55,8 @@ def reset_tables():
         conn.execute(text('DELETE FROM "transaction_properties"'))
         conn.execute(text("DELETE FROM properties"))
         conn.execute(text('DELETE FROM "propertyGroups"'))
+        conn.execute(text('DELETE FROM audit_log WHERE table_name = :table'), {"table": "properties"})
+        conn.execute(text('DELETE FROM audit_log WHERE table_name = :table'), {"table": "propertyGroups"})
         conn.commit()
 
 
@@ -60,9 +75,10 @@ def create_classes(df):
             version=1,
             number_of_revision=0,
             language_of_creator="de-DE",
-            name=r.name,
-            definition=r.definition,
-            category=models.Category.CLASS,
+            name=parse_multilang(r.name),
+            definition=parse_multilang(r.definition),
+            category=models.PropertyGroupCategory.CLASS,
+            updated_by="system"
         )
         classes.append(group)
         classes_ids[r.ID] = group.UUID
@@ -90,9 +106,10 @@ def create_property_groups(df, classes_ids):
             version=1,
             number_of_revision=0,
             language_of_creator="de-DE",
-            name=r.name,
-            definition=r.definition,
-            category=models.Category.DOMAIN,
+            name=parse_multilang(r.name),
+            definition=parse_multilang(r.definition),
+            category=models.PropertyGroupCategory.DOMAIN,
+            updated_by="system"
         )
         property_groups.append(group)
         property_groups_ids[r.ID] = group.UUID
@@ -135,10 +152,10 @@ def create_properties(df, classes_ids, property_groups_ids):
             version=1,
             number_of_revision=1,
             language_of_creator="de-DE",
-            name=r.name,
-            definition=r.definition,
-            description=r.description,
-            examples=r.examples,
+            name=parse_multilang(r.name),
+            definition=parse_multilang(r.definition),
+            description=parse_multilang(r.description),
+            examples=parse_multilang(r.examples),
             groups=group_uuids,
             symbols=[""],
             used_in_countries=["DE", "AT", "CH", "EU"],
@@ -152,9 +169,9 @@ def create_properties(df, classes_ids, property_groups_ids):
             tolerance=[""],
             digital_format=[""],
             limit_values=[r.possible_values],
+            updated_by="system"
         )
         properties.append(prop)
-    print(properties)
     return properties
 
 def fill_db(classes, properties, property_groups):
