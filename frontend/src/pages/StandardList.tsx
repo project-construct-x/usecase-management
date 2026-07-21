@@ -80,14 +80,14 @@ export default function StandardList() {
             title: "Keywords",
             render: (r) => (
               <div style={{display: "flex", flexWrap: "wrap", gap: 4}}>
-                {r.keywords.slice(0, 3).map((keyword, idx) => (
+                {r.keywords?.slice(0, 3).map((keyword, idx) => (
                   <span key={idx} className="badge badge-gray">
                                         {keyword}
                                     </span>
                 ))}
-                {r.keywords.length > 3 && (
+                {(r.keywords?.length ?? 0) > 3 && (
                   <span className="badge badge-primary">
-                                        +{r.keywords.length - 3}
+                                        +{(r.keywords?.length ?? 0)- 3}
                                     </span>
                 )}
               </div>
