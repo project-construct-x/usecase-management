@@ -36,7 +36,7 @@ frontend/out/
 
 # Frontend Environment
 frontend/.env
-frontend/.env.*
+frontend/.env.production
 frontend/!.env.example
 frontend/*.env
 .env.prod
@@ -100,10 +100,11 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+docker-compose.prod.yml
 
 
 # Environment variables
-.env
+.env.old
 .env.*
 !.env.example
 *.env

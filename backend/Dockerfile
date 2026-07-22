@@ -10,4 +10,4 @@ COPY . .
 
 RUN mkdir -p /app/static/images && chmod 777 /app/static/images
 
-EXPOSE 8000
+EXPOSE 8080

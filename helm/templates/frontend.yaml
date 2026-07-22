@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: usecase-management-frontend
+spec:
+  selector:
+    app: usecase-management-frontend
+  ports:
+    - port: 80
+      name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usecase-management-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: usecase-management-frontend
+  template:
+    metadata:
+      labels:
+        app: soundboard-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          ports:
+            - containerPort: 80
