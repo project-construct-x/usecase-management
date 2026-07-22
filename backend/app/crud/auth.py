@@ -9,9 +9,9 @@ import secrets
 from ..db import get_db
 from ..models.users import User, APIKey, RoleEnum
 from ..schemas.users import TokenData
-import os
+from ..config import get_settings
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = get_settings().secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
