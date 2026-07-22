@@ -9,16 +9,8 @@ backend/.Python
 backend/venv/
 backend/env/
 backend/ENV/
-backend/.env
-backend/.env.*
-backend/!.env.example
-backend/*.env
 backend/*.db
 backend/*.sqlite3
-
-# Backend Environment
-backend/.env
-backend/.env.local
 
 # Backend input data
 *.xlsx
@@ -35,15 +27,8 @@ frontend/.next/
 frontend/out/
 
 # Frontend Environment
-frontend/.env
 frontend/.env.production
-frontend/!.env.example
-frontend/*.env
 .env.prod
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
 
 # Frontend logs
 frontend/npm-debug.log*
@@ -104,14 +89,5 @@ docker-compose.prod.yml
 
 
 # Environment variables
-.env.old
-.env.*
-!.env.example
-*.env
-
-# Environment-specific
-.env.local
-.env.development
 .env.production
-.env.prod
-.env.dev
+!.env.example
