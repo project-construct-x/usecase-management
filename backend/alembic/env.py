@@ -30,7 +30,10 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-config.set_main_option("sqlalchemy.url", os.environ.get("DATABASE_URL"))
+from app.config import get_settings
+settings = get_settings()
+if settings.database_url:
+    config.set_main_option("sqlalchemy.url", settings.database_url)
 
 
 def run_migrations_offline() -> None:

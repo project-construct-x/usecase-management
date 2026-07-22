@@ -7,8 +7,6 @@ from .config import IMAGE_DIR, get_settings
 from .exceptions import VersionConflictError
 
 settings = get_settings()
-print(settings)
-exit()
 
 app = FastAPI(
     title="Construct-X UseCase Management API",
@@ -46,14 +44,15 @@ def health() -> Response:
 
 app.mount("/static/images", StaticFiles(directory=IMAGE_DIR), name="images")
 
-app.include_router(users.auth_router)
-app.include_router(users.user_router)
-app.include_router(users.api_router)
-app.include_router(useCases.router)
-app.include_router(subUseCases.router)
-app.include_router(roles.router)
-app.include_router(transactions.router)
-app.include_router(properties.router)
-app.include_router(propertyGroups.router)
-app.include_router(ontology.router)
-app.include_router(standards.router)
+api.include_router(users.auth_router)
+api.include_router(users.user_router)
+api.include_router(users.api_router)
+api.include_router(useCases.router)
+api.include_router(subUseCases.router)
+api.include_router(roles.router)
+api.include_router(transactions.router)
+api.include_router(properties.router)
+api.include_router(propertyGroups.router)
+api.include_router(ontology.router)
+api.include_router(standards.router)
+app.include_router(api)
