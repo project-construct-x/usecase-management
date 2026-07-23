@@ -1,5 +1,9 @@
 name: Construct-X CI Pipeline
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches:
@@ -142,10 +146,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            NGINX_READER_USER=${{ secrets.NGINX_READER_USER }}
-            NGINX_READER_PASS=${{ secrets.NGINX_READER_PASS }}
-            NGINX_ADMIN_USER=${{ secrets.NGINX_ADMIN_USER }}
-            NGINX_ADMIN_PASS=${{ secrets.NGINX_ADMIN_PASS }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
