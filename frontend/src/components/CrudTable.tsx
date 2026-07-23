@@ -222,7 +222,7 @@ export default function CrudTable<T extends { id: number | string }>({
                                             </span>
                     {filterText && (
                       <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                                                    Kein Ergebnis für "{filterText}"
+                                                    Kein Ergebnis für &quot;{filterText}&quot;
                                                 </span>
                     )}
                   </div>

@@ -294,10 +294,10 @@ export default function StandardDetail() {
                     }}
                     placeholder="Schlagwort eingeben..."
                   />
-                  <span className="form-hint">Enter oder "Hinzufügen" drücken zum Hinzufügen</span>
-                </div>
-                <div>
-                  <label className="form-label form-label">Beschreibung</label>
+                  <span className="form-hint">Enter oder &quot;Hinzufügen&quot; drücken zum Hinzufügen</span>
+                                  </div>
+                                  <div>
+                                    <label className="form-label form-label">Beschreibung</label>
                   <textarea
                     rows={3}
                     value={item.description || ""}

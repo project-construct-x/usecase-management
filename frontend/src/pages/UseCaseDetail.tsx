@@ -249,10 +249,10 @@ export default function UseCaseDetail() {
                     }}
                     placeholder="Schlagwort eingeben..."
                   />
-                  <span className="form-hint">Enter oder "Hinzufügen" drücken zum Hinzufügen</span>
-                </div>
-                <div>
-                  <label className="form-label">Beschreibung</label>
+                  <span className="form-hint">Enter oder &quot;Hinzufügen&quot; drücken zum Hinzufügen</span>
+                                  </div>
+                                  <div>
+                                    <label className="form-label">Beschreibung</label>
                   <textarea
                     rows={7}
                     value={item.description || ""}
