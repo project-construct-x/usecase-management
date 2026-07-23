@@ -16,9 +16,8 @@ ingress:
   clusterIssuer: letsencrypt-prod
 
 db:
-  env:
-    user: "user"
-    password: "password"
-    db: "appdb"
+  user: "user"
+  password: "password"
+  db: "appdb"
   storage:
     size: 30Gi

@@ -42,14 +42,12 @@ spec:
             - containerPort: 8080
           env:
             - name: DATABASE_URL
-              value: {{ .Values.backend.env.databaseUrl | quote }}
+              value: {{ printf "postgresql://%s:%s@usecase-management-db:5432/%s" .Values.db.user .Values.db.password .Values.db.db | quote }}
             - name: SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: usecase-management-secret
                   key: SECRET_KEY
-            - name: ALLOWED_ORIGINS
-              value: {{ .Values.backend.env.allowedOrigins | quote }}
           volumeMounts:
             - name: static-images
               mountPath: "/app/static/images"

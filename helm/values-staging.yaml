@@ -14,9 +14,8 @@ ingress:
   host: https://usecase-management.staging.construct-x.net
 
 db:
-  env:
-    user: "user"
-    password: "dev_pass_user1"
-    db: "appdb_dev_user1"
+  user: "user"
+  password: "dev_pass_user1"
+  db: "appdb_dev_user1"
   storage:
     size: 30Gi
