@@ -63,7 +63,7 @@ jobs:
           pip install ruff
           ruff check .
       - name: Run tests
-        run: pytest --exit-zero
+        run: pytest
 
   test-frontend:
     needs: changes
