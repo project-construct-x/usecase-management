@@ -80,6 +80,8 @@ jobs:
       - run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Type Check
+        run: npm run type-check
       - name: Build (Smoke-Test)
         run: npm run build
 
