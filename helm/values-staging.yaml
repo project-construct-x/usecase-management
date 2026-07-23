@@ -1,0 +1,22 @@
+backend:
+  image:
+    repository: usecase-management/backend
+    tag: latest
+  storage:
+    size: 30Gi
+    className: "" #tbd
+
+frontend:
+  image:
+    repository: usecase-management/frontend
+    tag: latest
+
+ingress:
+  host: usecase-management.example.com # tbd
+  className: nginx
+  clusterIssuer: letsencrypt-prod # tbd
+
+db:
+  storage:
+    size: 30Gi
+    className: "" # tbd
