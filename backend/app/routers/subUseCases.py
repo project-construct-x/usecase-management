@@ -89,8 +89,10 @@ async def upload_bpmn_for_subUseCase(
     updated_subUseCase = crud.update_subUseCase_bpmn_url(db, id, public_url)
 
     if not updated_subUseCase:
-        try: os.remove(file_location)
-        except: pass
+        try:
+            os.remove(file_location)
+        except OSError:
+            pass
         raise HTTPException(status_code=500, detail="Datenbank-Update fehlgeschlagen.")
     return updated_subUseCase
 

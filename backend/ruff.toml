@@ -1,0 +1,3 @@
+[lint]
+# Star imports are intentional for tightly-coupled internal schema modules
+ignore = ["F403", "F405"]

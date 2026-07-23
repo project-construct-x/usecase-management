@@ -83,7 +83,7 @@ async def get_user_from_api_key(
 
     key_obj = db.query(APIKey).filter(
         APIKey.key == api_key,
-        APIKey.is_active == True
+        APIKey.is_active.is_(True)
     ).first()
 
     if not key_obj:

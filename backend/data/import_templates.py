@@ -90,7 +90,6 @@ def seed_transactions(suc_conx_id, transactions_index: dict, sub_id, session):
         if suc_conx_id in filename:
             log.info(f"Transaktionstabelle für Sub Use Case {suc_conx_id} gefunden.")
             df_transactions, df_transactions_properties = read_transaction_table(path)
-            transactions = []
             for r in df_transactions.itertuples(index=False):
                 role_out = get_or_create_role(session, r.role_out)
                 role_in = get_or_create_role(session, r.role_in)
@@ -175,7 +174,7 @@ def seed_use_case(session, data: dict, filename: str, bpmn_index: dict, transact
     for suc_data in data.get("sub_use_cases", []):
         suc_name = suc_data.get("name", "").strip()
         if not suc_name:
-            log.warning(f"  SubUseCase ohne Namen übersprungen.")
+            log.warning("  SubUseCase ohne Namen übersprungen.")
             continue
 
         # BPMN-Datei suchen und anhängen
