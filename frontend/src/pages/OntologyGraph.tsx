@@ -259,6 +259,7 @@ export default function OntologyGraph() {
     const laid = applyDagreLayout(filteredNodes, filteredEdges);
     setNodes(laid);
     setEdges(filteredEdges);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawNodes, rawEdges, filterMode]);
 
   return (

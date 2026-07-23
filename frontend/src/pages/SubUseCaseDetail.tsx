@@ -90,6 +90,7 @@ export default function SubUseCaseDetail() {
       }
       setBpmnXml(emptyDiagram);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, searchParams]);
 
   // Warnung bei ungespeicherten Änderungen im BPMN
@@ -120,6 +121,7 @@ export default function SubUseCaseDetail() {
 
   useEffect(() => {
     filterRoles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, roles]);
 
   async function loadSubUseCase() {
@@ -326,7 +328,7 @@ export default function SubUseCaseDetail() {
   function handleModelerReady(modeler: BpmnModeler) {
     modelerRef.current = modeler;
 
-    const eventBus = modeler.get('eventBus') as any;
+    const eventBus = modeler.get('eventBus') as { on: (event: string, callback: () => void) => void };
     let debounceTimer: number | undefined;
 
     eventBus.on('commandStack.changed', () => {
