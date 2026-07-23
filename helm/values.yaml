@@ -1,22 +1,24 @@
 backend:
   image:
-    repository: usecase-management/backend
+    repository: ghcr.io/project-construct-x/usecase-management-backend
     tag: latest
   storage:
     size: 30Gi
-    className: "" #tbd
 
 frontend:
   image:
-    repository: usecase-management/frontend
+    repository: ghcr.io/project-construct-x/usecase-management-frontend
     tag: latest
 
 ingress:
-  host: usecase-management.example.com # tbd
+  host: usecase-management.example.com
   className: nginx
-  clusterIssuer: letsencrypt-prod # tbd
+  clusterIssuer: letsencrypt-prod
 
 db:
+  env:
+    user: "user"
+    password: "password"
+    db: "appdb"
   storage:
     size: 30Gi
-    className: "" # tbd

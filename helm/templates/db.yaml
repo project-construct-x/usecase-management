@@ -29,7 +29,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: db
+      app: usecase-management-db
   template:
     metadata:
       labels:
@@ -42,20 +42,11 @@ spec:
             - containerPort: 5432
           env:
             - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: usecase-management-secret
-                  key: POSTGRES_USER
+              value: {{ .Values.db.env.user | quote }}
             - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: usecase-management-secret
-                  key: POSTGRES_PASSWORD
+              value: {{ .Values.db.env.password | quote }}
             - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  name: usecase-management-secret
-                  key: POSTGRES_DB
+              value: {{ .Values.db.env.db | quote }}
           volumeMounts:
             - name: db-data
               mountPath: /var/lib/postgresql/data

@@ -42,20 +42,14 @@ spec:
             - containerPort: 8080
           env:
             - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: usecase-management-secret
-                  key: DATABASE_URL
+              value: {{ .Values.backend.env.databaseUrl | quote }}
             - name: SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: usecase-management-secret
                   key: SECRET_KEY
             - name: ALLOWED_ORIGINS
-              valueFrom:
-                secretKeyRef:
-                  name: usecase-management-secret
-                  key: ALLOWED_ORIGINS
+              value: {{ .Values.backend.env.allowedOrigins | quote }}
           volumeMounts:
             - name: static-images
               mountPath: "/app/static/images"
