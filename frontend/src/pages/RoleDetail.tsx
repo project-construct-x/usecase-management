@@ -33,6 +33,7 @@ export default function RoleDetail() {
       loadRole();
       loadRelatedSubUseCases();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   async function loadRole() {

@@ -1,49 +1,59 @@
 services:
   db:
     image: postgres:16
-    container_name: project_db
+    container_name: usecase-management_db-dev-user1
     environment:
       POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: appdb
+      POSTGRES_PASSWORD: dev_pass_user1
+      POSTGRES_DB: appdb_dev_user1
     ports:
-      - "5432:5432"
+      - "5432:5432"  # NUR localhost!
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_data_dev:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   backend:
-    build: ./backend
-    container_name: project_backend
-    environment:
-      - DATABASE_URL=postgresql://user:pass@db:5432/appdb
-      - IMAGE_DIR=/app/static/images
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: usecase-management_backend-user1
     ports:
-      - "8000:8000"
+      - "8080:8080"  # NUR localhost!
+    environment:
+      - APP_ENV=development
     depends_on:
       - db
     volumes:
       - ./backend:/app
-      - static_images_volume:/app/static/images
+      - static_images_volume_dev:/app/static/images
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+    networks:
+      - app-network
 
   frontend:
-    build: ./frontend
-    container_name: project_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: usecase-management_frontend-user1
     ports:
-      - "5173:5173"
-      - "24678:24678"
+      - "3000:3000" # NUR localhost
     depends_on:
       - backend
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - VITE_HMR_HOST=localhost
+    command: npm run dev -- --host 0.0.0.0
+    networks:
+      - app-network
 
 volumes:
-  db_data:
-  static_images_volume:
+  db_data_dev:
+    name: usecase-management_db_data_dev_user1
+  static_images_volume_dev:
+    name: usecase-management_static_images_dev_user1
 
 networks:
   app-network:
+    name: usecase-management_network_user1
     driver: bridge

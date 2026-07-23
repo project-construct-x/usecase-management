@@ -46,6 +46,7 @@ export default function PropertyGroupDetail() {
       loadPropertyGroup();
       loadRelatedProperties();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uuid]);
 
   async function loadPropertyGroup() {

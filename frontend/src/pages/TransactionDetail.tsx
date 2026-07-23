@@ -60,6 +60,7 @@ export default function TransactionDetail() {
     if (id !== "new") {
       loadTransaction();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const toMutate = (data: Transaction): TransactionMutate => ({

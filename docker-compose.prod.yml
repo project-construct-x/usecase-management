@@ -23,6 +23,12 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - IMAGE_DIR=${IMAGE_DIR}
       - ENV=${ENV}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - DB_READER_USER=${DB_READER_USER}
+      - DB_READER_PASS=${DB_READER_PASS}
+      - DB_ADMIN_USER=${DB_ADMIN_USER}
+      - DB_ADMIN_PASS=${DB_ADMIN_PASS}
+      - SECRET_KEY=${SECRET_KEY}
     ports:
       - "8000:8000"
     depends_on:
@@ -39,18 +45,14 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
-      args:
-        # Build-Args für Nginx htpasswd
-        NGINX_READER_USER: ${NGINX_READER_USER}
-        NGINX_READER_PASS: ${NGINX_READER_PASS}
-        NGINX_ADMIN_USER: ${NGINX_ADMIN_USER}
-        NGINX_ADMIN_PASS: ${NGINX_ADMIN_PASS}
     container_name: usecase-management_frontend-prod
     ports:
       - "80:80"
     depends_on:
       - backend
     restart: unless-stopped
+    volumes:
+      - ./frontend/.htpasswd:/etc/nginx/.htpasswd:ro
     networks:
       - app-network
 

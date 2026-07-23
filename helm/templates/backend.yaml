@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: usecase-management-backend-images-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.backend.storage.className }}
+  resources:
+    requests:
+      storage: {{ .Values.backend.storage.size }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: usecase-management-backend
+spec:
+  selector:
+    app: usecase-management-backend
+  ports:
+    - port: 8080
+      name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usecase-management-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: usecase-management-backend
+  template:
+    metadata:
+      labels:
+        app: usecase-management-backend
+    spec:
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: usecase-management-secret
+                  key: DATABASE_URL
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: usecase-management-secret
+                  key: SECRET_KEY
+            - name: ALLOWED_ORIGINS
+              valueFrom:
+                secretKeyRef:
+                  name: usecase-management-secret
+                  key: ALLOWED_ORIGINS
+          volumeMounts:
+            - name: static-images
+              mountPath: "/app/static/images"
+      volumes:
+        - name: static-images
+          persistentVolumeClaim:
+            claimName: usecase-management-backend-images-pvc

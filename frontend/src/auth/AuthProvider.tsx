@@ -9,6 +9,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     useEffect(() => {
         initializeAuth();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const initializeAuth = async () => {

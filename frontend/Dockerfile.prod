@@ -3,7 +3,6 @@ FROM node:20 AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-
 RUN npm ci
 
 COPY . .
@@ -14,24 +13,11 @@ RUN npm run build
 # Production stage mit Nginx
 FROM nginx:alpine
 
-# Build-Args für htpasswd
-ARG NGINX_READER_USER
-ARG NGINX_READER_PASS
-ARG NGINX_ADMIN_USER
-ARG NGINX_ADMIN_PASS
-
-# Installiere Apache Utils für htpasswd
-RUN apk add --no-cache apache2-utils
-
 # Kopiere gebaute Files
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Kopiere Nginx Config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Erstelle htpasswd File mit Credentials aus Build-Args
-RUN htpasswd -cb /etc/nginx/.htpasswd ${NGINX_READER_USER} ${NGINX_READER_PASS} && \
-    htpasswd -b /etc/nginx/.htpasswd ${NGINX_ADMIN_USER} ${NGINX_ADMIN_PASS}
 
 EXPOSE 80
 

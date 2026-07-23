@@ -28,8 +28,9 @@ const Login: React.FC = () => {
         }
         await login(username, password);
       }
-    } catch (err: any) {
-      setError(err.message || 'Anmeldung fehlgeschlagen');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Anmeldung fehlgeschlagen';
+      setError(message);
     } finally {
       setIsLoading(false);
     }

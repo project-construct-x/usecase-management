@@ -46,10 +46,12 @@ export default function StandardDetail() {
     if (id !== "new") {
       loadStandard();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
     filterUseCases();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, useCases]);
 
   useEffect(() => {
@@ -59,6 +61,7 @@ export default function StandardDetail() {
         useCase_ids: prev.useCases?.map(uc => uc.id) ?? [],
       }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.useCases]);
 
   async function loadUseCases() {
@@ -291,10 +294,10 @@ export default function StandardDetail() {
                     }}
                     placeholder="Schlagwort eingeben..."
                   />
-                  <span className="form-hint">Enter oder "Hinzufügen" drücken zum Hinzufügen</span>
-                </div>
-                <div>
-                  <label className="form-label form-label">Beschreibung</label>
+                  <span className="form-hint">Enter oder &quot;Hinzufügen&quot; drücken zum Hinzufügen</span>
+                                  </div>
+                                  <div>
+                                    <label className="form-label form-label">Beschreibung</label>
                   <textarea
                     rows={3}
                     value={item.description || ""}

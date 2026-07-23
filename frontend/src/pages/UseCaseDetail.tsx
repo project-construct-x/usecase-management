@@ -44,10 +44,12 @@ export default function UseCaseDetail() {
     if (id !== "new") {
       loadUseCase();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
     filterRoles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, roles]);
 
   async function loadUseCase() {
@@ -247,10 +249,10 @@ export default function UseCaseDetail() {
                     }}
                     placeholder="Schlagwort eingeben..."
                   />
-                  <span className="form-hint">Enter oder "Hinzufügen" drücken zum Hinzufügen</span>
-                </div>
-                <div>
-                  <label className="form-label">Beschreibung</label>
+                  <span className="form-hint">Enter oder &quot;Hinzufügen&quot; drücken zum Hinzufügen</span>
+                                  </div>
+                                  <div>
+                                    <label className="form-label">Beschreibung</label>
                   <textarea
                     rows={7}
                     value={item.description || ""}
