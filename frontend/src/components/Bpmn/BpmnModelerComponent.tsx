@@ -61,8 +61,12 @@ export default function BpmnModelerComponent({ xml, onModelerReady }: BpmnModele
   async function loadXml(modeler: BpmnModeler, bpmnXml: string, viewbox?: object) {
     try {
       await modeler.importXML(bpmnXml);
-      const canvas = modeler.get("canvas") as any;
-      viewbox ? canvas.viewbox(viewbox) : canvas.zoom("fit-viewport");
+      const canvas = modeler.get("canvas") as { viewbox: (box?: object) => void; zoom: (fit: string) => void };
+      if (viewbox) {
+        canvas.viewbox(viewbox);
+      } else {
+        canvas.zoom("fit-viewport");
+      }
     } catch (err) {
       console.error("Fehler beim Laden des BPMN:", err);
     }
@@ -85,8 +89,10 @@ export default function BpmnModelerComponent({ xml, onModelerReady }: BpmnModele
 
       let cachedViewbox: object | undefined;
       try {
-        cachedViewbox = (modelerRef.current.get("canvas") as any).viewbox();
-      } catch (_) {}
+        cachedViewbox = (modelerRef.current.get("canvas") as { viewbox: () => object }).viewbox();
+      } catch {
+        /* viewbox not yet available */
+      }
 
       modelerRef.current.destroy();
 
@@ -106,7 +112,7 @@ export default function BpmnModelerComponent({ xml, onModelerReady }: BpmnModele
       modelerRef.current?.destroy();
       modelerRef.current = null;
     }
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Import XML when it changes

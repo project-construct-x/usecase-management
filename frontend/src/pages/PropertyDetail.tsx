@@ -41,10 +41,12 @@ export default function PropertyDetail() {
     if (uuid !== "new") {
       loadProperty();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uuid]);
 
   useEffect(() => {
     filterPropertyGroups();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, categoryFilter, allPropertyGroups]);
 
   async function loadPropertyGroups() {

@@ -44,10 +44,12 @@ export default function UseCaseDetail() {
     if (id !== "new") {
       loadUseCase();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
     filterRoles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, roles]);
 
   async function loadUseCase() {

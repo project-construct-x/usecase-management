@@ -42,6 +42,7 @@ export default function ClassDetail() {
       loadClass();
       loadRelatedProperties();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uuid]);
 
   async function loadClass() {

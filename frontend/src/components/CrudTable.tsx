@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useEffect} from "react";
+import React, {useState, useMemo} from "react";
 import { Link } from "react-router-dom";
 import { ChevronUp, ChevronDown, Search, Trash2, Edit2, Plus, Inbox } from "lucide-react";
 import type {MultiLangString} from "../types.ts";
@@ -38,8 +38,8 @@ function resolveValue(value: unknown): string | number {
       const en = obj.en?.trim() ?? "";
       return `${de}${en}`
     }
-    if ("name" in value) return String((value as any).name);
-    if ("label" in value) return String((value as any).label);
+    if ("name" in value) return String((value as Record<string, unknown>).name);
+    if ("label" in value) return String((value as Record<string, unknown>).label);
     return "";
   }
   return String(value);
@@ -66,6 +66,10 @@ export default function CrudTable<T extends { id: number | string }>({
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [filterText, setFilterText] = useState("");
 
+  // Default sort: first column ascending when no sort is active
+  const effectiveSortKey = sortKey ?? (columns.length > 0 ? String(columns[0].key) : null);
+  const effectiveSortDirection = sortKey ? sortDirection : (columns.length > 0 ? "asc" as const : null);
+
   // Sortierung und Filterung
   const processedRows = useMemo(() => {
     let filtered = [...rows];
@@ -84,25 +88,25 @@ export default function CrudTable<T extends { id: number | string }>({
     }
 
     // Sortieren
-    if (sortKey && sortDirection) {
+    if (effectiveSortKey && effectiveSortDirection) {
       filtered.sort((a, b) => {
-        const aVal = resolveValue(a[sortKey as keyof T]);
-        const bVal = resolveValue(b[sortKey as keyof T]);
+        const aVal = resolveValue(a[effectiveSortKey as keyof T]);
+        const bVal = resolveValue(b[effectiveSortKey as keyof T]);
 
         if (aVal === bVal) return 0;
 
         if (typeof aVal === "number" && typeof bVal === "number") {
-          return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
+          return effectiveSortDirection === "asc" ? aVal - bVal : bVal - aVal;
         }
 
-        return sortDirection === "asc"
+        return effectiveSortDirection === "asc"
           ? String(aVal).localeCompare(String(bVal))
           : String(bVal).localeCompare(String(aVal));
       });
     }
 
     return filtered;
-  }, [rows, columns, filterText, sortKey, sortDirection]);
+  }, [rows, columns, filterText, effectiveSortKey, effectiveSortDirection]);
 
   const handleSort = (key: string, sortable?: boolean) => {
     if (sortable === false) return;
@@ -118,14 +122,6 @@ export default function CrudTable<T extends { id: number | string }>({
   const handleDelete = async (id: T["id"]) => {
     onDelete(id);
   };
-
-  //Standardmäßig nach der ersten Spalte aufsteigend sortieren
-  useEffect(() => {
-    if (!sortKey && columns.length > 0) {
-      setSortKey(String(columns[0].key));
-      setSortDirection("asc")
-    }
-  }, [columns, sortKey]);
 
   return (
     <div className="table-container animate-fade-in">
@@ -174,7 +170,7 @@ export default function CrudTable<T extends { id: number | string }>({
             <thead className="table-thead">
             <tr>
               {columns.map((col) => {
-                const isSorted = sortKey === String(col.key);
+                const isSorted = effectiveSortKey === String(col.key);
                 return (
                   <th
                     key={String(col.key)}
@@ -188,7 +184,7 @@ export default function CrudTable<T extends { id: number | string }>({
                           <ChevronUp
                             size={12}
                             style={{
-                              color: isSorted && sortDirection === "asc"
+                              color: isSorted && effectiveSortDirection === "asc"
                                 ? "var(--accent)"
                                 : undefined,
                             }}
@@ -196,7 +192,7 @@ export default function CrudTable<T extends { id: number | string }>({
                           <ChevronDown
                             size={12}
                             style={{
-                              color: isSorted && sortDirection === "desc"
+                              color: isSorted && effectiveSortDirection === "desc"
                                 ? "var(--accent)"
                                 : undefined,
                             }}

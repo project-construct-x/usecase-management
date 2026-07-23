@@ -46,10 +46,12 @@ export default function StandardDetail() {
     if (id !== "new") {
       loadStandard();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
     filterUseCases();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, useCases]);
 
   useEffect(() => {
@@ -59,6 +61,7 @@ export default function StandardDetail() {
         useCase_ids: prev.useCases?.map(uc => uc.id) ?? [],
       }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.useCases]);
 
   async function loadUseCases() {
