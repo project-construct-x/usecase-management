@@ -42,12 +42,14 @@ jobs:
 
   test-backend:
     needs: changes
-    if: needs.changes.outputs.backend == 'true'
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
     steps:
+      - if: needs.changes.outputs.backend != 'true'
+        run: exit 0
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -65,12 +67,14 @@ jobs:
 
   test-frontend:
     needs: changes
-    if: needs.changes.outputs.frontend == 'true'
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
     steps:
+      - if: needs.changes.outputs.frontend != 'true'
+        run: exit 0
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
