@@ -11,7 +11,7 @@ frontend:
     tag: latest
 
 ingress:
-  host: https://usecase-management.staging.construct-x.net
+  host: usecase-management.staging.construct-x.net
 
 db:
   user: "user"
