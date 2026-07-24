@@ -42,11 +42,9 @@ jobs:
 
   test-backend:
     needs: changes
-    if: ${{ always() }}
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
-      - if: needs.changes.outputs.backend != 'true'
-        run: exit 0
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -67,11 +65,9 @@ jobs:
 
   test-frontend:
     needs: changes
-    if: ${{ always() }}
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
-      - if: needs.changes.outputs.frontend != 'true'
-        run: exit 0
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -95,7 +91,7 @@ jobs:
     if: |
       always() &&
       needs.changes.outputs.backend == 'true' &&
-      (needs.test-backend.result == 'success') &&
+      (needs.test-backend.result == 'success' || needs.test-backend.result == 'skipped') &&
       github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -128,7 +124,7 @@ jobs:
     if: |
       always() &&
       needs.changes.outputs.frontend == 'true' &&
-      (needs.test-frontend.result == 'success') &&
+      (needs.test-frontend.result == 'success' || needs.test-frontend.result == 'skipped') &&
       github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
