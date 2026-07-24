@@ -11,13 +11,11 @@ frontend:
     tag: latest
 
 ingress:
-  host: usecase-management.example.com
-  className: nginx
-  clusterIssuer: letsencrypt-prod
+  host: https://usecase-management.staging.construct-x.net
 
 db:
   user: "user"
-  password: "password"
-  db: "appdb"
+  password: "dev_pass_user1"
+  db: "appdb_dev_user1"
   storage:
     size: 30Gi

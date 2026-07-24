@@ -27,10 +27,6 @@ frontend/build/
 frontend/.next/
 frontend/out/
 
-# Frontend Environment
-frontend/.env.production
-.env.prod
-
 # Frontend logs
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
@@ -90,5 +86,4 @@ docker-compose.prod.yml
 
 
 # Environment variables
-.env.production
 !.env.example

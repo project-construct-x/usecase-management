@@ -21,7 +21,7 @@ spec:
   template:
     metadata:
       labels:
-        app: soundboard-frontend
+        app: usecase-management-frontend
     spec:
       containers:
         - name: frontend

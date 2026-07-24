@@ -3,11 +3,9 @@ services:
     image: postgres:16
     container_name: usecase-management_db-prod
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_USER: user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    # ports:
-      # - "5432:5432" (kein Ports-Mapping = nur intern erreichbar)
     volumes:
       - db_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -15,51 +13,28 @@ services:
       - app-network
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/project-construct-x/usecase-management-backend:latest
     container_name: usecase-management_backend-prod
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - IMAGE_DIR=${IMAGE_DIR}
-      - ENV=${ENV}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
-      - DB_READER_USER=${DB_READER_USER}
-      - DB_READER_PASS=${DB_READER_PASS}
-      - DB_ADMIN_USER=${DB_ADMIN_USER}
-      - DB_ADMIN_PASS=${DB_ADMIN_PASS}
-      - SECRET_KEY=${SECRET_KEY}
+      APP_ENV: production
     ports:
       - "8000:8000"
     depends_on:
       - db
     restart: unless-stopped
     volumes:
-      # Kein Code-Mount in Production!
       - static_images_volume:/app/static/images
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
-    networks:
-      - app-network
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
+    image: ghcr.io/project-construct-x/usecase-management-frontend:latest
     container_name: usecase-management_frontend-prod
     ports:
       - "80:80"
     depends_on:
       - backend
     restart: unless-stopped
-    volumes:
-      - ./frontend/.htpasswd:/etc/nginx/.htpasswd:ro
-    networks:
-      - app-network
 
 volumes:
   db_data:
   static_images_volume:
-
-networks:
-  app-network:
-    driver: bridge

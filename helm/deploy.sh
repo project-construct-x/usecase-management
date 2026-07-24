@@ -2,8 +2,8 @@
 set -euo pipefail
 
 CLUSTER="borrmann-dev"
-NAMESPACE="soundboard"
-RELEASE="soundboard"
+NAMESPACE="usecase-management-staging"
+RELEASE="usecase-management"
 CHART_DIR="$(dirname "$0")"
 
 usage() {
@@ -15,7 +15,7 @@ Usage: $(basename "$0") <install|upgrade|delete>
   delete    Delete the release (keeps PVCs)
 
 Requires a kubeconfig context named '${CLUSTER}'.
-Run 'secrets.sh write' first to set Discord credentials in the cluster.
+Run 'secrets.sh write' first to set credentials in the cluster.
 EOF
     exit 1
 }
@@ -35,6 +35,7 @@ cmd_install() {
     helm upgrade --install "${RELEASE}" "${CHART_DIR}" \
         --namespace "${NAMESPACE}" \
         --create-namespace \
+        --values "${CHART_DIR}/values-staging.yaml" \
         --wait \
         --timeout=5m \
         "$@"
@@ -46,6 +47,7 @@ cmd_upgrade() {
     check_context
     helm upgrade "${RELEASE}" "${CHART_DIR}" \
         --namespace "${NAMESPACE}" \
+        --values "${CHART_DIR}/values-staging.yaml" \
         --wait \
         --timeout=5m \
         "$@"
