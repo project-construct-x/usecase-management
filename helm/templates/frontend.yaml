@@ -28,3 +28,5 @@ spec:
           image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
           ports:
             - containerPort: 80
+      imagePullSecrets:
+        - name: usecase-mgmnt-registry-creds

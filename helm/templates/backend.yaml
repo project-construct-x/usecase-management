@@ -55,3 +55,5 @@ spec:
         - name: static-images
           persistentVolumeClaim:
             claimName: usecase-management-backend-images-pvc
+      imagePullSecrets:
+        - name: usecase-mgmnt-registry-creds
