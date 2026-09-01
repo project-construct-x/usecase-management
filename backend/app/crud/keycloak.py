@@ -14,7 +14,7 @@ oauth.register(
     ),
     client_id=settings.keycloak_client_id,
     client_secret=settings.keycloak_client_secret,
-    client_kwargs={"scope": "openid profile"},
+    client_kwargs={"scope": "openid profile email"},
 )
 
 _jwks_cache: dict | None = None

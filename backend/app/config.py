@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     cors_origins: str = "*"
     database_url: str = ""
     frontend_url: str
+    session_secret_key: str
     keycloak_server_url: str
     keycloak_internal_url: str  # es werden zwei URLs benötigt, da der Test mit einer Remote-VM sonst nicht funktioniert
     keycloak_external_url: str  # es werden zwei URLs benötigt, da der Test mit einer Remote-VM sonst nicht funktioniert

@@ -44,7 +44,7 @@ app.add_middleware(
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key=get_settings().keycloak_client_secret,
+    secret_key=get_settings().session_secret_key,
 )
 
 api = APIRouter(prefix="/api")
